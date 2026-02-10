@@ -14,6 +14,8 @@ from netCDF4 import Dataset
 import tempfile
 import os
 from io import BytesIO
+import pytz
+from datetime import timedelta
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -50,19 +52,24 @@ Data source: GHRSST satellite observations (90-110°E, 0-14.5°N)
 """)
 
 # Sidebar controls
-st.sidebar.header("⚙️ Settings")
+st.sidebar.header("⚙️ Auto Daily Update")
 
-# Date input
-target_date = st.sidebar.date_input(
-    "Analysis Date",
-    value=datetime(2019, 4, 20),
-    help="Select the end date for DHW calculation"
+# Auto current date
+th_tz = pytz.timezone('Asia/Bangkok')
+now = datetime.now(th_tz)
+target_date = now.date() - timedelta(days=2)
+
+st.sidebar.success(f"📅 **Latest Analysis:** {target_date.strftime('%Y-%m-%d')}")
+st.sidebar.info("✅ Updates automatically with new NOAA data")
+
+# Optional override
+override_date = st.sidebar.date_input(
+    "🔄 Override (optional)",
+    value=target_date,
+    help="Use specific date (leave default for latest)"
 )
+target_date = override_date if override_date != target_date else target_date
 
-# Simulation mode (since we removed file upload for simplicity)
-st.sidebar.info("📝 Demo mode: Using simulated data. Upload real NetCDF files in production version.")
-
-# Processing button
 process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 
 # NOAA OISST base URL pattern
