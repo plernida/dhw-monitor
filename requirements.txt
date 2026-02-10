@@ -4,3 +4,5 @@ plotly
 pandas
 netCDF4
 scipy
+cartopy
+geopandas
