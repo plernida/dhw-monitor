@@ -19,7 +19,7 @@ import pytz
 import warnings
 warnings.filterwarnings('ignore')
 # Your existing DHW functions (from previous code)
-
+"""
 def calculate_dhw(TSeries, baseline, threshold=1.0):
     dhw_weeks = []
     for week in range(6):
@@ -30,6 +30,7 @@ def calculate_dhw(TSeries, baseline, threshold=1.0):
         dhw_week = np.where(hotspot > 0, 1, 0)
         dhw_weeks.append(dhw_week)
     dhw_total
+"""
 # Coordinate data
 @st.cache_data
 def create_coordinates():
