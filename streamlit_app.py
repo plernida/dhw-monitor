@@ -52,7 +52,7 @@ Data source: GHRSST satellite observations (90-110°E, 0-14.5°N)
 """)
 
 # Sidebar controls
-st.sidebar.header("⚙️ Auto Daily Update")
+st.sidebar.header("⚙️ DHW Analysis")
 
 # Date input
 """
@@ -67,46 +67,40 @@ th_tz = pytz.timezone('Asia/Bangkok')
 now = datetime.now(th_tz)
 latest_date = now.date() - timedelta(days=2)  # NOAA lag
 
-# Session state for smart auto-run
-if 'target_date' not in st.session_state:
-    st.session_state.target_date = latest_date
-    st.session_state.auto_run = True
+# Session state for smart behavior
+if 'last_date' not in st.session_state:
+    st.session_state.last_date = latest_date
+    st.session_state.generated = False
 
-# Date override
-override_date = st.sidebar.date_input(
+# Date picker
+target_date = st.sidebar.date_input(
     "📅 Analysis Date",
-    value=st.session_state.target_date,
-    help="Default = latest NOAA data"
+    value=st.session_state.last_date,
+    help="Auto = latest NOAA data"
 )
 
-# Auto-run logic
-if override_date != st.session_state.target_date:
-    st.session_state.target_date = override_date
-    st.session_state.auto_run = True
-    st.rerun()  # Auto rerun when date changes
-
-target_date = st.session_state.target_date
-
-# Show status
-if target_date == latest_date:
-    st.sidebar.success(f"🟢 **Latest Data** ({target_date.strftime('%Y-%m-%d')})")
-else:
-    st.sidebar.info(f"📅 **Custom Date** ({target_date.strftime('%Y-%m-%d')})")
-
-# Auto-run on page load (no button needed)
-if st.session_state.auto_run:
-    st.session_state.auto_run = False  # Only once per session
-    # Your processing code here ↓
-    with st.spinner("🔄 Auto-generating latest DHW analysis..."):
-        # ... your DHW calculation code ...
-        pass  # Replace with actual processing
-    st.success("✅ Analysis complete!")
-else:
-    # Button only appears after first run or date change
-    if st.sidebar.button("🔄 Regenerate", type="primary"):
-        st.session_state.auto_run = True
+# PERFECT LOGIC:
+if (target_date != st.session_state.last_date or 
+    not st.session_state.generated or 
+    'force_regen' not in st.session_state):
+    
+    # Button appears when needed
+    if st.sidebar.button("Generate DHW Analysis", type="primary", use_container_width=True):
+        st.session_state.last_date = target_date
+        st.session_state.generated = True
+        
+        # YOUR PROCESSING CODE HERE ↓
+        with st.spinner("🔄 Generating DHW analysis..."):
+            # ... your DHW calculation code ...
+            thlon, thlat, lon, lat = create_coordinates()
+            # ... calculate dhw_total, etc. ...
+            pass
+        
         st.rerun()
-
+else:
+    # Hide button - show success
+    st.sidebar.success(f"✅ Results for {st.session_state.last_date.strftime('%Y-%m-%d')}")
+    st.sidebar.markdown("---")
 # Simulation mode (since we removed file upload for simplicity)
 st.sidebar.info("📝 Demo mode: Using simulated data. Upload real NetCDF files in production version.")
 
