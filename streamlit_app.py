@@ -102,10 +102,10 @@ else:
     st.sidebar.success(f"✅ Results for {st.session_state.last_date.strftime('%Y-%m-%d')}")
     st.sidebar.markdown("---")
 # Simulation mode (since we removed file upload for simplicity)
-st.sidebar.info("📝 Demo mode: Using simulated data. Upload real NetCDF files in production version.")
+#st.sidebar.info("📝 Demo mode: Using simulated data. Upload real NetCDF files in production version.")
 
 # Processing button
-process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
+#process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 # NOAA OISST base URL pattern
 NOAA_BASE_URL = "https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation-v2-1/access/oisst-avhrr-only-v2.1/"
 
