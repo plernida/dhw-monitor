@@ -14,6 +14,8 @@ from netCDF4 import Dataset
 import tempfile
 import os
 from io import BytesIO
+from datetime import datetime, timedelta
+import pytz
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -53,11 +55,20 @@ Data source: GHRSST satellite observations (90-110°E, 0-14.5°N)
 st.sidebar.header("⚙️ Settings")
 
 # Date input
+"""
 target_date = st.sidebar.date_input(
     "Analysis Date",
     value=datetime(2010, 4, 20),
     help="Select the end date for DHW calculation"
-)
+    )
+"""
+# Thailand timezone
+th_tz = pytz.timezone('Asia/Bangkok')
+now = datetime.now(th_tz)
+target_date = now.date() - timedelta(days=2)  # NOAA 1-2 day lag
+
+st.sidebar.info(f"🕐 **Auto: Latest data** ({target_date.strftime('%Y-%m-%d')})")
+st.sidebar.markdown("---")
 
 # Simulation mode (since we removed file upload for simplicity)
 st.sidebar.info("📝 Demo mode: Using simulated data. Upload real NetCDF files in production version.")
