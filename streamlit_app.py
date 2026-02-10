@@ -257,8 +257,7 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
             showgrid=True,
             gridwidth=1,
             gridcolor="lightgray"
-        )
-    )
+        ))
     return fig
 
 
