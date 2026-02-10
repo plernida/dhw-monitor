@@ -173,7 +173,7 @@ if (not st.session_state.auto_generated or
     st.rerun()
 
 # Success message
-st.sidebar.success(f"✅ {st.session_state.last_date.strftime('%Y-%m-%d')}")
+#st.sidebar.success(f"✅ {st.session_state.last_date.strftime('%Y-%m-%d')}")
 # Simulation mode (since we removed file upload for simplicity)
 #st.sidebar.info("📝 Demo mode: Using simulated data. Upload real NetCDF files in production version.")
 
