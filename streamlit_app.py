@@ -67,51 +67,51 @@ th_tz = pytz.timezone('Asia/Bangkok')
 now = datetime.now(th_tz)
 latest_date = now.date() - timedelta(days=2)  # NOAA lag
 
-## Initialize session state (only once)
-if 'dhw_generated' not in st.session_state:
-    st.session_state.dhw_generated = False
-    st.session_state.dhw_date = latest_date
+# Smart session state
+if 'last_date' not in st.session_state:
+    st.session_state.last_date = latest_date
+    st.session_state.auto_generated = False
 
 # Date picker
 target_date = st.sidebar.date_input(
-    "📅 Analysis Date", 
-    value=st.session_state.dhw_date,
-    min_value=latest_date - timedelta(days=365),  # 1 year back
-    help="Default = latest NOAA data"
+    "📅 Analysis Date",
+    value=st.session_state.last_date
 )
 
-# CRITICAL LOGIC: Show button ONLY when needed
-needs_generation = (
-    not st.session_state.dhw_generated or 
-    st.session_state.dhw_date != target_date
-)
+# ✅ KEEP YOUR ORIGINAL BUTTON
+process_button = st.sidebar.button("Generate DHW Analysis", type="primary")
 
-if needs_generation:
-    # Button appears (refresh OR date change)
-    st.sidebar.markdown("**🔄 Ready to generate**")
-    if st.sidebar.button("Generate DHW Analysis", type="primary", use_container_width=True):
-        st.session_state.dhw_date = target_date
-        st.session_state.dhw_generated = True
-        
-        # Show spinner during processing
-        with st.spinner(f"🔄 Processing {target_date.strftime('%Y-%m-%d')}..."):
-            # YOUR DHW PROCESSING CODE HERE
-            # thlon, thlat = create_coordinates()
-            # dhw_total = calculate_dhw(...)
-            pass  # Replace with your code
-        
-        st.success(f"✅ Generated for {target_date.strftime('%Y-%m-%d')}")
-        st.rerun()
-        
-else:
-    # ✅ HIDE BUTTON COMPLETELY - Show success
-    st.sidebar.markdown("**✅ Ready**")
-    st.sidebar.success(f"Generated: {st.session_state.dhw_date.strftime('%Y-%m-%d')}")
+# PERFECT LOGIC:
+if process_button:
+    # User clicked → Process
+    st.session_state.last_date = target_date
+    st.session_state.auto_generated = True
     
-    # Optional: Small refresh button (different from main button)
-    if st.sidebar.button("🔄 New Data?", use_container_width=True):
-        st.session_state.dhw_generated = False
-        st.rerun()
+    with st.spinner("🔄 Processing..."):
+        # YOUR ORIGINAL PROCESSING CODE HERE (unchanged)
+        thlon, thlat, lon, lat = create_coordinates()
+        # ... your DHW calculations ...
+        pass
+    
+    st.rerun()
+
+# AUTO-RUN ON REFRESH (no button needed)
+if (not st.session_state.auto_generated or 
+    st.session_state.last_date != target_date):
+    
+    st.session_state.auto_generated = True
+    st.session_state.last_date = target_date
+    
+    with st.spinner("🔄 Auto-generating latest data..."):
+        # SAME PROCESSING CODE (duplicate or make function)
+        thlon, thlat, lon, lat = create_coordinates()
+        # ... your DHW calculations ...
+        pass
+    
+    st.rerun()
+
+# Success message
+st.sidebar.success(f"✅ {st.session_state.last_date.strftime('%Y-%m-%d')}")
 # Simulation mode (since we removed file upload for simplicity)
 #st.sidebar.info("📝 Demo mode: Using simulated data. Upload real NetCDF files in production version.")
 
