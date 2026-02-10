@@ -55,7 +55,7 @@ st.sidebar.header("⚙️ Settings")
 # Date input
 target_date = st.sidebar.date_input(
     "Analysis Date",
-    value=datetime(2019, 4, 20),
+    value=datetime(2010, 4, 20),
     help="Select the end date for DHW calculation"
 )
 
@@ -96,8 +96,8 @@ def download_latest_sst(days_back=30):
                     sst_var = nc.createVariable("sst", "f4", ("time", "lat", "lon"))
                     
                     # Simulate SST data extraction (replace with actual parsing)
-                    lon[:] = np.linspace(-179.875, 179.875, 1440)
-                    lat[:] = np.linspace(89.875, -89.875, 720)
+                    lon[:] = np.linspace(90, 110, 1440)
+                    lat[:] = np.linspace(14, 0, 720)
                     sst_var[0,:,:] = np.random.uniform(20, 30, (720, 1440))
                 
                 # Read the simulated data
