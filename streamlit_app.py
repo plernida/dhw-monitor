@@ -332,66 +332,66 @@ if process_button:
         tab1, tab2, tab3 = st.tabs(["📊 Accumulated DHW", "🗓️ Weekly Hotspots", "🌡️ Current SST"])
         
         with tab1:
-    st.subheader(f"Degree Heating Weeks - {target_date.strftime('%Y-%m-%d')}")
+            st.subheader(f"Degree Heating Weeks - {target_date.strftime('%Y-%m-%d')}")
     
-    # NEW LAYOUT: Portrait map LEFT + distribution/stats RIGHT
-    col_left, col_right = st.columns([60, 40])
+            # NEW LAYOUT: Portrait map LEFT + distribution/stats RIGHT
+            col_left, col_right = st.columns([60, 40])
     
-    with col_left:
-        # Portrait DHW map (tall)
-        fig_dhw = create_dhw_map(lon, lat, dhw_total, 
-                                "Accumulated DHW (6 weeks)", 6)
-        fig_dhw.update_layout(height=800, margin=dict(l=50, r=20, t=50, b=50))
-        st.plotly_chart(fig_dhw, use_container_width=True)
-    
-    with col_right:
-        # Upper right: DHW Distribution
-        st.markdown("**📊 DHW Distribution**")
-        dhw_flat = dhw_total.flatten()
-        dhw_counts = pd.Series(dhw_flat).value_counts().sort_index()
+            with col_left:
+                # Portrait DHW map (tall)
+                fig_dhw = create_dhw_map(lon, lat, dhw_total, 
+                                        "Accumulated DHW (6 weeks)", 6)
+                fig_dhw.update_layout(height=800, margin=dict(l=50, r=20, t=50, b=50))
+                st.plotly_chart(fig_dhw, use_container_width=True)
         
-        fig_dist = go.Figure(data=go.Bar(
-            x=dhw_counts.index,
-            y=dhw_counts.values,
-            marker_color=['#4270C2','#D6D6D6','#EBDEC4','#E3CCD9','#C98C59','#A65959','#8C4D1A']
-        ))
-        fig_dist.update_layout(
-            height=350,
-            margin=dict(l=20, r=20, t=40, b=20),
-            title="Distribution by Level"
-        )
-        st.plotly_chart(fig_dist, use_container_width=True)
+            with col_right:
+                # Upper right: DHW Distribution
+                st.markdown("**📊 DHW Distribution**")
+                dhw_flat = dhw_total.flatten()
+                dhw_counts = pd.Series(dhw_flat).value_counts().sort_index()
+                
+                fig_dist = go.Figure(data=go.Bar(
+                    x=dhw_counts.index,
+                    y=dhw_counts.values,
+                    marker_color=['#4270C2','#D6D6D6','#EBDEC4','#E3CCD9','#C98C59','#A65959','#8C4D1A']
+                ))
+                fig_dist.update_layout(
+                    height=350,
+                    margin=dict(l=20, r=20, t=40, b=20),
+                    title="Distribution by Level"
+                )
+                st.plotly_chart(fig_dist, use_container_width=True)
+                
+                # Lower right: Risk Summary
+                st.markdown("**⚠️ Risk Summary**")
+                total_pixels = dhw_total.size
+                risk_data = {
+                    'Alert Level': ['Safe (0)', 'Watch (1-2)', 'Alert (3-4)', 'Bleaching (≥5)'],
+                    'Pixels': [
+                        int(np.sum(dhw_total == 0)),
+                        int(np.sum((dhw_total >= 1) & (dhw_total <= 2))),
+                        int(np.sum((dhw_total >= 3) & (dhw_total <= 4))),
+                        int(np.sum(dhw_total >= 5))
+                    ],
+                    '% Area': [
+                        f"{np.sum(dhw_total == 0)/total_pixels*100:.1f}%",
+                        f"{np.sum((dhw_total >= 1) & (dhw_total <= 2))/total_pixels*100:.1f}%",
+                        f"{np.sum((dhw_total >= 3) & (dhw_total <= 4))/total_pixels*100:.1f}%",
+                        f"{np.sum(dhw_total >= 5)/total_pixels*100:.1f}%"
+                    ]
+                }
+                risk_df = pd.DataFrame(risk_data)
+                st.dataframe(risk_df, use_container_width=True, hide_index=True)
         
-        # Lower right: Risk Summary
-        st.markdown("**⚠️ Risk Summary**")
-        total_pixels = dhw_total.size
-        risk_data = {
-            'Alert Level': ['Safe (0)', 'Watch (1-2)', 'Alert (3-4)', 'Bleaching (≥5)'],
-            'Pixels': [
-                int(np.sum(dhw_total == 0)),
-                int(np.sum((dhw_total >= 1) & (dhw_total <= 2))),
-                int(np.sum((dhw_total >= 3) & (dhw_total <= 4))),
-                int(np.sum(dhw_total >= 5))
-            ],
-            '% Area': [
-                f"{np.sum(dhw_total == 0)/total_pixels*100:.1f}%",
-                f"{np.sum((dhw_total >= 1) & (dhw_total <= 2))/total_pixels*100:.1f}%",
-                f"{np.sum((dhw_total >= 3) & (dhw_total <= 4))/total_pixels*100:.1f}%",
-                f"{np.sum(dhw_total >= 5)/total_pixels*100:.1f}%"
-            ]
-        }
-        risk_df = pd.DataFrame(risk_data)
-        st.dataframe(risk_df, use_container_width=True, hide_index=True)
-    
-    # Alert levels legend (below everything)
-    st.markdown("""
-    **DHW Alert Levels:**
-    - 🔵 **0**: No stress
-    - ⚪ **1-2**: Watch (possible stress)
-    - 🟡 **3-4**: Alert (bleaching likely)
-    - 🟠 **5**: Bleaching Level 1
-    - 🔴 **6+**: Severe bleaching expected
-    """)
+            # Alert levels legend (below everything)
+            st.markdown("""
+            **DHW Alert Levels:**
+            - 🔵 **0**: No stress
+            - ⚪ **1-2**: Watch (possible stress)
+            - 🟡 **3-4**: Alert (bleaching likely)
+            - 🟠 **5**: Bleaching Level 1
+            - 🔴 **6+**: Severe bleaching expected
+            """)
         
         with tab2:
             st.subheader("Weekly Hotspot Analysis")
