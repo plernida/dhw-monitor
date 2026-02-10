@@ -214,7 +214,34 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
         hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>Value: %{z}<extra></extra>'
     ))
     
+    # Add land boundary (simplified Thailand outline)
+    # Gulf of Thailand
+    gulf_lon = [99.5, 101, 102, 102.5, 102, 100.5, 99.5, 99.5]
+    gulf_lat = [6, 6.5, 8, 10, 12, 13.5, 12, 6]
     
+    fig.add_trace(go.Scatter(
+        x=gulf_lon, y=gulf_lat,
+        fill='toself',
+        fillcolor='rgba(180, 180, 180, 0.8)',
+        line=dict(color='rgba(100, 100, 100, 1)', width=1),
+        hoverinfo='skip',
+        showlegend=False
+    ))
+    
+    fig.update_layout(
+        title=dict(text=title, x=0.5, xanchor='center'),
+        xaxis_title='Longitude (°E)',
+        yaxis_title='Latitude (°N)',
+        height=500,
+        hovermode='closest',
+        plot_bgcolor='rgba(240,245,250,1)',
+        xaxis=dict(range=[90, 110]),
+        yaxis=dict(range=[0, 14.5])
+    )
+    
+    return fig
+
+
 
 def create_sst_map(lon, lat, sst_data, title):
     """Create Plotly contour map for SST data"""
