@@ -287,7 +287,30 @@ def create_sst_map(lon, lat, sst_data, title):
     )
     
     return fig
-
+def createdhwmap(lon, lat, dhwdata, title, levels):
+    fig = go.Figure(data=go.Contour(
+        z=dhwdata, x=lon, y=lat,
+        colorscale=...  # Your existing colorscale
+    ))
+    
+    # Add land/sea/ocean background
+    fig.update_geos(
+        resolution=50,  # Higher res for SE Asia detail
+        showland=True, landcolor="lightgray",  # Or "beige"/"#f0f0e8"
+        showocean=True, oceancolor="lightblue",  # Or "white"/"lightcyan"
+        showcoastlines=True, coastlinecolor="black", coastlinewidth=0.5,
+        showlakes=True, lakecolor="lightblue",
+        scope="asia",  # Focus on Asia for performance
+        lonaxis_range=[90, 110],
+        lataxis_range=[0, 14.5],
+        projection_type="mercator"  # Or "natural earth"
+    )
+    
+    fig.update_layout(
+        title=title, height=500,
+        # Remove plotbgcolor; geo handles background
+    )
+    return fig
 # Main processing
 if process_button:
     with st.spinner("Processing data..."):
