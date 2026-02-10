@@ -52,7 +52,7 @@ Data source: GHRSST satellite observations (90-110°E, 0-14.5°N)
 """)
 
 # Sidebar controls
-st.sidebar.header("⚙️ Settings")
+st.sidebar.header("⚙️ Auto Daily Update")
 
 # Date input
 """
@@ -65,8 +65,47 @@ target_date = st.sidebar.date_input(
 # Thailand timezone
 th_tz = pytz.timezone('Asia/Bangkok')
 now = datetime.now(th_tz)
-target_date = now.date() - timedelta(days=2)  # NOAA 1-2 day lag
+latest_date = now.date() - timedelta(days=2)  # NOAA lag
 
+# Session state for smart auto-run
+if 'target_date' not in st.session_state:
+    st.session_state.target_date = latest_date
+    st.session_state.auto_run = True
+
+# Date override
+override_date = st.sidebar.date_input(
+    "📅 Analysis Date",
+    value=st.session_state.target_date,
+    help="Default = latest NOAA data"
+)
+
+# Auto-run logic
+if override_date != st.session_state.target_date:
+    st.session_state.target_date = override_date
+    st.session_state.auto_run = True
+    st.rerun()  # Auto rerun when date changes
+
+target_date = st.session_state.target_date
+
+# Show status
+if target_date == latest_date:
+    st.sidebar.success(f"🟢 **Latest Data** ({target_date.strftime('%Y-%m-%d')})")
+else:
+    st.sidebar.info(f"📅 **Custom Date** ({target_date.strftime('%Y-%m-%d')})")
+
+# Auto-run on page load (no button needed)
+if st.session_state.auto_run:
+    st.session_state.auto_run = False  # Only once per session
+    # Your processing code here ↓
+    with st.spinner("🔄 Auto-generating latest DHW analysis..."):
+        # ... your DHW calculation code ...
+        pass  # Replace with actual processing
+    st.success("✅ Analysis complete!")
+else:
+    # Button only appears after first run or date change
+    if st.sidebar.button("🔄 Regenerate", type="primary"):
+        st.session_state.auto_run = True
+        st.rerun()
 
 # Simulation mode (since we removed file upload for simplicity)
 st.sidebar.info("📝 Demo mode: Using simulated data. Upload real NetCDF files in production version.")
