@@ -18,7 +18,68 @@ from datetime import datetime, timedelta
 import pytz
 import warnings
 warnings.filterwarnings('ignore')
+# Your existing DHW functions (from previous code)
 
+def calculate_dhw(TSeries, baseline, threshold=1.0):
+    dhw_weeks = []
+    for week in range(6):
+        start_idx = (5 - week) * 5
+        end_idx = min(start_idx + 5, TSeries.shape[2])
+        week_mean = np.nanmean(TSeries[:, :, start_idx:end_idx], axis=2)
+        hotspot = week_mean - (baseline + threshold)
+        dhw_week = np.where(hotspot > 0, 1, 0)
+        dhw_weeks.append(dhw_week)
+    dhw_total
+# Coordinate data
+@st.cache_data
+def create_coordinates():
+    """Create coordinate grid for Thai region"""
+    lon = np.linspace(90, 110, 82)
+    lat = np.linspace(0, 14.5, 60)
+    LON, LAT = np.meshgrid(lon, lat)
+    return LON, LAT, lon, lat
+
+@st.cache_data
+def generate_demo_data(seed=42):
+    """Generate realistic demo SST data"""
+    np.random.seed(seed)
+    thlon, thlat, lon, lat = create_coordinates()
+    
+    # Create realistic baseline (warmer in Gulf, cooler in Andaman)
+    baseline = 29.0 + 0.5 * np.sin((thlon - 90) / 20 * np.pi) + 0.3 * np.cos((thlat - 7) / 7 * np.pi)
+    baseline += np.random.normal(0, 0.1, baseline.shape)
+    
+    # Generate time series with warming trend
+    n_days = 30
+    TSeries = np.zeros((60, 82, n_days))
+    
+    for day in range(n_days):
+        # Add warming trend toward present
+        warming = 0.5 * (day / n_days)
+        # Add spatial variability (hotspots near coast)
+        hotspot_mask = ((thlon > 99) & (thlon < 102) & (thlat > 7) & (thlat < 10)).astype(float)
+        daily_sst = baseline + warming + 0.8 * hotspot_mask + np.random.normal(0, 0.2, baseline.shape)
+        TSeries[:, :, day] = daily_sst
+    
+    return TSeries, baseline, thlon, thlat
+
+def calculate_dhw(TSeries, baseline, threshold=1.0):
+    """Calculate Degree Heating Weeks from time series"""
+    dhw_weeks = []
+    sst_weeks = []
+    
+    for week in range(6):
+        start_idx = (5 - week) * 5
+        end_idx = start_idx + 5
+        week_mean = np.nanmean(TSeries[:, :, start_idx:end_idx], axis=2)
+        sst_weeks.append(week_mean)
+        hotspot = week_mean - (baseline + threshold)
+        dhw_week = np.where(hotspot > 0, 1, 0)
+        dhw_weeks.append(dhw_week)
+    
+    # Sum all weeks
+    dhw_total = sum(dhw_weeks)
+    return dhw_weeks, dhw_total, sst_weeks
 # Page configuration
 st.set_page_config(
     page_title="DHW Coral Bleaching Monitor",
@@ -168,74 +229,7 @@ def download_latest_sst(days_back=30):
     TSeries = np.stack(sst_data, axis=2)
     return TSeries
 
-# Your existing DHW functions (from previous code)
-@st.cache_data
-def create_coordinates():
-    lon = np.linspace(90, 110, 82)
-    lat = np.linspace(0, 14.5, 60)
-    LON, LAT = np.meshgrid(lon, lat)
-    return LON, LAT, lon, lat
 
-def calculate_dhw(TSeries, baseline, threshold=1.0):
-    dhw_weeks = []
-    for week in range(6):
-        start_idx = (5 - week) * 5
-        end_idx = min(start_idx + 5, TSeries.shape[2])
-        week_mean = np.nanmean(TSeries[:, :, start_idx:end_idx], axis=2)
-        hotspot = week_mean - (baseline + threshold)
-        dhw_week = np.where(hotspot > 0, 1, 0)
-        dhw_weeks.append(dhw_week)
-    dhw_total
-# Coordinate data
-@st.cache_data
-def create_coordinates():
-    """Create coordinate grid for Thai region"""
-    lon = np.linspace(90, 110, 82)
-    lat = np.linspace(0, 14.5, 60)
-    LON, LAT = np.meshgrid(lon, lat)
-    return LON, LAT, lon, lat
-
-@st.cache_data
-def generate_demo_data(seed=42):
-    """Generate realistic demo SST data"""
-    np.random.seed(seed)
-    thlon, thlat, lon, lat = create_coordinates()
-    
-    # Create realistic baseline (warmer in Gulf, cooler in Andaman)
-    baseline = 29.0 + 0.5 * np.sin((thlon - 90) / 20 * np.pi) + 0.3 * np.cos((thlat - 7) / 7 * np.pi)
-    baseline += np.random.normal(0, 0.1, baseline.shape)
-    
-    # Generate time series with warming trend
-    n_days = 30
-    TSeries = np.zeros((60, 82, n_days))
-    
-    for day in range(n_days):
-        # Add warming trend toward present
-        warming = 0.5 * (day / n_days)
-        # Add spatial variability (hotspots near coast)
-        hotspot_mask = ((thlon > 99) & (thlon < 102) & (thlat > 7) & (thlat < 10)).astype(float)
-        daily_sst = baseline + warming + 0.8 * hotspot_mask + np.random.normal(0, 0.2, baseline.shape)
-        TSeries[:, :, day] = daily_sst
-    
-    return TSeries, baseline, thlon, thlat
-
-def calculate_dhw(TSeries, baseline, threshold=1.0):
-    """Calculate Degree Heating Weeks from time series"""
-    dhw_weeks = []
-    sst_weeks = []
-    
-    for week in range(6):
-        start_idx = (5 - week) * 5
-        end_idx = start_idx + 5
-        week_mean = np.nanmean(TSeries[:, :, start_idx:end_idx], axis=2)
-        sst_weeks.append(week_mean)
-        hotspot = week_mean - (baseline + threshold)
-        dhw_week = np.where(hotspot > 0, 1, 0)
-        dhw_weeks.append(dhw_week)
-    
-    # Sum all weeks
-    dhw_total = sum(dhw_weeks)
-    return dhw_weeks, dhw_total, sst_weeks
 
 def create_dhw_map(lon, lat, dhw_data, title, levels):
     """Create Plotly contour map for DHW data"""
