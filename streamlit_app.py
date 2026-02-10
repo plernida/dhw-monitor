@@ -252,12 +252,14 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
     fig.update_layout(
         title=dict(text=title, x=0.5, xanchor="center"),
         height=500,
+        hovermode="closest",
         geo=dict(  # Ensures geo subplot
             showframe=False,
             showgrid=True,
             gridwidth=1,
             gridcolor="lightgray"
-    ))
+        )
+    )
     return fig
 
 
