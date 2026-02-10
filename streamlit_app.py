@@ -258,7 +258,7 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
             gridwidth=1,
             gridcolor="lightgray"
         )
-    
+    )
     return fig
 
 
@@ -307,7 +307,7 @@ def create_sst_map(lon, lat, sst_data, title):
         lataxis_range=[0, 14.5],
         lonaxis_range=[90, 110],
         projection_type="mercator"
-        )
+    )
     """fig.update_layout(
         title=dict(text=title, x=0.5, xanchor='center'),
         xaxis_title='Longitude (°E)',
