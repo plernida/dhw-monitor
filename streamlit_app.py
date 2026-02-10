@@ -67,18 +67,6 @@ th_tz = pytz.timezone('Asia/Bangkok')
 now = datetime.now(th_tz)
 target_date = now.date() - timedelta(days=2)  # NOAA 1-2 day lag
 
-st.sidebar.success(f"📅 **Latest Analysis:** {target_date.strftime('%Y-%m-%d')}")
-st.sidebar.info("✅ Updates automatically with new NOAA data")
-
-# Optional override
-override_date = st.sidebar.date_input(
-    "🔄 Override (optional)",
-    value=target_date,
-    help="Use specific date (leave default for latest)"
-)
-target_date = override_date if override_date != target_date else target_date
-
-process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 
 # Simulation mode (since we removed file upload for simplicity)
 st.sidebar.info("📝 Demo mode: Using simulated data. Upload real NetCDF files in production version.")
