@@ -6,7 +6,7 @@ Interactive online interface for Degree Heating Weeks monitoring
 
 import streamlit as st
 import numpy as np
-import plotly.graph_objects as go
+import plotly.graph_objects
 import pandas as pd
 from datetime import datetime, timedelta
 import requests
