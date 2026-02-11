@@ -219,27 +219,8 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
     #gulf_lon = [99.5, 101, 102, 102.5, 102, 100.5, 99.5, 99.5]
     #gulf_lat = [6, 6.5, 8, 10, 12, 13.5, 12, 6]
     
-    """fig.add_trace(go.Scatter(
-        x=gulf_lon, y=gulf_lat,
-        fill='toself',
-        fillcolor='rgba(180, 180, 180, 0.8)',
-        line=dict(color='rgba(100, 100, 100, 1)', width=1),
-        hoverinfo='skip',
-        showlegend=False
-    ))"""
-    fig.update_geos(
-        showland=True,
-        landcolor="lightgray",
-        showocean=True,
-        oceancolor="lightblue",
-        showcoastlines=True,
-        coastlinecolor="gray",
-        resolution=50,
-        lataxis_range=[0, 14.5],
-        lonaxis_range=[90, 110],
-        projection_type="mercator"
-    )
-    """fig.update_layout(
+
+    fig.update_layout(
         title=dict(text=title, x=0.5, xanchor='center'),
         xaxis_title='Longitude (°E)',
         yaxis_title='Latitude (°N)',
@@ -248,18 +229,8 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
         plot_bgcolor='rgba(240,245,250,1)',
         xaxis=dict(range=[90, 110]),
         yaxis=dict(range=[0, 14.5])
-    )"""
-    fig.update_layout(
-        title=dict(text=title, x=0.5, xanchor="center"),
-        height=500,
-        hovermode="closest",
-        geo=dict(  # Ensures geo subplot
-            showframe=False,
-            showgrid=True,
-            gridwidth=1,
-            gridcolor="lightgray"
-        )
     )
+
     return fig
 
 
@@ -289,27 +260,8 @@ def create_sst_map(lon, lat, sst_data, title):
     #gulf_lon = [99.5, 101, 102, 102.5, 102, 100.5, 99.5, 99.5]
     #gulf_lat = [6, 6.5, 8, 10, 12, 13.5, 12, 6]
     
-    """fig.add_trace(go.Scatter(
-        x=gulf_lon, y=gulf_lat,
-        fill='toself',
-        fillcolor='rgba(180, 180, 180, 0.8)',
-        line=dict(color='rgba(100, 100, 100, 1)', width=1),
-        hoverinfo='skip',
-        showlegend=False
-    ))"""
-    fig.update_geos(
-        showland=True,
-        landcolor="lightgray",
-        showocean=True,
-        oceancolor="lightblue",
-        showcoastlines=True,
-        coastlinecolor="gray",
-        resolution=50,
-        lataxis_range=[0, 14.5],
-        lonaxis_range=[90, 110],
-        projection_type="mercator"
-    )
-    """fig.update_layout(
+
+    fig.update_layout(
         title=dict(text=title, x=0.5, xanchor='center'),
         xaxis_title='Longitude (°E)',
         yaxis_title='Latitude (°N)',
@@ -318,43 +270,10 @@ def create_sst_map(lon, lat, sst_data, title):
         plot_bgcolor='rgba(240,245,250,1)',
         xaxis=dict(range=[90, 110]),
         yaxis=dict(range=[0, 14.5])
-    )"""
-    fig.update_layout(
-        title=dict(text=title, x=0.5, xanchor="center"),
-        height=500,
-        geo=dict(  # Ensures geo subplot
-            showframe=False,
-            showgrid=True,
-            gridwidth=1,
-            gridcolor="lightgray"
-        )
-        # Remove: xaxis_range, yaxis_range, plotbgcolor
-        )
+    )
+
     return fig
-"""def createdhwmap(lon, lat, dhwdata, title, levels):
-    fig = go.Figure(data=go.Contour(
-        z=dhwdata, x=lon, y=lat,
-        colorscale=...  # Your existing colorscale
-    ))
-    
-    # Add land/sea/ocean background
-    fig.update_geos(
-        resolution=50,  # Higher res for SE Asia detail
-        showland=True, landcolor="lightgray",  # Or "beige"/"#f0f0e8"
-        showocean=True, oceancolor="lightblue",  # Or "white"/"lightcyan"
-        showcoastlines=True, coastlinecolor="black", coastlinewidth=0.5,
-        showlakes=True, lakecolor="lightblue",
-        scope="asia",  # Focus on Asia for performance
-        lonaxis_range=[90, 110],
-        lataxis_range=[0, 14.5],
-        projection_type="mercator"  # Or "natural earth"
-    )
-    
-    fig.update_layout(
-        title=title, height=500,
-        # Remove plotbgcolor; geo handles background
-    )
-    return fig"""
+
 # Main processing
 if process_button:
     with st.spinner("Processing data..."):
