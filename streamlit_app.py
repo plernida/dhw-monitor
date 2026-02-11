@@ -81,46 +81,38 @@ def download_latest_sst(days_back=30):
     st.info(f"📡 Downloading latest {days_back} days from NOAA...")
     
     end_date = datetime.now().date()
-    dates = []
-    
-    for i in range(days_back):
-        date = end_date - timedelta(days=i)
-        dates.append(date.strftime('%Y%m%d'))
-    
-    # Download files (first 5 days for demo, full 30 in production)
+    dates = [enddate - timedelta(days=i) for i in range(days_back)]
     sst_data = []
-    for i, date_str in enumerate(dates[:5]):  # Limit to 5 for demo
+    for i, date_str in enumerate(dates):  # Limit to 5 for demo
         try:
-            url = f"{NOAA_BASE_URL}{date_str}.nc"
+            url = f"{NOAA_BASE_URL}{date_str.strftime('%Y%m%d')}.nc"
             resp = requests.get(url, timeout=30)
             
             if resp.status_code == 200:
-                with Dataset("temp.nc", "w", format="NETCDF4") as nc:
-                    nc.createDimension("lat", 720)
-                    nc.createDimension("lon", 1440)
-                    nc.createDimension("time", 1)
-                    lat = nc.createVariable("lat", "f4", ("lat",))
-                    lon = nc.createVariable("lon", "f4", ("lon",))
-                    sst_var = nc.createVariable("sst", "f4", ("time", "lat", "lon"))
-                    
-                    # Simulate SST data extraction (replace with actual parsing)
-                    lon[:] = np.linspace(-179.875, 179.875, 1440)
-                    lat[:] = np.linspace(89.875, -89.875, 720)
-                    sst_var[0,:,:] = np.random.uniform(20, 30, (720, 1440))
-                
-                # Read the simulated data
-                with Dataset("temp.nc") as nc:
-                    sst = nc.variables['sst'][0,:,:]
-                os.remove("temp.nc")
-                sst_data.append(sst)
-                st.success(f"✅ Downloaded {date_str}")
+                # Real parsing (replace simulation):
+                with Dataset(BytesIO(resp.content)) as nc:  # Use BytesIO for in-memory
+                    # Adjust dimensions/variable names based on actual NOAA OISST v2.1 structure:
+                    # Typically: sst[time=1, lat=720, lon=1440], lat from 89.875 to -89.875 step -0.25
+                    global_lat = nc.variables['lat'][:]
+                    global_lon = nc.variables['lon'][:]
+                    full_sst = nc.variables['sst'][0, :, :]  # time=0 (daily)
+
+                    # Subset to Thai region (90-110E, 0-14.5N)
+                    lat_idx = np.where((global_lat >= 0) & (global_lat <= 14.5))
+                    lon_idx = np.where((global_lon >= 90) & (global_lon <= 110))
+                    sst_subset = full_sst[np.ix_(lat_idx, lon_idx)]  # Shape ~60x82
+
+                    # Resize/interp to match your 60x82 grid if needed (using scipy.interpolate if varying)
+                    sstdata.append(sst_subset)
+                    st.success(f"Downloaded {datestr.strftime('%Y-%m-%d')}")
             else:
-                st.warning(f"❌ {date_str} not found")
-        except:
-            st.warning(f"⚠️ Error downloading {date_str}")
-    
-    # Stack into time series
-    TSeries = np.stack(sst_data, axis=2)
+                st.warning(f"{datestr.strftime('%Y-%m-%d')} not found")
+                # Fallback: append NaNs or skip
+                sstdata.append(np.full((60, 82), np.nan))
+        except Exception as e:
+            st.warning(f"Error downloading {datestr.strftime('%Y-%m-%d')}: {e}")
+            sstdata.append(np.full((60, 82), np.nan))
+    TSeries = np.stack(sstdata, axis=2)  # Shape: (60 lat, 82 lon, 30 time)
     return TSeries
 
 
