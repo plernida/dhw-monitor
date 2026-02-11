@@ -76,7 +76,7 @@ process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 NOAA_BASE_URL = "https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation-v2-1/access/oisst-avhrr-only-v2.1/"
 
 @st.cache_data(ttl=3600)  # Cache for 1 hour
-def download_latest_sst(days_back=30):
+def download_latest_sst(days_back=1):
     """Download latest 30 days of NOAA OISST data"""
     st.info(f"📡 Downloading latest {days_back} days from NOAA...")
     
