@@ -73,7 +73,7 @@ target_date = override_date if override_date != target_date else target_date
 process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 
 # NOAA OISST base URL pattern
-NOAA_BASE_URL = "https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation-v2-1/access/oisst-avhrr-only-v2.1/"
+NOAA_BASE_URL = "https://www.ncei.noaa.gov/thredds/fileServer/OisstBase/NetCDF/V2.1/AVHRR/"
 
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 @st.cache_data(ttl=3600)
@@ -88,7 +88,7 @@ def download_latest_sst(days_back=30):
         target_date = enddate - timedelta(days=i)
         yyyymm = target_date.strftime('%Y%m')
         datestr = target_date.strftime('%Y%m%d')
-        url = f"{NOAA_BASE_URL}{yyyymm}/oisst-avhrr-only-sst-{yyyymm}{datestr[6:8]}.nc" 
+        url = f"{NOAA_BASE_URL}{yyyymm}/oisst-avhrr-v02r01.{yyyymm}{datestr[6:8]}.nc"
         
         try:
             with Dataset(url) as nc:
