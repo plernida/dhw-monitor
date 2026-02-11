@@ -85,7 +85,7 @@ def download_latest_sst(days_back=5):
     sst_data = []
     for i, date_str in enumerate(dates):  # Limit to 5 for demo
         try:
-            url = f"{NOAA_BASE_URL}{date_str.strftime('%Y%m%d')}.nc"
+            url = f"{NOAA_BASE_URL}{date_str}.nc"
             resp = requests.get(url, timeout=30)
             
             if resp.status_code == 200:
@@ -102,15 +102,22 @@ def download_latest_sst(days_back=5):
                     lon_idx = np.where((global_lon >= 90) & (global_lon <= 110))
                     sst_subset = full_sst[np.ix_(lat_idx, lon_idx)]  # Shape ~60x82
 
+                    # Resize to exact 60x82 if needed (interp for consitency)
+                    th_lon = np.linspace(90, 110, 82)
+                    th_lat = np.linspace(0, 14.5, 60)
+                    ThLon, ThLat = np.meshgrid(th_lon, th_lat)
+                    points = np.stack([global_lon[lon_idx], global_lat[lat_idx][:, None]], axis=-1).reshape(-1, 2)
+                    
                     # Resize/interp to match your 60x82 grid if needed (using scipy.interpolate if varying)
+                    sst_subset = griddata(points, sst_subset.flatten(), (ThLon, ThLat), method='linear')
                     sstdata.append(sst_subset)
-                    st.success(f"Downloaded {date_str.strftime('%Y-%m-%d')}")
+                st.success(f"Downloaded {date_str}")
             else:
-                st.warning(f"{date_str.strftime('%Y-%m-%d')} not found")
+                st.warning(f"{date_str} not found")
                 # Fallback: append NaNs or skip
                 sstdata.append(np.full((60, 82), np.nan))
         except Exception as e:
-            st.warning(f"Error downloading {date_str.strftime('%Y-%m-%d')}: {e}")
+            st.warning(f"Error {date_str}: {str(e)[:50]}")
             sstdata.append(np.full((60, 82), np.nan))
     TSeries = np.stack(sstdata, axis=2)  # Shape: (60 lat, 82 lon, 30 time)
     return TSeries
