@@ -227,7 +227,7 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
         hoverinfo='skip',
         showlegend=False
     ))"""
-    fig.update_geos(
+    """fig.update_geos(
         showland=True,
         landcolor="lightgray",
         showocean=True,
@@ -238,8 +238,8 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
         lataxis_range=[0, 14.5],
         lonaxis_range=[90, 110],
         projection_type="mercator"
-    )
-    """fig.update_layout(
+    )"""
+    fig.update_layout(
         title=dict(text=title, x=0.5, xanchor='center'),
         xaxis_title='Longitude (°E)',
         yaxis_title='Latitude (°N)',
@@ -248,8 +248,8 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
         plot_bgcolor='rgba(240,245,250,1)',
         xaxis=dict(range=[90, 110]),
         yaxis=dict(range=[0, 14.5])
-    )"""
-    fig.update_layout(
+    )
+    """fig.update_layout(
         title=dict(text=title, x=0.5, xanchor="center"),
         height=500,
         hovermode="closest",
@@ -259,7 +259,7 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
             gridwidth=1,
             gridcolor="lightgray"
         )
-    )
+    )"""
     return fig
 
 
@@ -297,7 +297,7 @@ def create_sst_map(lon, lat, sst_data, title):
         hoverinfo='skip',
         showlegend=False
     ))"""
-    fig.update_geos(
+    """fig.update_geos(
         showland=True,
         landcolor="lightgray",
         showocean=True,
@@ -308,8 +308,8 @@ def create_sst_map(lon, lat, sst_data, title):
         lataxis_range=[0, 14.5],
         lonaxis_range=[90, 110],
         projection_type="mercator"
-    )
-    """fig.update_layout(
+    )"""
+    fig.update_layout(
         title=dict(text=title, x=0.5, xanchor='center'),
         xaxis_title='Longitude (°E)',
         yaxis_title='Latitude (°N)',
@@ -318,8 +318,8 @@ def create_sst_map(lon, lat, sst_data, title):
         plot_bgcolor='rgba(240,245,250,1)',
         xaxis=dict(range=[90, 110]),
         yaxis=dict(range=[0, 14.5])
-    )"""
-    fig.update_layout(
+    )
+    """fig.update_layout(
         title=dict(text=title, x=0.5, xanchor="center"),
         height=500,
         geo=dict(  # Ensures geo subplot
@@ -329,7 +329,7 @@ def create_sst_map(lon, lat, sst_data, title):
             gridcolor="lightgray"
         )
         # Remove: xaxis_range, yaxis_range, plotbgcolor
-        )
+        )"""
     return fig
 """def createdhwmap(lon, lat, dhwdata, title, levels):
     fig = go.Figure(data=go.Contour(
