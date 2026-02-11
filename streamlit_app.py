@@ -77,7 +77,7 @@ NOAA_BASE_URL = "https://www.ncei.noaa.gov/thredds/fileServer/OisstBase/NetCDF/V
 
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 @st.cache_data(ttl=3600)
-def download_latest_sst(days_back=30):
+def download_latest_sst(days_back=5):
     st.info(f"Fetching latest {days_back} days OISST v2.1 via THREDDS...")
     enddate = datetime.now().date()
     sstdata = []
