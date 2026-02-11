@@ -359,10 +359,14 @@ def create_sst_map(lon, lat, sst_data, title):
 if process_button:
     with st.spinner("Processing data..."):
         # Generate demo data
-        TSeries, baseline, thlon, thlat = generate_demo_data()
-        
+        #TSeries, baseline, thlon, thlat = generate_demo_data()
+        TSeries = download_latest_sst()
         # Get coordinates
         LON, LAT, lon, lat = create_coordinates()
+        
+        # baseline
+        baseline = 29.0 + 0.5 * np.sin((thlon - 90) / 20 * np.pi) + 0.3 * np.cos((thlat - 7) / 7 * np.pi)  # Keep your existing baseline logic
+        baseline += np.random.normal(0, 0.1, baseline.shape)  # Add noise if desired
         
         # Calculate DHW
         dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, baseline)
