@@ -88,9 +88,7 @@ def download_latest_sst(days_back=30):
         target_date = enddate - timedelta(days=i)
         yyyymm = target_date.strftime('%Y%m')
         datestr = target_date.strftime('%Y%m%d')
-        
-        # OPeNDAP URL for daily file
-        url = f"{NOAA_BASE_URL}{yyyymm}/oisst-avhrr-only-sst-{yyyymm}-{datestr}.nc"
+        url = f"{NOAA_BASE_URL}{yyyymm}/oisst-avhrr-only-sst-{yyyymm}{datestr[6:8]}.nc" 
         
         try:
             with Dataset(url) as nc:
