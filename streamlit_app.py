@@ -76,51 +76,47 @@ process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 NOAA_BASE_URL = "https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation-v2-1/access/oisst-avhrr-only-v2.1/"
 
 @st.cache_data(ttl=3600)  # Cache for 1 hour
+@st.cache_data(ttl=3600)
 def download_latest_sst(days_back=30):
-    """Download latest 30 days of NOAA OISST data"""
-    st.info(f"📡 Downloading latest {days_back} days from NOAA...")
-    
-    end_date = datetime.now().date()
-    dates = []
+    st.info(f"Fetching latest {days_back} days OISST v2.1 via THREDDS...")
+    enddate = datetime.now().date()
+    sstdata = []
+    th_lon = np.linspace(90, 110, 82)
+    th_lat = np.linspace(0, 14.5, 60)
     
     for i in range(days_back):
-        date = end_date - timedelta(days=i)
-        dates.append(date.strftime('%Y%m%d'))
-    
-    # Download files (first 5 days for demo, full 30 in production)
-    sst_data = []
-    for i, date_str in enumerate(dates[:5]):  # Limit to 5 for demo
+        target_date = enddate - timedelta(days=i)
+        yyyymm = target_date.strftime('%Y%m')
+        datestr = target_date.strftime('%Y%m%d')
+        
+        # OPeNDAP URL for daily file
+        url = f"{NOAA_BASE_URL}{yyyymm}/oisst-avhrr-only-sst-{yyyymm}-{datestr}.nc"
+        
         try:
-            url = f"{NOAA_BASE_URL}{date_str}.nc"
-            resp = requests.get(url, timeout=30)
-            
-            if resp.status_code == 200:
-                with Dataset("temp.nc", "w", format="NETCDF4") as nc:
-                    nc.createDimension("lat", 720)
-                    nc.createDimension("lon", 1440)
-                    nc.createDimension("time", 1)
-                    lat = nc.createVariable("lat", "f4", ("lat",))
-                    lon = nc.createVariable("lon", "f4", ("lon",))
-                    sst_var = nc.createVariable("sst", "f4", ("time", "lat", "lon"))
-                    
-                    # Simulate SST data extraction (replace with actual parsing)
-                    lon[:] = np.linspace(-179.875, 179.875, 1440)
-                    lat[:] = np.linspace(89.875, -89.875, 720)
-                    sst_var[0,:,:] = np.random.uniform(20, 30, (720, 1440))
+            with Dataset(url) as nc:
+                # Global coords (standard OISST v2.1)
+                g_lat = nc.variables['lat'][:]
+                g_lon = nc.variables['lon'][:]
+                sst_full = nc.variables['sst'][0, :, :]  # Remove fillValue (-999.)
+                sst_full = np.where(sst_full < 0, np.nan, sst_full * 0.01)  # Scale & NaN land/ice
                 
-                # Read the simulated data
-                with Dataset("temp.nc") as nc:
-                    sst = nc.variables['sst'][0,:,:]
-                os.remove("temp.nc")
-                sst_data.append(sst)
-                st.success(f"✅ Downloaded {date_str}")
-            else:
-                st.warning(f"❌ {date_str} not found")
-        except:
-            st.warning(f"⚠️ Error downloading {date_str}")
+                # Subset indices
+                lat_idx = slice(np.searchsorted(g_lat, 14.5, side='right'), np.searchsorted(g_lat, 0, side='left')-1)
+                lon_idx = slice(np.searchsorted(g_lon, 90), np.searchsorted(g_lon, 110))
+                sst_subset = sst_full[lat_idx, lon_idx]
+                
+                # Interp to your 60x82 grid
+                points = np.column_stack([g_lon[lon_idx][:,None].ravel(), g_lat[lat_idx][:,None].ravel()])
+                values = sst_subset.ravel()
+                sst_interp = griddata(points, values, (np.meshgrid(th_lon, th_lat)), method='linear')
+                sstdata.append(sst_interp)
+            st.success(f"✅ {datestr}")
+        except Exception as e:
+            st.warning(f"⚠️ {datestr}: {str(e)[:40]}")
+            sstdata.append(np.full((60, 82), np.nan))
     
-    # Stack into time series
-    TSeries = np.stack(sst_data, axis=2)
+    TSeries = np.stack(sstdata, axis=2)  # (60,82,days_back)
+    st.success(f"Loaded TSeries shape: {TSeries.shape}")
     return TSeries
 
 
@@ -278,11 +274,15 @@ def create_sst_map(lon, lat, sst_data, title):
 if process_button:
     with st.spinner("Processing data..."):
         # Generate demo data
-        TSeries, baseline, thlon, thlat = generate_demo_data()
+        TSeries = download_latest_sst()
         
         # Get coordinates
         LON, LAT, lon, lat = create_coordinates()
-        
+
+        # baseline
+        baseline = 29.0 + 0.5 * np.sin((LON - 90) / 20 * np.pi) + 0.3 * np.cos((LAT - 7) / 7 * np.pi)  # Keep your existing baseline logic
+        baseline += np.random.normal(0, 0.1, baseline.shape)  # Add noise if desired
+
         # Calculate DHW
         dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, baseline)
         
