@@ -85,7 +85,7 @@ def download_latest_sst(days_back=5):
     for i in range(days_back):
         target_date = end_date - timedelta(days=i)
         dates.append(target_date.strftime('%Y%m%d'))
-    sst_data = []
+    sstdata = []
     for i, date_str in enumerate(dates):  # Limit to 5 for demo
         try:
             url = f"{NOAA_BASE_URL}{date_str}.nc"
