@@ -123,7 +123,7 @@ def download_latest_sst(days_back=5):
             st.warning(f"Error {date_str}: {str(e)[:50]}")
             sstdata.append(np.full((60, 82), np.nan))
     TSeries = np.stack(sstdata, axis=2)  # Shape: (60 lat, 82 lon, 30 time)
-    return TSeries, ThLon, ThLat
+    return TSeries
 
 
 # Coordinate data
@@ -367,7 +367,7 @@ if process_button:
         LON, LAT, lon, lat = create_coordinates()
         
         # baseline
-        baseline = 29.0 + 0.5 * np.sin((ThLon - 90) / 20 * np.pi) + 0.3 * np.cos((ThLat - 7) / 7 * np.pi)  # Keep your existing baseline logic
+        baseline = 29.0 + 0.5 * np.sin((lon - 90) / 20 * np.pi) + 0.3 * np.cos((lat - 7) / 7 * np.pi)  # Keep your existing baseline logic
         baseline += np.random.normal(0, 0.1, baseline.shape)  # Add noise if desired
         
         # Calculate DHW
