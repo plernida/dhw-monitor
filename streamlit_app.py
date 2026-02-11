@@ -367,7 +367,7 @@ if process_button:
         LON, LAT, lon, lat = create_coordinates()
         
         # baseline
-        baseline = 29.0 + 0.5 * np.sin((thlon - 90) / 20 * np.pi) + 0.3 * np.cos((thlat - 7) / 7 * np.pi)  # Keep your existing baseline logic
+        baseline = 29.0 + 0.5 * np.sin((th_lon - 90) / 20 * np.pi) + 0.3 * np.cos((th_lat - 7) / 7 * np.pi)  # Keep your existing baseline logic
         baseline += np.random.normal(0, 0.1, baseline.shape)  # Add noise if desired
         
         # Calculate DHW
