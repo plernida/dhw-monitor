@@ -81,7 +81,7 @@ def download_latest_sst(days_back=30):
     st.info(f"📡 Downloading latest {days_back} days from NOAA...")
     
     end_date = datetime.now().date()
-    dates = [enddate - timedelta(days=i) for i in range(days_back)]
+    dates = [end_date - timedelta(days=i) for i in range(days_back)]
     sst_data = []
     for i, date_str in enumerate(dates):  # Limit to 5 for demo
         try:
