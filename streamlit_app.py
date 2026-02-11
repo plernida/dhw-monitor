@@ -76,12 +76,12 @@ process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 NOAA_BASE_URL = "https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation-v2-1/access/oisst-avhrr-only-v2.1/"
 
 @st.cache_data(ttl=3600)  # Cache for 1 hour
-def download_latest_sst(days_back=1):
+def download_latest_sst(days_back=5):
     """Download latest 30 days of NOAA OISST data"""
     st.info(f"📡 Downloading latest {days_back} days from NOAA...")
     
     end_date = datetime.now().date()
-    dates = [end_date - timedelta(days=i) for i in range(days_back)]
+    dates = [end_date - timedelta(days=i).strftime('%Y%m%d') for i in range(days_back)]
     sst_data = []
     for i, date_str in enumerate(dates):  # Limit to 5 for demo
         try:
@@ -104,13 +104,13 @@ def download_latest_sst(days_back=1):
 
                     # Resize/interp to match your 60x82 grid if needed (using scipy.interpolate if varying)
                     sstdata.append(sst_subset)
-                    st.success(f"Downloaded {datestr.strftime('%Y-%m-%d')}")
+                    st.success(f"Downloaded {date_str.strftime('%Y-%m-%d')}")
             else:
-                st.warning(f"{datestr.strftime('%Y-%m-%d')} not found")
+                st.warning(f"{date_str.strftime('%Y-%m-%d')} not found")
                 # Fallback: append NaNs or skip
                 sstdata.append(np.full((60, 82), np.nan))
         except Exception as e:
-            st.warning(f"Error downloading {datestr.strftime('%Y-%m-%d')}: {e}")
+            st.warning(f"Error downloading {date_str.strftime('%Y-%m-%d')}: {e}")
             sstdata.append(np.full((60, 82), np.nan))
     TSeries = np.stack(sstdata, axis=2)  # Shape: (60 lat, 82 lon, 30 time)
     return TSeries
