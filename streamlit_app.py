@@ -83,7 +83,7 @@ def download_latest_sst(days_back=5):
     end_date = datetime.now().date()
     dates = []
     for i in range(days_back):
-        target_date = enddate - timedelta(days=i)
+        target_date = end_date - timedelta(days=i)
         dates.append(target_date.strftime('%Y%m%d'))
     sst_data = []
     for i, date_str in enumerate(dates):  # Limit to 5 for demo
