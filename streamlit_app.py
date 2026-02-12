@@ -138,29 +138,6 @@ def create_coordinates():
     LON, LAT = np.meshgrid(lon, lat)
     return LON, LAT, lon, lat
 
-@st.cache_data
-def generate_demo_data(seed=42):
-    """Generate realistic demo SST data"""
-    np.random.seed(seed)
-    thlon, thlat, lon, lat = create_coordinates()
-    
-    # Create realistic baseline (warmer in Gulf, cooler in Andaman)
-    baseline = 29.0 + 0.5 * np.sin((thlon - 90) / 20 * np.pi) + 0.3 * np.cos((thlat - 7) / 7 * np.pi)
-    baseline += np.random.normal(0, 0.1, baseline.shape)
-    
-    # Generate time series with warming trend
-    n_days = 30
-    TSeries = np.zeros((60, 82, n_days))
-    
-    for day in range(n_days):
-        # Add warming trend toward present
-        warming = 0.5 * (day / n_days)
-        # Add spatial variability (hotspots near coast)
-        hotspot_mask = ((thlon > 99) & (thlon < 102) & (thlat > 7) & (thlat < 10)).astype(float)
-        daily_sst = baseline + warming + 0.8 * hotspot_mask + np.random.normal(0, 0.2, baseline.shape)
-        TSeries[:, :, day] = daily_sst
-    
-    return TSeries, baseline, thlon, thlat
 
 def calculate_dhw(TSeries, baseline, threshold=1.0):
     """Calculate Degree Heating Weeks from time series"""
@@ -238,7 +215,64 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
 
     return fig
 
+def create_dhw_map_mapbox(lon, lat, dhw_data, title):
+    lon2d, lat2d = np.meshgrid(lon, lat)
 
+    fig = go.Figure(go.Densitymapbox(
+        lon=lon2d.flatten(),
+        lat=lat2d.flatten(),
+        z=dhw_data.flatten(),
+        radius=15,
+        colorscale=[
+            [0.0, "rgb(66,112,194)"],
+            [0.3, "rgb(214,214,214)"],
+            [0.5, "rgb(235,222,196)"],
+            [0.7, "rgb(201,140,89)"],
+            [1.0, "rgb(140,77,26)"],
+        ],
+        zmin=0,
+        zmax=6,
+        colorbar=dict(title="DHW (weeks)")
+    ))
+
+    fig.update_layout(
+        title=title,
+        mapbox=dict(
+            style="carto-positron",   # 👈 land + coastlines
+            center=dict(lat=7.5, lon=100),
+            zoom=4.3
+        ),
+        margin=dict(l=0, r=0, t=40, b=0),
+        height=800
+    )
+
+    return fig
+def create_sst_map_mapbox(lon, lat, sst_data, title):
+    lon2d, lat2d = np.meshgrid(lon, lat)
+
+    fig = go.Figure(go.Densitymapbox(
+        lon=lon2d.flatten(),
+        lat=lat2d.flatten(),
+        z=sst_data.flatten(),
+        radius=12,
+        colorscale="jet",
+        zmin=28,
+        zmax=32,
+        colorbar=dict(title="SST (°C)")
+    ))
+
+    fig.update_layout(
+        title=title,
+        mapbox=dict(
+            style="stamen-terrain",  # 🌄 topography
+            center=dict(lat=7.5, lon=100),
+            zoom=4.3
+        ),
+        margin=dict(l=0, r=0, t=40, b=0),
+        height=600
+    )
+
+    return fig
 
 def create_sst_map(lon, lat, sst_data, title):
     """Create Plotly contour map for SST data"""
@@ -325,11 +359,12 @@ if process_button:
             
             with col_left:
                 # Portrait DHW map (tall)
-                fig_dhw = create_dhw_map(lon, lat, dhw_total, 
-                                        "Accumulated DHW (6 weeks)", 6)
-                fig_dhw.update_layout(height=800, margin=dict(l=50, r=20, t=50, b=50))
-                st.plotly_chart(fig_dhw, width='stretch')
-            
+                fig_dhw = create_dhw_map_mapbox(
+                    lon, lat, dhw_total,
+                    "Accumulated DHW (6 weeks)"
+                )
+                st.plotly_chart(fig_dhw, use_container_width=True)
+                            
             with col_right:
                 # Upper right: DHW Distribution
                 st.markdown("**📊 DHW Distribution**")
@@ -404,7 +439,7 @@ if process_button:
             st.subheader(f"Sea Surface Temperature - {target_date.strftime('%Y-%m-%d')}")
             
             # SST map
-            fig_sst = create_sst_map(lon, lat, sst_current,
+            fig_sst = create_sst_map_mapbox(lon, lat, sst_current,
                                     "Current Sea Surface Temperature")
             st.plotly_chart(fig_sst, width='stretch')
             
