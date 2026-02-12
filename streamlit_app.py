@@ -218,25 +218,27 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
 def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     lon2d, lat2d = np.meshgrid(lon, lat)
 
-    fig = go.Figure(go.Scattermapbox(
+    fig = go.Figure(go.Densitymapbox(
         lon=lon2d.flatten(),
         lat=lat2d.flatten(),
-        mode="markers",
-        marker=dict(
-            size=8,
-            color=dhw_data.flatten(),
-            colorscale="Hot",
-            cmin=1,
-            cmax=6,
-            opacity=0.9,
-            colorbar=dict(title="DHW")
-        )
+        z=dhw_data.flatten(),
+        radius=15,
+        colorscale=[
+            [0.0, "rgb(66,112,194)"],
+            [0.3, "rgb(214,214,214)"],
+            [0.5, "rgb(235,222,196)"],
+            [0.7, "rgb(201,140,89)"],
+            [1.0, "rgb(140,77,26)"],
+        ],
+        zmin=0,
+        zmax=6,
+        colorbar=dict(title="DHW (weeks)")
     ))
 
     fig.update_layout(
         title=title,
         mapbox=dict(
-            style="stamen-terrain",   # now WORKS
+            style="carto-positron",   # 👈 land + coastlines
             center=dict(lat=7.5, lon=100),
             zoom=4.3
         ),
@@ -263,7 +265,7 @@ def create_sst_map_mapbox(lon, lat, sst_data, title):
     fig.update_layout(
         title=title,
         mapbox=dict(
-            style="satellite",  # 🌄 topography
+            style="stamen-terrain",  # 🌄 topography
             center=dict(lat=7.5, lon=100),
             zoom=4.3
         ),
