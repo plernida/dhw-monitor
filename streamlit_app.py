@@ -96,29 +96,35 @@ def download_latest_sst(days_back=48):
             f"accept=netcdf3"
         )
         try:
-            with Dataset(url) as nc:
-                # Global coords (standard OISST v2.1)
-                g_lat = nc.variables['lat'][:]
-                g_lon = nc.variables['lon'][:]
-                sst_full = nc.variables['sst'][0, :, :]  # Remove fillValue (-999.)
-                sst_full = np.where(sst_full < 0, np.nan, sst_full)  # Scale & NaN land/ice
-                
-                # Subset indices
-                lat_idx = slice(np.searchsorted(g_lat, 14.5, side='right'), np.searchsorted(g_lat, 0, side='left')-1)
-                lon_idx = slice(np.searchsorted(g_lon, 90), np.searchsorted(g_lon, 110))
-                sst_subset = sst_full[lat_idx, lon_idx]
-                
-                # Interp to your 60x82 grid
-                points = np.column_stack([g_lon[lon_idx][:,None].ravel(), g_lat[lat_idx][:,None].ravel()])
-                values = sst_subset.ravel()
-                sst_interp = griddata(points, values, (np.meshgrid(th_lon, th_lat)), method='linear')
-                sstdata.append(sst_interp)
-            st.success(f"✅ {datestr}")
+            resp = requests.get(url, timeout=60)
+            if resp.status_code == 200:
+                # Parse subset NetCDF from memory
+                with Dataset('in-memory', mode='r', memory=resp.content) as nc:
+                    sst_raw = nc.variables['sst'][0, :, :]  # (lat, lon)
+                    subset_lat = nc.variables['lat'][:]
+                    subset_lon = nc.variables['lon'][:]
+                    
+                    # Scale and mask
+                    sst_scaled = np.where(sst_raw < -100, np.nan, sst_raw)
+                    
+                    # Interpolate to exact 60x82 gri
+                    from scipy.interpolate import griddata
+                    lon_grid, lat_grid = np.meshgrid(subset_lon, subset_lat)
+                    points = np.column_stack([lon_grid.ravel(), lat_grid.ravel()])
+                    values = sst_scaled.ravel()
+                    
+                    target_lon, target_lat = np.meshgrid(th_lon, th_lat)
+                    sst_interp = griddata(points, values, (target_lon, target_lat), method='linear')
+                    
+                    sstdata.append(sst_interp)
+            else:
+                st.warning(f"⚠️ {datestr}: HTTP {resp.status_code}")
+                sstdata.append(np.full((60, 82), np.nan))
         except Exception as e:
-            st.warning(f"⚠️ {datestr}: {str(e)[:40]}")
+            st.warning(f"⚠️ {datestr}: {str(e)[:50]}")
             sstdata.append(np.full((60, 82), np.nan))
     
-    TSeries = np.stack(sstdata, axis=2)  # (60,82,days_back)
+    TSeries = np.stack(sstdata, axis=2)
     st.success(f"Loaded TSeries shape: {TSeries.shape}")
     return TSeries
 
