@@ -214,7 +214,7 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
     gl.top_labels = False; gl.right_labels = False
     
     # Plot SST (e.g., contourf or pcolormesh)
-    cs = ax.contourf(lon, lat, sst_data, transform=ccrs.PlateCarree(),
+    cs = ax.contourf(lon, lat, dhw_data, transform=ccrs.PlateCarree(),
                      cmap='coolwarm', levels=20)
     cbar = fig.colorbar(cs, ax=ax, orientation='vertical', label='SST (°C)')
     ax.set_extent([90, 110, 0, 14.5], crs=ccrs.PlateCarree())
