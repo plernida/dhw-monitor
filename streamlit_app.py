@@ -322,7 +322,7 @@ if process_button:
                 fig_dhw = create_dhw_map(lon, lat, dhw_total, 
                                         "Accumulated DHW (6 weeks)", 6)
                 fig_dhw.update_layout(height=800, margin=dict(l=50, r=20, t=50, b=50))
-                st.plotly_chart(fig_dhw, use_container_width=True)
+                st.plotly_chart(fig_dhw, width=True)
             
             with col_right:
                 # Upper right: DHW Distribution
@@ -340,7 +340,7 @@ if process_button:
                     margin=dict(l=20, r=20, t=40, b=20),
                     title="Distribution by Level"
                 )
-                st.plotly_chart(fig_dist, use_container_width=True)
+                st.plotly_chart(fig_dist, width=True)
                 
                 # Lower right: Risk Summary
                 st.markdown("**⚠️ Risk Summary**")
@@ -361,7 +361,7 @@ if process_button:
                     ]
                 }
                 risk_df = pd.DataFrame(risk_data)
-                st.dataframe(risk_df, use_container_width=True, hide_index=True)
+                st.dataframe(risk_df, width=True, hide_index=True)
             
             # Alert levels legend (below everything)
             st.markdown("""
@@ -392,7 +392,7 @@ if process_button:
                         fig = create_dhw_map(lon, lat, dhw_weeks[week_idx],
                                            date_labels[week_idx], 2)
                         fig.update_layout(height=350)
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, width=True)
         
         with tab3:
             st.subheader(f"Sea Surface Temperature - {target_date.strftime('%Y-%m-%d')}")
@@ -400,7 +400,7 @@ if process_button:
             # SST map
             fig_sst = create_sst_map(lon, lat, sst_current,
                                     "Current Sea Surface Temperature")
-            st.plotly_chart(fig_sst, use_container_width=True)
+            st.plotly_chart(fig_sst, width=True)
             
             # Temperature statistics and distribution
             col_left, col_right = st.columns(2)
@@ -417,7 +417,7 @@ if process_button:
                         f"{np.nanstd(sst_current):.2f}"
                     ]
                 }
-                st.dataframe(pd.DataFrame(sst_stats), use_container_width=True, hide_index=True)
+                st.dataframe(pd.DataFrame(sst_stats), width=True, hide_index=True)
             
             with col_right:
                 # Temperature distribution
@@ -432,7 +432,7 @@ if process_button:
                     yaxis_title='Frequency',
                     height=300
                 )
-                st.plotly_chart(fig_hist, use_container_width=True)
+                st.plotly_chart(fig_hist, width=True)
 
 else:
     # Landing page
