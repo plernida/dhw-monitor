@@ -141,29 +141,6 @@ def create_coordinates():
     LON, LAT = np.meshgrid(lon, lat)
     return LON, LAT, lon, lat
 
-@st.cache_data
-def generate_demo_data(seed=42):
-    """Generate realistic demo SST data"""
-    np.random.seed(seed)
-    thlon, thlat, lon, lat = create_coordinates()
-    
-    # Create realistic baseline (warmer in Gulf, cooler in Andaman)
-    baseline = 29.0 + 0.5 * np.sin((thlon - 90) / 20 * np.pi) + 0.3 * np.cos((thlat - 7) / 7 * np.pi)
-    baseline += np.random.normal(0, 0.1, baseline.shape)
-    
-    # Generate time series with warming trend
-    n_days = 30
-    TSeries = np.zeros((60, 82, n_days))
-    
-    for day in range(n_days):
-        # Add warming trend toward present
-        warming = 0.5 * (day / n_days)
-        # Add spatial variability (hotspots near coast)
-        hotspot_mask = ((thlon > 99) & (thlon < 102) & (thlat > 7) & (thlat < 10)).astype(float)
-        daily_sst = baseline + warming + 0.8 * hotspot_mask + np.random.normal(0, 0.2, baseline.shape)
-        TSeries[:, :, day] = daily_sst
-    
-    return TSeries, baseline, thlon, thlat
 
 def calculate_dhw(TSeries, baseline, threshold=1.0):
     """Calculate Degree Heating Weeks from time series"""
@@ -205,18 +182,20 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
         ticktext = ['0', '1', '2', '3', '4', '5', '6+']
     fig = plt.figure(figsize=(8,6))
     ax = fig.add_subplot(1,1,1, projection=ccrs.PlateCarree())
+    
     ax.set_extent([90, 110, 0, 14.5], crs=ccrs.PlateCarree())  # Thai region
     ax.coastlines(resolution='10m', linewidth=1.0)
     ax.add_feature(cfeature.LAND, facecolor='lightgray')
     ax.add_feature(cfeature.OCEAN, facecolor='lightblue')
     # Add gridlines with labels
-    gl = ax.gridlines(draw_labels=True, dms=True, color='gray', linestyle='--', linewidth=0.5)
-    gl.top_labels = False; gl.right_labels = False
+    #gl = ax.gridlines(draw_labels=True, dms=True, color='gray', linestyle='--', linewidth=0.5)
+    #gl.top_labels = False; gl.right_labels = False
     
     # Plot SST (e.g., contourf or pcolormesh)
-    cs = ax.contourf(lon, lat, dhw_data, transform=ccrs.PlateCarree(),
-                     cmap='coolwarm', levels=20)
-    cbar = fig.colorbar(cs, ax=ax, orientation='vertical', label='SST (°C)')
+    cs = ax.contourf(lon, lat, dhw_data, levels=levels+1, transform=ccrs.PlateCarree(),
+                     cmap='coolwarm')
+    ax.set_title(title, fontsize=14
+    cbar = fig.colorbar(cs, ax=ax, orientation='vertical', label="DHW")
     ax.set_extent([90, 110, 0, 14.5], crs=ccrs.PlateCarree())
     return fig
 
@@ -309,7 +288,8 @@ if process_button:
                 # Portrait DHW map (tall)
                 fig_dhw = create_dhw_map(lon, lat, dhw_total, 
                                         "Accumulated DHW (6 weeks)", 6)
-                fig_dhw.update_layout(height=800, margin=dict(l=50, r=20, t=50, b=50))
+                #fig_dhw.update_layout(height=800, margin=dict(l=50, r=20, t=50, b=50))
+                st.pyplot(fig_dhw, width='stretch')
                 st.plotly_chart(fig_dhw, width='stretch')
             
             with col_right:
