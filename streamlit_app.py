@@ -222,23 +222,32 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
         lon=lon2d.flatten(),
         lat=lat2d.flatten(),
         z=dhw_data.flatten(),
-        radius=15,
+
+        radius=25,          # 🔑 bigger radius
+        opacity=0.9,        # 🔑 force visibility
+
         colorscale=[
-            [0.0, "rgb(66,112,194)"],
-            [0.3, "rgb(214,214,214)"],
-            [0.5, "rgb(235,222,196)"],
-            [0.7, "rgb(201,140,89)"],
-            [1.0, "rgb(140,77,26)"],
+            [0.0, "rgba(0,0,0,0)"],      # transparent for 0
+            [0.2, "rgb(214,214,214)"],
+            [0.4, "rgb(235,222,196)"],
+            [0.6, "rgb(201,140,89)"],
+            [0.8, "rgb(166,89,89)"],
+            [1.0, "rgb(140,77,26)"]
         ],
-        zmin=0,
+
+        zmin=1,             # 🔑 ignore zeros
         zmax=6,
-        colorbar=dict(title="DHW (weeks)")
+
+        colorbar=dict(
+            title="DHW (weeks)",
+            thickness=15
+        )
     ))
 
     fig.update_layout(
         title=title,
         mapbox=dict(
-            style="stamen-terrain",   # 👈 land + coastlines
+            style="stamen-terrain",   # now WORKS
             center=dict(lat=7.5, lon=100),
             zoom=4.3
         ),
@@ -247,6 +256,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     )
 
     return fig
+    
 def create_sst_map_mapbox(lon, lat, sst_data, title):
     lon2d, lat2d = np.meshgrid(lon, lat)
 
