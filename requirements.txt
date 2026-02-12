@@ -6,3 +6,8 @@ netCDF4
 scipy
 cartopy
 geopandas
+cartopy
+shapely
+pyproj
+geos
+proj
