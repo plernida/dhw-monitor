@@ -18,7 +18,7 @@ import pytz
 from datetime import timedelta
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-import matplootlib.pyplot as plt
+import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings('ignore')
 
