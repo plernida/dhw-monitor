@@ -218,29 +218,18 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
 def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     lon2d, lat2d = np.meshgrid(lon, lat)
 
-    fig = go.Figure(go.Densitymapbox(
+    fig = go.Figure(go.Scattermapbox(
         lon=lon2d.flatten(),
         lat=lat2d.flatten(),
-        z=dhw_data.flatten(),
-
-        radius=25,          # 🔑 bigger radius
-        opacity=0.9,        # 🔑 force visibility
-
-        colorscale=[
-            [0.0, "rgba(0,0,0,0)"],      # transparent for 0
-            [0.2, "rgb(214,214,214)"],
-            [0.4, "rgb(235,222,196)"],
-            [0.6, "rgb(201,140,89)"],
-            [0.8, "rgb(166,89,89)"],
-            [1.0, "rgb(140,77,26)"]
-        ],
-
-        zmin=1,             # 🔑 ignore zeros
-        zmax=6,
-
-        colorbar=dict(
-            title="DHW (weeks)",
-            thickness=15
+        mode="markers",
+        marker=dict(
+            size=8,
+            color=dhw_data.flatten(),
+            colorscale="Hot",
+            cmin=1,
+            cmax=6,
+            opacity=0.9,
+            colorbar=dict(title="DHW")
         )
     ))
 
