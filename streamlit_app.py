@@ -89,11 +89,11 @@ def download_latest_sst(days_back=5):
         datestr = target_date.strftime('%Y%m%d')
         iso_date = target_date.strftime('%Y-%m-%d')
         url = (
-        f"{NOAA_NCSS_BASE}{yyyymm}/oisst-avhrr-v02r01.{datestr}.nc?var=sst&"
-        f"north=14.500&west=90.000&east=110.000&south=0.000&"
-        f"horizStride=1&"
-        f"time_start={iso_date}T12:00:00Z&time_end={iso_date}T12:00:00Z&&&"
-        f"accept=netcdf3"
+            f"{NOAA_NCSS_BASE}{yyyymm}/oisst-avhrr-v02r01.{datestr}.nc?var=sst&"
+            f"north=14.500&west=90.000&east=110.000&south=0.000&"
+            f"horizStride=1&"
+            f"time_start={iso_date}T12:00:00Z&time_end={iso_date}T12:00:00Z&&&"
+            f"accept=netcdf3"
         try:
             with Dataset(url) as nc:
                 # Global coords (standard OISST v2.1)
