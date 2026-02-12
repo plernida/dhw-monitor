@@ -16,6 +16,9 @@ import os
 from io import BytesIO
 import pytz
 from datetime import timedelta
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+import matplootlib.pyplot as plt
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -200,42 +203,21 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
         colorbar_title = "DHW Level"
         tickvals = list(range(7))
         ticktext = ['0', '1', '2', '3', '4', '5', '6+']
+    fig = plt.figure(figsize=(8,6))
+    ax = fig.add_subplot(1,1,1, projection=ccrs.PlateCarree())
+    ax.set_extent([90, 110, 0, 14.5], crs=ccrs.PlateCarree())  # Thai region
+    ax.coastlines(resolution='10m', linewidth=1.0)
+    ax.add_feature(cfeature.LAND, facecolor='lightgray')
+    ax.add_feature(cfeature.OCEAN, facecolor='lightblue')
+    # Add gridlines with labels
+    gl = ax.gridlines(draw_labels=True, dms=True, color='gray', linestyle='--', linewidth=0.5)
+    gl.top_labels = False; gl.right_labels = False
     
-    fig = go.Figure(data=go.Contour(
-        z=dhw_data,
-        x=lon,
-        y=lat,
-        colorscale=colorscale,
-        contours=dict(
-            start=0,
-            end=levels,
-            size=1,
-        ),
-        colorbar=dict(
-            title=colorbar_title,
-            tickvals=tickvals,
-            ticktext=ticktext
-        ),
-        hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>Value: %{z}<extra></extra>'
-    ))
-    
-    # Add land boundary (simplified Thailand outline)
-    # Gulf of Thailand
-    #gulf_lon = [99.5, 101, 102, 102.5, 102, 100.5, 99.5, 99.5]
-    #gulf_lat = [6, 6.5, 8, 10, 12, 13.5, 12, 6]
-    
-
-    fig.update_layout(
-        title=dict(text=title, x=0.5, xanchor='center'),
-        xaxis_title='Longitude (°E)',
-        yaxis_title='Latitude (°N)',
-        height=500,
-        hovermode='closest',
-        plot_bgcolor='rgba(240,245,250,1)',
-        xaxis=dict(range=[90, 110]),
-        yaxis=dict(range=[0, 14.5])
-    )
-
+    # Plot SST (e.g., contourf or pcolormesh)
+    cs = ax.contourf(lon, lat, sst_data, transform=ccrs.PlateCarree(),
+                     cmap='coolwarm', levels=20)
+    cbar = fig.colorbar(cs, ax=ax, orientation='vertical', label='SST (°C)')
+    ax.set_extent([90, 110, 0, 14.5], crs=ccrs.PlateCarree())
     return fig
 
 
