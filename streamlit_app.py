@@ -73,10 +73,9 @@ target_date = override_date if override_date != target_date else target_date
 process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 
 # NOAA OISST base URL pattern
-NOAA_BASE_URL = "https://www.ncei.noaa.gov/thredds/fileServer/OisstBase/NetCDF/V2.1/AVHRR/"
-
+#NOAA_BASE_URL = "https://www.ncei.noaa.gov/thredds/fileServer/OisstBase/NetCDF/V2.1/AVHRR/"
+NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBase/NetCDF/V2.1/AVHRR/"
 @st.cache_data(ttl=3600)  # Cache for 1 hour
-@st.cache_data(ttl=3600)
 def download_latest_sst(days_back=5):
     st.info(f"Fetching latest {days_back} days OISST v2.1 via THREDDS...")
     enddate = datetime.now().date()
@@ -88,15 +87,20 @@ def download_latest_sst(days_back=5):
         target_date = enddate - timedelta(days=i)
         yyyymm = target_date.strftime('%Y%m')
         datestr = target_date.strftime('%Y%m%d')
-        url = f"{NOAA_BASE_URL}{yyyymm}/oisst-avhrr-v02r01.{yyyymm}{datestr[6:8]}.nc"
-        
+        iso_date = target_date.strftime('%Y-%m-%d')
+        url = (
+        f"{NOAA_NCSS_BASE}{yyyymm}/oisst-avhrr-v02r01.{datestr}.nc?var=sst&"
+        f"north=14.500&west=90.000&east=110.000&south=0.000&"
+        f"horizStride=1&"
+        f"time_start={iso_date}T12:00:00Z&time_end={iso_date}T12:00:00Z&&&"
+        f"accept=netcdf3"
         try:
             with Dataset(url) as nc:
                 # Global coords (standard OISST v2.1)
                 g_lat = nc.variables['lat'][:]
                 g_lon = nc.variables['lon'][:]
                 sst_full = nc.variables['sst'][0, :, :]  # Remove fillValue (-999.)
-                sst_full = np.where(sst_full < 0, np.nan, sst_full * 0.01)  # Scale & NaN land/ice
+                sst_full = np.where(sst_full < 0, np.nan, sst_full)  # Scale & NaN land/ice
                 
                 # Subset indices
                 lat_idx = slice(np.searchsorted(g_lat, 14.5, side='right'), np.searchsorted(g_lat, 0, side='left')-1)
