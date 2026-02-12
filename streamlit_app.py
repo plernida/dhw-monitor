@@ -94,6 +94,7 @@ def download_latest_sst(days_back=5):
             f"horizStride=1&"
             f"time_start={iso_date}T12:00:00Z&time_end={iso_date}T12:00:00Z&&&"
             f"accept=netcdf3"
+        )
         try:
             with Dataset(url) as nc:
                 # Global coords (standard OISST v2.1)
