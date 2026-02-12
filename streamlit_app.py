@@ -194,7 +194,7 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
     # Plot SST (e.g., contourf or pcolormesh)
     cs = ax.contourf(lon, lat, dhw_data, levels=levels+1, transform=ccrs.PlateCarree(),
                      cmap='coolwarm')
-    ax.set_title(title, fontsize=14
+    ax.set_title(title, fontsize=14)
     cbar = fig.colorbar(cs, ax=ax, orientation='vertical', label="DHW")
     ax.set_extent([90, 110, 0, 14.5], crs=ccrs.PlateCarree())
     return fig
