@@ -76,7 +76,7 @@ process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 #NOAA_BASE_URL = "https://www.ncei.noaa.gov/thredds/fileServer/OisstBase/NetCDF/V2.1/AVHRR/"
 NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBase/NetCDF/V2.1/AVHRR/"
 @st.cache_data(ttl=3600)  # Cache for 1 hour
-def download_latest_sst(days_back=5):
+def download_latest_sst(days_back=48):
     st.info(f"Fetching latest {days_back} days OISST v2.1 via THREDDS...")
     enddate = datetime.now().date()
     sstdata = []
