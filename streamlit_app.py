@@ -76,7 +76,7 @@ process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBase/NetCDF/V2.1/AVHRR/"
 
 @st.cache_data(ttl=3600)  # Cache for 1 hour
-def download_latest_sst(days_back=48):
+def download_latest_sst(enddate, days_back=48):
     sstdata = []
     th_lon = np.linspace(90, 110, 82)
     th_lat = np.linspace(0, 14.5, 60)
