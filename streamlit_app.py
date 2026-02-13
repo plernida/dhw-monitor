@@ -32,7 +32,7 @@ coast_gdf = gpd.read_file('ne_10m_coastline.shp')
 print(coast_gdf.geometry.geom_type.value_counts())  # Must be LineString/MultiLineString
 if 'coast_geojson' not in st.session_state:
     st.session_state.coat_geojson = None
-#uploaded_shp = st.file_uploader("Upload coastline.shp", type=['shp'])
+uploaded_shp = st.file_uploader("Upload coastline.shp", type=['shp'])
 
 if uploaded_shp:
     # Zip upload handling for .shp + .shx/.dbf
