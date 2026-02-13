@@ -229,24 +229,23 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
 def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     lon2d, lat2d = np.meshgrid(lon, lat)  # Assumes lon/lat are 1D arrays matching dhw_data shape
 
-    fig = go.Figure()
-    levels = np.arange(1, 6)
-    # Temporary matplotlib contour to extract paths (no plot shown)
-    plt.ioff()  # Turn off interactive plotting
-    cs = plt.contourf(lon2d, lat2d, dhw_data, levels=levels)
-    
-    for lvl_idx, lvl_segs in enumerate(cs.allsegs):
-        for seg in lvl_segs:
-            if len(seg) > 1:  # Valid segment
-                fig.add_trace(go.Scattermapbox(
-                    lon=seg[:, 0], lat=seg[:, 1],
-                    mode='lines',
-                    line=dict(color='red', width=2),
-                    name=f'DHW={levels[lvl_idx]:.1f}',
-                    showlegend=False  # Avoid legend clutter
-                ))
-    
-    plt.close()  # Clean up temp figure
+    fig = go.Figure(data=go.Contour(
+        x=lon2d[0],  # 1D lon for x
+        y=lat2d[:, 0],  # 1D lat for y
+        z=dhw_data,
+        colorscale=[
+            [0.0, "rgb(66,112,194)"],
+            [0.3, "rgb(214,214,214)"],
+            [0.5, "rgb(235,222,196)"],
+            [0.7, "rgb(201,140,89)"],
+            [1.0, "rgb(140,77,26)"],
+        ],
+        zmin=0,
+        zmax=6,
+        contours=dict(coloring="fill"),  # Filled contours
+        colorbar=dict(title="DHW (weeks)")
+    ))
+
     
     fig.update_layout(
         title=title,
