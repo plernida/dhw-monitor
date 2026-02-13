@@ -444,16 +444,15 @@ if process_button:
         
         with tab3:
             st.subheader(f"Sea Surface Temperature - {target_date.strftime('%Y-%m-%d')}")
-            
-            # SST map
-            fig_sst = create_sst_map_mapbox(lon, lat, sst_current,
-                                    "Current Sea Surface Temperature")
-            st.plotly_chart(fig_sst, width='stretch')
-            
-            # Temperature statistics and distribution
-            col_left, col_right = st.columns(2)
-            
+            col_left, col_right = st.columns([60,40])
             with col_left:
+                # SST map
+                fig_sst = create_sst_map_mapbox(lon, lat, sst_current,
+                                        "Current Sea Surface Temperature")
+                fig_sst.update_layout(height=800, margin=dict(l=50,r=20, t=50, b=50))
+                st.plotly_chart(fig_sst, width='stretch')
+            with col_right:    
+            # Temperature statistics and distribution
                 st.markdown("**SST Statistics**")
                 sst_stats = {
                     'Metric': ['Mean', 'Median', 'Min', 'Max', 'Std Dev'],
@@ -467,7 +466,7 @@ if process_button:
                 }
                 st.dataframe(pd.DataFrame(sst_stats), width='stretch', hide_index=True)
             
-            with col_right:
+            
                 # Temperature distribution
                 fig_hist = go.Figure(data=go.Histogram(
                     x=sst_current.flatten(),
