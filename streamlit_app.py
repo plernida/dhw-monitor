@@ -78,7 +78,8 @@ NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBase/NetCDF/V
 
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 def download_latest_sst(days_back=48):
-    st.info(f"Fetching latest {days_back} days OISST v2.1 via THREDDS...")
+    with st.spinner(''):
+        st.info(f"Fetching latest {days_back} days OISST v2.1 via THREDDS...")
     enddate = datetime.now().date()
     sstdata = []
     th_lon = np.linspace(90, 110, 82)
