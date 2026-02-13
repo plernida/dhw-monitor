@@ -231,17 +231,22 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
 
     fig = go.Figure()
     levels = np.arange(1, 6)
-    for level in levels:
-        contours = plt.contour(lon2d, lat2d, dhw_data, levels=[level])  # Use matplotlib temporarily
-        paths = contours.collections[0].get_paths()
-        for path in paths:
-            verts = path.vertices
-            fig.add_trace(go.Scattermapbox(
-                lon=verts[:, 0], lat=verts[:, 1],
-                mode='lines',
-                line=dict(color='red', width=2),
-                name=f'DHW={level}'
-            ))
+    # Temporary matplotlib contour to extract paths (no plot shown)
+    plt.ioff()  # Turn off interactive plotting
+    cs = plt.contour(lon2d, lat2d, dhw_data, levels=levels)
+    
+    for lvl_idx, lvl_segs in enumerate(cs.allsegs):
+        for seg in lvl_segs:
+            if len(seg) > 1:  # Valid segment
+                fig.add_trace(go.Scattermapbox(
+                    lon=seg[:, 0], lat=seg[:, 1],
+                    mode='lines',
+                    line=dict(color='red', width=2),
+                    name=f'DHW={levels[lvl_idx]:.1f}',
+                    showlegend=False  # Avoid legend clutter
+                ))
+    
+    plt.close()  # Clean up temp figure
     
     fig.update_layout(
         title=title,
