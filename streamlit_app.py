@@ -26,7 +26,7 @@ warnings.filterwarnings('ignore')
 coast_gdf = gpd.read_file("ne_10m_coastline.shp")  # Ensure CRS is EPSG:4326
 coast_geojson = coast_gdf.to_json()
 
-if 'coast_geojson' not in st.session_tate:
+if 'coast_geojson' not in st.session_state:
     st.session_state.coat_geojson = None
 uploaded_shp = st.file_uploader("Upload coastline.shp", type=['shp'])
 if uploaded_shp:
