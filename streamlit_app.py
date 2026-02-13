@@ -274,7 +274,9 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                         type="line",
                         minzoom=0,
                         maxzoom=22,
-                        line=dict(width=6)
+                        opacity=0.8,      # 0.0 (invisible) to 1.0 (opaque)
+                        visible=True,
+                        line=dict(width=6,color='black')
                     )
                            ],
                     center=dict(lat=7.5, lon=100), zoom=4.3),
