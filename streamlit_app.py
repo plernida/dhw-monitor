@@ -75,6 +75,7 @@ process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 # NOAA OISST base URL pattern
 #NOAA_BASE_URL = "https://www.ncei.noaa.gov/thredds/fileServer/OisstBase/NetCDF/V2.1/AVHRR/"
 NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBase/NetCDF/V2.1/AVHRR/"
+
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 def download_latest_sst(days_back=48):
     st.info(f"Fetching latest {days_back} days OISST v2.1 via THREDDS...")
@@ -82,19 +83,28 @@ def download_latest_sst(days_back=48):
     sstdata = []
     th_lon = np.linspace(90, 110, 82)
     th_lat = np.linspace(0, 14.5, 60)
+
+    PRELIM_WINDOW = 14
     
     for i in range(days_back):
         target_date = enddate - timedelta(days=i)
         yyyymm = target_date.strftime('%Y%m')
         datestr = target_date.strftime('%Y%m%d')
         iso_date = target_date.strftime('%Y-%m-%d')
+        # Use preliminary ONLY for recent dates (within 14 days of NOW)
+        if (enddate - target_date).days <= PRELIM_WINDOW:
+            filename = f"oisst-avhrr-v02r01.{datestr}_preliminary.nc"
+        else:
+            filename = f"oisst-avhrr-v02r01.{datestr}.nc"
+       
         url = (
-            f"{NOAA_NCSS_BASE}{yyyymm}/oisst-avhrr-v02r01.{datestr}.nc?var=sst&"
+            f"{NOAA_NCSS_BASE}{yyyymm}/{filename}?var=sst&"
             f"north=14.500&west=90.000&east=110.000&south=0.000&"
             f"horizStride=1&"
             f"time_start={iso_date}T12:00:00Z&time_end={iso_date}T12:00:00Z&&&"
             f"accept=netcdf3"
         )
+        st.info(f"[{i:2d}] {iso_date} → {filename}")
         try:
             resp = requests.get(url, timeout=60)
             if resp.status_code == 200:
