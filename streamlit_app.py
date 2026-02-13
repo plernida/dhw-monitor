@@ -287,7 +287,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                         dict(                      
                             sourcetype="geojson",
                             source=coast_geojson,
-                            above="traces",
+                            
                             type="line",
                             minzoom=0,
                             maxzoom=22,
