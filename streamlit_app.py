@@ -260,13 +260,12 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
 def create_sst_map_mapbox(lon, lat, sst_data, title):
     lon2d, lat2d = np.meshgrid(lon, lat)
 
-    fig = go.Figure(go.Densitymapbox(
-        lon=lon2d.flatten(),
-        lat=lat2d.flatten(),
-        z=sst_data.flatten(),
-        radius=12,
+    fig = go.Figure(data=go.Contour(
+        x=lon2d[0],  # 1D lon for x
+        y=lat2d[:, 0],  # 1D lat for y
+        z=sst_data,
         colorscale="jet",
-        zmin=28,
+        zmin=25,
         zmax=32,
         colorbar=dict(title="SST (°C)")
     ))
@@ -274,12 +273,12 @@ def create_sst_map_mapbox(lon, lat, sst_data, title):
     fig.update_layout(
         title=title,
         mapbox=dict(
-            style="carto-positron",  # 🌄 topography
+            style="carto-positron",
             center=dict(lat=7.5, lon=100),
             zoom=4.3
         ),
         margin=dict(l=0, r=0, t=40, b=0),
-        height=600
+        height=800
     )
 
     return fig
