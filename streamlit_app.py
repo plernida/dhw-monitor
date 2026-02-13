@@ -432,7 +432,7 @@ if process_button:
             # Calculate date labels
             date_labels = []
             for week in range(6):
-                end_day = target_date - timedelta(days=week*5)
+                end_day = enddate - timedelta(days=week*5)
                 start_day = end_day - timedelta(days=4)
                 date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
             
