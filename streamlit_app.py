@@ -105,7 +105,7 @@ def download_latest_sst(days_back=48):
             f"time_start={iso_date}T12:00:00Z&time_end={iso_date}T12:00:00Z&&&"
             f"accept=netcdf3"
         )
-        st.info(f"[{i:2d}] {iso_date} → {filename}")
+        #st.info(f"[{i:2d}] {iso_date} → {filename}")
         try:
             resp = requests.get(url, timeout=60)
             if resp.status_code == 200:
