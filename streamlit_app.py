@@ -16,6 +16,7 @@ import requests
 from netCDF4 import Dataset
 import tempfile
 import os
+import json
 from io import BytesIO
 import pytz
 from datetime import timedelta
@@ -26,9 +27,13 @@ warnings.filterwarnings('ignore')
 coast_gdf = gpd.read_file("ne_10m_coastline.shp").to_crs('EPSG:4326')  # Ensure CRS is EPSG:4326
 coast_geojson = coast_gdf.__geo_interface__
 
+print(json.dumps(coast_geojson, indent=2)[:1000])  # Inspect features
+coast_gdf = gpd.read_file('ne_10m_coastline.shp')
+print(coast_gdf.geometry.geom_type.value_counts())  # Must be LineString/MultiLineString
 if 'coast_geojson' not in st.session_state:
     st.session_state.coat_geojson = None
-uploaded_shp = st.file_uploader("Upload coastline.shp", type=['shp'])
+#uploaded_shp = st.file_uploader("Upload coastline.shp", type=['shp'])
+
 if uploaded_shp:
     # Zip upload handling for .shp + .shx/.dbf
     with st.spinner("Loading shapefile..."):
