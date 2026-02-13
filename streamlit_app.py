@@ -106,17 +106,30 @@ def download_latest_sst(enddate, days_back=48):
         # Silent download + error handling (as before)
         try:
             resp = requests.get(url, timeout=30)
-            if resp.status_code == 200 and b'NC' in resp.content[:3]:
-                nc = Dataset(BytesIO(resp.content))
-                sst_raw = nc.variables['sst'][0, :, :]
-                sst_scaled = np.where(sst_raw < 0, np.nan, sst_raw)
-                # Interp to grid...
-                sstdata.append(sst_interp)
+            if resp.status_code == 200:
+                with Dataset('in-memory', mode='r', memory=resp.content) as nc:
+                    sst_raw = nc.variables['sst'][0, :, :]  # (lat, lon)
+                    subset_lat = nc.variables['lat'][:]
+                    subset_lon = nc.variables['lon'][:]
+                    
+                    # Scale and mask
+                    sst_scaled = np.where(sst_raw < 0, np.nan, sst_raw)
+                    
+                    # Interpolate to exact 60x82 gri
+                    from scipy.interpolate import griddata
+                    lon_grid, lat_grid = np.meshgrid(subset_lon, subset_lat)
+                    points = np.column_stack([lon_grid.ravel(), lat_grid.ravel()])
+                    values = sst_scaled.ravel()
+                    
+                    target_lon, target_lat = np.meshgrid(th_lon, th_lat)
+                    sst_interp = griddata(points, values, (target_lon, target_lat), method='linear')
+                    # Interp to grid...
+                    sstdata.append(sst_interp)
             else:
                 sstdata.append(np.full((60, 82), np.nan))
         except:
             sstdata.append(np.full((60, 82), np.nan))
-    st.success(f"Loaded TSeries shape: {TSeries.shape}")        
+            
     return np.stack(sstdata, axis=2)
 
 
