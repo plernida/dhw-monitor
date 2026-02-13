@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 from scipy import ndimage
 import matplotlib.pyplot as plt
 import pandas as pd
+import geopandas as gpd
 from datetime import datetime, timedelta
 import requests
 from netCDF4 import Dataset
@@ -21,6 +22,19 @@ from datetime import timedelta
 import warnings
 warnings.filterwarnings('ignore')
 
+    
+coast_gdf = gpd.read_file("ne_10m_coastline.shp")  # Ensure CRS is EPSG:4326
+coast_geojson = coast_gdf.to_json()
+
+if 'coast_geojson' not in st.session_tate:
+    st.session_state.coat_geojson = None
+uploaded_shp = st.file_uploader("Upload coastline.shp", type=['shp'])
+if uploaded_shp:
+    # Zip upload handling for .shp + .shx/.dbf
+    with st.spinner("Loading shapefile..."):
+        gdf = gpd.read_file(uploaded_shp)
+        st.session_state.coast_geojson = gdf.to_crs(epsg=4326).to_json()
+    st.success("Shapefile memorized!")
 # Page configuration
 st.set_page_config(
     page_title="DHW Coral Bleaching Monitor",
@@ -234,7 +248,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
         y=lat2d[:, 0],  # 1D lat for y
         z=dhw_data,
         colorscale=[
-            [0.0, "rgb(0,0,0)"],
+            [0.0, "rgb(255,255,255)"],
             [0.3, "rgb(214,214,214)"],
             [0.5, "rgb(235,222,196)"],
             [0.7, "rgb(201,140,89)"],
@@ -249,7 +263,16 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     
     fig.update_layout(
         title=title,
-        mapbox=dict(style="carto-positron", center=dict(lat=7.5, lon=100), zoom=4.3),
+        mapbox=dict(style="white-bg", 
+                    layers=[dict(
+                        sourcetype="geojson",
+                        source=coast_geojson,
+                        below="contours",
+                        type="line",
+                        line=dict(wwidth=1.5, color="gray")
+                    )
+                           ],
+                    center=dict(lat=7.5, lon=100), zoom=4.3),
         margin=dict(l=0, r=0, t=40, b=0),
         height=800
     )
