@@ -37,7 +37,7 @@ warnings.filterwarnings('ignore')
 #    with st.spinner("Loading shapefile..."):
 #        gdf = gpd.read_file(uploaded_shp)
 #        st.session_state.coast_geojson = gdf.to_crs(epsg=4326).to_json()
-
+#    st.success("Shapefile memorized!")
 @st.cache_data
 def load_countries_geojson():
     with open('thailand_mapshaper.geojson', 'r') as f:  # Your file
@@ -45,7 +45,7 @@ def load_countries_geojson():
 
 countries_geojson = load_countries_geojson()
 
-    st.success("Shapefile memorized!")
+
 # Page configuration
 st.set_page_config(
     page_title="DHW Coral Bleaching Monitor",
