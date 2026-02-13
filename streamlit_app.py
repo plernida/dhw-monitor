@@ -280,7 +280,8 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                             ),
                             below="traces",
                             paint=dict(
-                                fill_color="rgba(173,216,230,0.4)")
+                                fill_color="rgba(173,216,230,0.4)"
+                            )
                         ),
                                                                    # Your Gulf box
                         dict(                      
@@ -295,8 +296,8 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                             line=dict(width=6,color="black")
                         )
                     ],
-                    center=dict(lat=7.5, lon=100), 
-            zoom=4.5,)
+            center=dict(lat=7.5, lon=100), 
+            zoom=4.5)
 
     )
     return fig
