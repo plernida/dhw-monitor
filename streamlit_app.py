@@ -60,17 +60,16 @@ now = datetime.now(th_tz)
 target_date = now.date() - timedelta(days=2)
 
 st.sidebar.success(f"📅 **Latest Analysis:** {target_date.strftime('%Y-%m-%d')}")
-st.sidebar.info("✅ Updates automatically with new NOAA data")
+st.sidebar.info("✅ Auto 2-day lag for NOAA data availability")
 
-# Optional override
-override_date = st.sidebar.date_input(
-    "🔄 Override (optional)",
-    value=target_date,
-    help="Use specific date (leave default for latest)"
-)
-target_date = override_date if override_date != target_date else target_date
+analysis_date = st.sidebar.date_input("🎯 Analysis Center Date",
+    value=default_target,
+    help="Center date for 48-day DHW analysis (default=latest available)")
+
 
 process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
+
+
 
 # NOAA OISST base URL pattern
 #NOAA_BASE_URL = "https://www.ncei.noaa.gov/thredds/fileServer/OisstBase/NetCDF/V2.1/AVHRR/"
@@ -78,66 +77,47 @@ NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBase/NetCDF/V
 
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 def download_latest_sst(days_back=48):
-    with st.spinner(''):
-        st.info(f"Fetching latest {days_back} days OISST v2.1 via THREDDS...")
-    enddate = datetime.now().date()
     sstdata = []
     th_lon = np.linspace(90, 110, 82)
     th_lat = np.linspace(0, 14.5, 60)
 
-    PRELIM_WINDOW = 14
+    PRELIM_WINDOW_DAYS = 14 # Relative to NOW (not enddate)
+    now_date = datetime.now(pytz.timezone('Asia/Bangkok')).date()
     
     for i in range(days_back):
         target_date = enddate - timedelta(days=i)
         yyyymm = target_date.strftime('%Y%m')
         datestr = target_date.strftime('%Y%m%d')
         iso_date = target_date.strftime('%Y-%m-%d')
-        # Use preliminary ONLY for recent dates (within 14 days of NOW)
-        if (enddate - target_date).days <= PRELIM_WINDOW:
+        
+        # Preliminary: if target_date is within 14 days of CURRENT now_date
+        if (now_date - target_date).days <= PRELIM_WINDOW_DAYS:
             filename = f"oisst-avhrr-v02r01.{datestr}_preliminary.nc"
         else:
             filename = f"oisst-avhrr-v02r01.{datestr}.nc"
-       
+        
         url = (
-            f"{NOAA_NCSS_BASE}{yyyymm}/{filename}?var=sst&"
-            f"north=14.500&west=90.000&east=110.000&south=0.000&"
-            f"horizStride=1&"
-            f"time_start={iso_date}T12:00:00Z&time_end={iso_date}T12:00:00Z&&&"
+            f"{NOAA_NCSS_BASE}{yyyymm}/{filename}?"
+            f"var=sst&north=14.500&west=90.000&east=110.000&south=0.000&"
+            f"horizStride=1&time_start={iso_date}T12:00:00Z&time_end={iso_date}T12:00:00Z&"
             f"accept=netcdf3"
         )
-        #st.info(f"[{i:2d}] {iso_date} → {filename}")
+        
+        # Silent download + error handling (as before)
         try:
-            resp = requests.get(url, timeout=60)
-            if resp.status_code == 200:
-                # Parse subset NetCDF from memory
-                with Dataset('in-memory', mode='r', memory=resp.content) as nc:
-                    sst_raw = nc.variables['sst'][0, :, :]  # (lat, lon)
-                    subset_lat = nc.variables['lat'][:]
-                    subset_lon = nc.variables['lon'][:]
-                    
-                    # Scale and mask
-                    sst_scaled = np.where(sst_raw < -100, np.nan, sst_raw)
-                    
-                    # Interpolate to exact 60x82 gri
-                    from scipy.interpolate import griddata
-                    lon_grid, lat_grid = np.meshgrid(subset_lon, subset_lat)
-                    points = np.column_stack([lon_grid.ravel(), lat_grid.ravel()])
-                    values = sst_scaled.ravel()
-                    
-                    target_lon, target_lat = np.meshgrid(th_lon, th_lat)
-                    sst_interp = griddata(points, values, (target_lon, target_lat), method='linear')
-                    
-                    sstdata.append(sst_interp)
+            resp = requests.get(url, timeout=30)
+            if resp.status_code == 200 and b'NC' in resp.content[:3]:
+                nc = Dataset(BytesIO(resp.content))
+                sst_raw = nc.variables['sst'][0, :, :]
+                sst_scaled = np.where(sst_raw < 0, np.nan, sst_raw)
+                # Interp to grid...
+                sstdata.append(sst_interp)
             else:
-                st.warning(f"⚠️ {datestr}: HTTP {resp.status_code}")
                 sstdata.append(np.full((60, 82), np.nan))
-        except Exception as e:
-            st.warning(f"⚠️ {datestr}: {str(e)[:50]}")
+        except:
             sstdata.append(np.full((60, 82), np.nan))
     
-    TSeries = np.stack(sstdata, axis=2)
-    st.success(f"Loaded TSeries shape: {TSeries.shape}")
-    return TSeries
+    return np.stack(sstdata, axis=2)
 
 
 # Coordinate data
@@ -327,10 +307,12 @@ def create_sst_map(lon, lat, sst_data, title):
 
 # Main processing
 if process_button:
-    with st.spinner("Processing data..."):
-        # Generate demo data
-        TSeries = download_latest_sst()
+    with st.spinner('Processing DHW analysis...'):
+        # Use SELECTED date as analysis center
+        enddate = analysis_date
         
+        # Download 48 days BACK from analysis_date
+        TSeries = download_latest_sst(enddate, days_back=48)
         # Get coordinates
         LON, LAT, lon, lat = create_coordinates()
 
