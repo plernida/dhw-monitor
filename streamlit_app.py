@@ -224,7 +224,7 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
 
     return fig
 
-def create_dhw_contour_mapbox(lon, lat, dhw_data, title):
+def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     lon2d, lat2d = np.meshgrid(lon, lat)  # Assumes lon/lat are 1D arrays matching dhw_data shape
 
     fig = go.Figure(go.Contour(
