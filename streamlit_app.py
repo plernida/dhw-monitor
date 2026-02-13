@@ -24,7 +24,7 @@ warnings.filterwarnings('ignore')
 
     
 coast_gdf = gpd.read_file("ne_10m_coastline.shp")  # Ensure CRS is EPSG:4326
-coast_geojson = coast_gdf.to_json()
+coast_geojson = coast_gdf.to__geo_interface__
 
 if 'coast_geojson' not in st.session_state:
     st.session_state.coat_geojson = None
