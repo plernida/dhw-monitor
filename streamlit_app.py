@@ -267,7 +267,10 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
         ],
         zmin=0,
         zmax=6,
-        contours=dict(coloring="fill"),  # Filled contours
+        contours=dict(coloring="fill",
+                     start=0.5,
+                     end=6,
+                     size=0.5),  # Filled contours
         colorbar=dict(title="DHW (weeks)")
     ))
 
