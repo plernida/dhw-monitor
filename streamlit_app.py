@@ -233,7 +233,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     levels = np.arange(1, 6)
     # Temporary matplotlib contour to extract paths (no plot shown)
     plt.ioff()  # Turn off interactive plotting
-    cs = plt.contour(lon2d, lat2d, dhw_data, levels=levels)
+    cs = plt.contourf(lon2d, lat2d, dhw_data, levels=levels)
     
     for lvl_idx, lvl_segs in enumerate(cs.allsegs):
         for seg in lvl_segs:
