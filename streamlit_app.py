@@ -40,7 +40,7 @@ warnings.filterwarnings('ignore')
 #    st.success("Shapefile memorized!")
 @st.cache_data
 def load_countries_geojson():
-    with open('thailand_mapshaper.geojson', 'r') as f:  # Your file
+    with open('thailand_mapshaper.json', 'r') as f:  # Your file
         return json.load(f)
 
 countries_geojson = load_countries_geojson()
