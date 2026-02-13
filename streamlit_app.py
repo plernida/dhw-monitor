@@ -270,9 +270,17 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
             style="white-bg", 
             layers=[dict(
                         type="fill",
-                        source=dict(type="Feature", geometry=dict(type="Polygon",coordinates=[[[90,0],[110,0],[110,14.5],[90,14.5],[90,0]]]),
-                        below="traces",
-                        paint=dict(fill_color="rgba(200,220,255,0.3)")
+                        source=dict(
+                            type="Feature", 
+                            geometry=dict(
+                                type="Polygon",
+                                coordinates=[[[90,0],[110,0],[110,14.5],[90,14.5],[90,0]
+                                             ]
+                                            ]
+                            ),
+                            below="traces",
+                            paint=dict(
+                                fill_color="rgba(173,216,230,0.4)")
                         ),
                                                                    # Your Gulf box
                         dict(                      
@@ -284,11 +292,11 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                             maxzoom=22,
                             opacity=1,      # 0.0 (invisible) to 1.0 (opaque)
                             visible=True,
-                            line=dict(width=6)
+                            line=dict(width=6,color="black")
                         )
                     ],
                     center=dict(lat=7.5, lon=100), 
-            zoom=4.3,)
+            zoom=4.5,)
 
     )
     return fig
