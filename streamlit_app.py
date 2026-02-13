@@ -281,7 +281,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                             ),
                             below="contours",
                             paint=dict(
-                                fill_color="rgba(173,216,230,0.4)"
+                                fill="rgba(173,216,230,0.4)"
                             )
                         ),
                                                                    # Your Gulf box
