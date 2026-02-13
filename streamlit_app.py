@@ -364,7 +364,7 @@ if process_button:
         tab1, tab2, tab3 = st.tabs(["📊 Accumulated DHW", "🗓️ Weekly Hotspots", "🌡️ Current SST"])
         
         with tab1:
-            st.subheader(f"Degree Heating Weeks - {target_date.strftime('%Y-%m-%d')}")
+            st.subheader(f"Degree Heating Weeks - {enddate.strftime('%Y-%m-%d')}")
             
             # NEW LAYOUT: Portrait map LEFT + distribution/stats RIGHT
             col_left, col_right = st.columns([60, 40])
@@ -448,7 +448,7 @@ if process_button:
                         st.plotly_chart(fig, width='stretch')
         
         with tab3:
-            st.subheader(f"Sea Surface Temperature - {target_date.strftime('%Y-%m-%d')}")
+            st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
             col_left, col_right = st.columns([60,40])
             with col_left:
                 # SST map
