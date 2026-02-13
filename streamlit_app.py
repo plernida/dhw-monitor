@@ -59,12 +59,17 @@ th_tz = pytz.timezone('Asia/Bangkok')
 now = datetime.now(th_tz)
 target_date = now.date() - timedelta(days=2)
 
+MIN_DATE = date(1981, 9, 1)
+MAX_DATE = target_date
+
 st.sidebar.success(f"📅 **Latest Analysis:** {target_date.strftime('%Y-%m-%d')}")
-st.sidebar.info("✅ Auto 2-day lag for NOAA data availability")
+st.sidebar.info("✅ NOAA OISST v2.1: 1981-09-01 → present")
 
 analysis_date = st.sidebar.date_input("🎯 Analysis Center Date",
     value=target_date,
-    help="Center date for 48-day DHW analysis (default=latest available)")
+    min_value=MIN_DATE,
+    max_value=MAX_DATE,
+    help="Select center date → auto 48-day backward analysis")
 
 
 process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
