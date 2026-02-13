@@ -259,7 +259,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
         y=lat2d[:, 0],  # 1D lat for y
         z=dhw_data,
         colorscale=[
-            [0.0, "rgb(255,255,255)"],
+            [0.0, "rgb(255,255,255,0.0)"],
             [0.3, "rgb(214,214,214)"],
             [0.5, "rgb(235,222,196)"],
             [0.7, "rgb(201,140,89)"],
