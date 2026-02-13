@@ -63,7 +63,7 @@ st.sidebar.success(f"📅 **Latest Analysis:** {target_date.strftime('%Y-%m-%d')
 st.sidebar.info("✅ Auto 2-day lag for NOAA data availability")
 
 analysis_date = st.sidebar.date_input("🎯 Analysis Center Date",
-    value=default_target,
+    value=target_date,
     help="Center date for 48-day DHW analysis (default=latest available)")
 
 
