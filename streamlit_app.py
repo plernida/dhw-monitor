@@ -269,7 +269,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                         source=coast_geojson,
                         below="contours",
                         type="line",
-                        line=dict(wwidth=1.5, color="gray")
+                        line=dict(width=1.5, color="gray")
                     )
                            ],
                     center=dict(lat=7.5, lon=100), zoom=4.3),
