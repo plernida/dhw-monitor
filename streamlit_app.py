@@ -116,7 +116,7 @@ def download_latest_sst(enddate, days_back=48):
                 sstdata.append(np.full((60, 82), np.nan))
         except:
             sstdata.append(np.full((60, 82), np.nan))
-    
+    st.success(f"Loaded TSeries shape: {TSeries.shape}")        
     return np.stack(sstdata, axis=2)
 
 
