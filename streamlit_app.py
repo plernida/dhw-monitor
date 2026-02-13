@@ -275,40 +275,14 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     fig.update_layout(
         title=title,
         mapbox=dict(
-            style="carto-positron", 
-            layers=[dict(
-                        type="white-bg",
-                        source=dict(
-                            type="Feature", 
-                            geometry=dict(
-                                type="Polygon",
-                                coordinates=[[[90,0],[110,0],[110,14.5],[90,14.5],[90,0]
-                                             ]
-                                            ]
-                            )
-                            ),
-                            below="contours",
-                            
-                            
-                        ),
-                                                                   # Your Gulf box
-                        dict(                      
-                            sourcetype="geojson",
-                            source=countries_geojson,
-                            below="traces",
-                            type="line",
-                            minzoom=0,
-                            maxzoom=22,
-                            opacity=1,      # 0.0 (invisible) to 1.0 (opaque)
-                            visible=True,
-                            line=dict(width=6)
-                        )
-                    ],
-            center=dict(lat=7.5, lon=100), 
-            zoom=4.5),
+            style="carto-positron",
+            center=dict(lat=7.5, lon=100),
+            zoom=4.3
+        ),
         margin=dict(l=0, r=0, t=40, b=0),
         height=800
     )
+
     return fig
 
     
