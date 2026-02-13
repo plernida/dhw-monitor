@@ -277,7 +277,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
         mapbox=dict(
             style="carto-positron", 
             layers=[dict(
-                        type="fill",
+                        type="white-bg",
                         source=dict(
                             type="Feature", 
                             geometry=dict(
