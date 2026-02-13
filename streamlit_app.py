@@ -59,7 +59,7 @@ th_tz = pytz.timezone('Asia/Bangkok')
 now = datetime.now(th_tz)
 target_date = now.date() - timedelta(days=2)
 
-MIN_DATE = date(1981, 9, 1)
+MIN_DATE = datetime(1981, 9, 1)
 MAX_DATE = target_date
 
 st.sidebar.success(f"📅 **Latest Analysis:** {target_date.strftime('%Y-%m-%d')}")
