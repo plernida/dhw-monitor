@@ -24,19 +24,27 @@ import warnings
 warnings.filterwarnings('ignore')
 
     
-coast_gdf = gpd.read_file("ne_10m_coastline.shp").to_crs('EPSG:4326')  # Ensure CRS is EPSG:4326
-coast_geojson = coast_gdf.__geo_interface__
+#coast_gdf = gpd.read_file("ne_10m_coastline.shp").to_crs('EPSG:4326')  # Ensure CRS is EPSG:4326
+#coast_geojson = coast_gdf.__geo_interface__
 
 
-if 'coast_geojson' not in st.session_state:
-    st.session_state.coat_geojson = None
-uploaded_shp = st.file_uploader("Upload coastline.shp", type=['shp'])
+#if 'coast_geojson' not in st.session_state:
+#    st.session_state.coat_geojson = None
+#uploaded_shp = st.file_uploader("Upload coastline.shp", type=['shp'])
 
-if uploaded_shp:
-    # Zip upload handling for .shp + .shx/.dbf
-    with st.spinner("Loading shapefile..."):
-        gdf = gpd.read_file(uploaded_shp)
-        st.session_state.coast_geojson = gdf.to_crs(epsg=4326).to_json()
+#if uploaded_shp:
+#    # Zip upload handling for .shp + .shx/.dbf
+#    with st.spinner("Loading shapefile..."):
+#        gdf = gpd.read_file(uploaded_shp)
+#        st.session_state.coast_geojson = gdf.to_crs(epsg=4326).to_json()
+
+@st.cache_data
+def load_countries_geojson():
+    with open('thailand_mapshaper.geojson', 'r') as f:  # Your file
+        return json.load(f)
+
+countries_geojson = load_countries_geojson()
+
     st.success("Shapefile memorized!")
 # Page configuration
 st.set_page_config(
@@ -286,7 +294,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                                                                    # Your Gulf box
                         dict(                      
                             sourcetype="geojson",
-                            source=coast_geojson,
+                            source=countries_geojson,
                             below="traces",
                             type="line",
                             minzoom=0,
