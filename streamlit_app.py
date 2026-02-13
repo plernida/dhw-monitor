@@ -269,7 +269,7 @@ def create_sst_map_mapbox(lon, lat, sst_data, title):
     fig.update_layout(
         title=title,
         mapbox=dict(
-            style="stamen-terrain",  # 🌄 topography
+            style="carto-positron",  # 🌄 topography
             center=dict(lat=7.5, lon=100),
             zoom=4.3
         ),
