@@ -270,7 +270,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
             style="white-bg", 
             layers=[dict(
                         type="fill",
-                        source=dict(type="Feature", geometry=dict(type="Polygon",coordinates=[[[90,0],[110,0],[110,14.5],[90,14.5],[90,0]]]],
+                        source=dict(type="Feature", geometry=dict(type="Polygon",coordinates=[[[90,0],[110,0],[110,14.5],[90,14.5],[90,0]]]),
                         below="traces",
                         paint=dict(fill_color="rgba(200,220,255,0.3)")
                         ),
