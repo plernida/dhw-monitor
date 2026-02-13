@@ -277,6 +277,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                                 coordinates=[[[90,0],[110,0],[110,14.5],[90,14.5],[90,0]
                                              ]
                                             ]
+                            )
                             ),
                             below="traces",
                             paint=dict(
