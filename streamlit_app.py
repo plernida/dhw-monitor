@@ -281,7 +281,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                             ),
                             below="contours",
                             
-                            )
+                            
                         ),
                                                                    # Your Gulf box
                         dict(                      
