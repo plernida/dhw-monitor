@@ -7,6 +7,8 @@ Interactive online interface for Degree Heating Weeks monitoring
 import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
+from scipy import ndimage
+import matplotlib.pyplot as plt
 import pandas as pd
 from datetime import datetime, timedelta
 import requests
@@ -227,35 +229,28 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
 def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     lon2d, lat2d = np.meshgrid(lon, lat)  # Assumes lon/lat are 1D arrays matching dhw_data shape
 
-    fig = go.Figure(data=go.Contour(
-        x=lon2d[0],  # 1D lon for x
-        y=lat2d[:, 0],  # 1D lat for y
-        z=dhw_data,
-        colorscale=[
-            [0.0, "rgb(66,112,194)"],
-            [0.3, "rgb(214,214,214)"],
-            [0.5, "rgb(235,222,196)"],
-            [0.7, "rgb(201,140,89)"],
-            [1.0, "rgb(140,77,26)"],
-        ],
-        zmin=0,
-        zmax=6,
-        contours=dict(coloring="fill"),  # Filled contours
-        colorbar=dict(title="DHW (weeks)")
-    ))
-
+    fig = go.Figure()
+    levels = np.arange(1, 6)
+    for level in levels:
+        contours = plt.contour(lon2d, lat2d, dhw_data, levels=[level])  # Use matplotlib temporarily
+        paths = contours.collections[0].get_paths()
+        for path in paths:
+            verts = path.vertices
+            fig.add_trace(go.Scattermapbox(
+                lon=verts[:, 0], lat=verts[:, 1],
+                mode='lines',
+                line=dict(color='red', width=2),
+                name=f'DHW={level}'
+            ))
+    
     fig.update_layout(
         title=title,
-        mapbox=dict(
-            style="carto-positron",
-            center=dict(lat=7.5, lon=100),
-            zoom=4.3
-        ),
+        mapbox=dict(style="carto-positron", center=dict(lat=7.5, lon=100), zoom=4.3),
         margin=dict(l=0, r=0, t=40, b=0),
         height=800
     )
-
     return fig
+
     
 def create_sst_map_mapbox(lon, lat, sst_data, title):
     lon2d, lat2d = np.meshgrid(lon, lat)
