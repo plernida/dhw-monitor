@@ -27,9 +27,7 @@ warnings.filterwarnings('ignore')
 coast_gdf = gpd.read_file("ne_10m_coastline.shp").to_crs('EPSG:4326')  # Ensure CRS is EPSG:4326
 coast_geojson = coast_gdf.__geo_interface__
 
-print(json.dumps(coast_geojson, indent=2)[:1000])  # Inspect features
-coast_gdf = gpd.read_file('ne_10m_coastline.shp')
-print(coast_gdf.geometry.geom_type.value_counts())  # Must be LineString/MultiLineString
+
 if 'coast_geojson' not in st.session_state:
     st.session_state.coat_geojson = None
 uploaded_shp = st.file_uploader("Upload coastline.shp", type=['shp'])
@@ -272,9 +270,11 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                     layers=[dict(
                         sourcetype="geojson",
                         source=coast_geojson,
-                        below="Traces",
+                        below="traces",
                         type="line",
-                        line=dict(width=1.5)
+                        minzoom=0,
+                        maxzoom=22,
+                        line=dict(width=6, color='gray')
                     )
                            ],
                     center=dict(lat=7.5, lon=100), zoom=4.3),
