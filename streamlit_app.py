@@ -322,6 +322,21 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
         
     ))
 
+    fig.update_layout(
+        mapbox=dict(
+            style="white-bg",
+            layers=[
+                dict(
+                    sourcetype="geojson",
+                    source=land_geojson,
+                    type="fill",
+                    below="traces",
+                    paint=dict(fill_color="lightgray", fill_outline_color="black")
+                )
+            ]
+        )
+    )
+
     return fig
 
     
