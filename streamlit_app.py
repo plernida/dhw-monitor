@@ -303,7 +303,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
         lon=land_lon, lat=land_lat,
         mode='lines',
         line=dict(width=3),
-        zorder=20,
+       
         name="Land Boundaries",
         showlegend=False
     ))
