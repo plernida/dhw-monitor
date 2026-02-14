@@ -307,7 +307,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     ))
     
     # 2. DHW contours OVER land (Scattermapbox lines)
-    fig.add_trace(go.Scattermapbox(
+    """fig.add_trace(go.Scattermapbox(
         lon=lon2d.flatten(), lat=lat2d.flatten(),
         mode='markers',  # Dense points for density
         marker=dict(
@@ -317,7 +317,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
             colorbar=dict(title="DHW")
         ),
         
-    ))
+    ))"""
 
     fig.update_layout(
         mapbox=dict(
