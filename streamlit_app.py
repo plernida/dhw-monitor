@@ -319,7 +319,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
             colorscale='Viridis',
             colorbar=dict(title="DHW")
         ),
-        zorder=20
+        
     ))
 
     return fig
