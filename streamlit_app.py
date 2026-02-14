@@ -39,8 +39,8 @@ warnings.filterwarnings('ignore')
 #        st.session_state.coast_geojson = gdf.to_crs(epsg=4326).to_json()
 #    st.success("Shapefile memorized!")
 @st.cache_data
-def load_countries_geojson():
-    with open('thailand_mapshaper.json', 'r') as f:  # Your file
+def load_countries_geojson(geojson_file):
+    with open(geojson_file, 'r') as f:  # Your file
         data = json.load(f)
 
     lons, lats = [], []
