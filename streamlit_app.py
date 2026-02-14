@@ -307,7 +307,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
         name="Land Boundaries",
         showlegend=False
     ))
-    fig.update#_layout(mapbox=dict(style="white-bg"))
+    fig.update_layout()#(mapbox=dict(style="white-bg"))
     """fig.update_layout(
         title=title,
         mapbox=dict(
