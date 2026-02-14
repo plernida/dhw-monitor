@@ -279,11 +279,11 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
 
 def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     lon2d, lat2d = np.meshgrid(lon, lat)  # Assumes lon/lat are 1D arrays matching dhw_data shape
-
-    fig = go.Figure(data=go.Contour(
-        x=lon2d[0],  # 1D lon for x
-        y=lat2d[:, 0],  # 1D lat for y
-        z=dhw_data,
+    fig = go.Figure()
+    fig.add_trace(go.Densitymapbox(
+        lon=lon2d.flatten(),  # 1D lon for x
+        lat=lat2d.flatten(),  # 1D lat for y
+        z=dhw_data.flatten(),
         colorscale=[
             [0.0, "rgb(255,255,255,0.0)"],
             [0.3, "rgb(214,214,214)"],
@@ -293,10 +293,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
         ],
         zmin=0,
         zmax=6,
-        contours=dict(coloring="fill",
-                     start=1,
-                     end=6,
-                     size=1),  # Filled contours
+        # Filled contours
         colorbar=dict(title="DHW (weeks)")
     ))
 
