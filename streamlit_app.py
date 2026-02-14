@@ -39,35 +39,36 @@ warnings.filterwarnings('ignore')
 #        st.session_state.coast_geojson = gdf.to_crs(epsg=4326).to_json()
 #    st.success("Shapefile memorized!")
 @st.cache_data
-def load_countries_geojson(geojson_file):
-    with open(geojson_file, 'r') as f:  # Your file
+def extract_lon_lat(geojson_file):
+    with open(geojson_file, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
     lons, lats = [], []
-    
+
     def add_coords(coords):
-        """Recursive helper for nested coordinates."""
-        if isinstance(coords, list):
-            if len(coords) > 0 and isinstance(coords[0], (list, tuple)):
-                # Array of coords: [[lon1,lat1], [lon2,lat2], ...]
-                for coord in coords:
-                    lons.append(coord[0])
-                    lats.append(coord[1])
-            else:
-                # Nested: recurse
-                for item in coords:
-                    add_coords(item)
-    
-            # Loop through all features
-        for feature in data['features']:
-            geom = feature['geometry']
-            if geom['type'] in ['LineString', 'Polygon', 'MultiLineString', 'MultiPolygon']:
-                add_coords(geom['coordinates'])
-        
-        return lons, lats
+        # coords is like [[lon, lat], [lon, lat], ...] or nested deeper
+        if not isinstance(coords, list):
+            return
+        # Coordinates list: [lon, lat]
+        if len(coords) == 2 and all(isinstance(c, (int, float)) for c in coords):
+            lon, lat = coords
+            lons.append(lon)
+            lats.append(lat)
+        else:
+            for c in coords:
+                add_coords(c)
+
+    for feature in data.get('features', []):
+        geom = feature.get('geometry')
+        if not geom:
+            continue
+        if geom['type'] in ['LineString', 'MultiLineString', 'Polygon', 'MultiPolygon']:
+            add_coords(geom['coordinates'])
+
+    return lons, lats
     
     # Usage
-land_lon, land_lat = load_countries_geojson('thailand_mapshaper.json')
+land_lon, land_lat = extract_lon_lat('thailand_mapshaper.json')
 
 
 # Page configuration
