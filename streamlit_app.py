@@ -69,7 +69,8 @@ def extract_lon_lat(geojson_file):
     
     # Usage
 land_lon, land_lat = extract_lon_lat('geoBoundariesCGAZ_ADM0_resized.geojson')
-
+with open('geoBoundariesCGAZ_ADM0_resized.geojson', 'r') as f:
+    land_geojson = json.load(f)
 
 # Page configuration
 st.set_page_config(
@@ -299,25 +300,27 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
         colorbar=dict(title="DHW (weeks)")
     ))
 
-    """fig.add_trace(go.Scattermapbox(
-        lon=land_lon, lat=land_lat,
-        mode='lines',
-        line=dict(width=3),
-       
-        name="Land Boundaries",
-        showlegend=False
-    ))"""
-    #fig.update_layout()#(mapbox=dict(style="white-bg"))
-    """fig.update_layout(
-        title=title,
-        mapbox=dict(
-            style="carto-positron",
-            center=dict(lat=7.5, lon=100),
-            zoom=4.3
+    fig.add_trace(go.Choroplethmapbox(
+        geojson=land_geojson,
+        locations=[f['properties']['id'] for f in land_geojson['features']],  # Match your property
+        z=[1]*len(land_geojson['features']),  # Constant to show all
+        colorscale=[[0, 'rgba(240,240,240,0.8)'], [1, 'rgba(200,200,200,0.9)']],  # Light gray land
+        showscale=False,
+        marker_line=dict(width=2, color='black')  # Black borders
+    ))
+    
+    # 2. DHW contours OVER land (Scattermapbox lines)
+    fig.add_trace(go.Scattermapbox(
+        lon=lon2d.flatten(), lat=lat2d.flatten(),
+        mode='markers',  # Dense points for density
+        marker=dict(
+            size=3,
+            color=dhw_data.flatten(),
+            colorscale='Viridis',
+            colorbar=dict(title="DHW")
         ),
-        margin=dict(l=0, r=0, t=40, b=0),
-        height=800
-    )"""
+        zorder=20
+    ))
 
     return fig
 
