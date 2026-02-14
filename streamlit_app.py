@@ -344,6 +344,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                 )
             ]
         )
+    , height=800
     )
 
     return fig
