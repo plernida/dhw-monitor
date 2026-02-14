@@ -68,8 +68,8 @@ def extract_lon_lat(geojson_file):
     return lons, lats
     
     # Usage
-land_lon, land_lat = extract_lon_lat('geoBoundariesCGAZ_ADM0_resized.geojson')
-with open('geoBoundariesCGAZ_ADM0_resized.geojson', 'r') as f:
+land_lon, land_lat = extract_lon_lat('thailand_mapshaper.geojson')
+with open('thailand_mapshaper.geojson', 'r') as f:
     land_geojson = json.load(f)
 
 # Page configuration
