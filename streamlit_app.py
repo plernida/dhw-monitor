@@ -44,9 +44,9 @@ def load_countries_geojson():
         return json.load(f)
 
 countries_geojson = load_countries_geojson()
-def extract_lon_lat(geojson_file):
+def extract_lon_lat(countries_geojson):
     """Extract all coordinates from GeoJSON for Scattermapbox."""
-    with open(geojson_file, 'r') as f:
+    with open(countries_geojson, 'r') as f:
         data = json.load(f)
     
     lons, lats = [], []
