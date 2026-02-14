@@ -302,7 +302,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
 
     fig.add_trace(go.Choroplethmapbox(
         geojson=land_geojson,
-        locations=[f['properties']['id'] for f in land_geojson['features']],  # Match your property
+        locations=[f['properties']['shapeType'] for f in land_geojson['features']],  # Match your property
         z=[1]*len(land_geojson['features']),  # Constant to show all
         colorscale=[[0, 'rgba(240,240,240,0.8)'], [1, 'rgba(200,200,200,0.9)']],  # Light gray land
         showscale=False,
