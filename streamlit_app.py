@@ -73,7 +73,7 @@ def extract_lon_lat(geojson_file):
     return lons, lats
 
 # Usage
-land_lon, land_lat = extract_lon_lat('countries_geojson')   
+land_lon, land_lat = extract_lon_lat(countries_geojson)   
 
 # Page configuration
 st.set_page_config(
