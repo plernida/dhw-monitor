@@ -44,36 +44,33 @@ def load_countries_geojson():
         return json.load(f)
 
 countries_geojson = load_countries_geojson()
-def extract_lon_lat(countries_geojson):
-    """Extract all coordinates from GeoJSON for Scattermapbox."""
-    with open(countries_geojson, 'r') as f:
-        data = json.load(f)
-    
-    lons, lats = [], []
-    
-    def add_coords(coords):
-        """Recursive helper for nested coordinates."""
-        if isinstance(coords, list):
-            if len(coords) > 0 and isinstance(coords[0], (list, tuple)):
-                # Array of coords: [[lon1,lat1], [lon2,lat2], ...]
-                for coord in coords:
-                    lons.append(coord[0])
-                    lats.append(coord[1])
-            else:
-                # Nested: recurse
-                for item in coords:
-                    add_coords(item)
-    
-    # Loop through all features
-    for feature in data['features']:
-        geom = feature['geometry']
-        if geom['type'] in ['LineString', 'Polygon', 'MultiLineString', 'MultiPolygon']:
-            add_coords(geom['coordinates'])
-    
-    return lons, lats
+
+lons, lats = [], []
+
+def add_coords(coords):
+    """Recursive helper for nested coordinates."""
+    if isinstance(coords, list):
+        if len(coords) > 0 and isinstance(coords[0], (list, tuple)):
+            # Array of coords: [[lon1,lat1], [lon2,lat2], ...]
+            for coord in coords:
+                lons.append(coord[0])
+                lats.append(coord[1])
+        else:
+            # Nested: recurse
+            for item in coords:
+                add_coords(item)
+
+        # Loop through all features
+        for feature in countries_geojson['features']:
+            geom = feature['geometry']
+            if geom['type'] in ['LineString', 'Polygon', 'MultiLineString', 'MultiPolygon']:
+                add_coords(geom['coordinates'])
+        
+        return lons, lats
 
 # Usage
-land_lon, land_lat = extract_lon_lat(countries_geojson)   
+land_lon, land_lat = add_coords()   
+*******
 
 # Page configuration
 st.set_page_config(
