@@ -274,8 +274,16 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
         colorbar=dict(title="DHW (weeks)")
     ))
 
-    
-    fig.update_layout(
+    fig.add_trace(go.Scattermapbox(
+        lon=land_lon, lat=land_lat,
+        mode='lines',
+        line=dict(width=3),
+        zorder=20,
+        name="Land Boundaries",
+        showlegend=False
+    ))
+    fig.update_layout(mapbox=dict(style="white-bg"))
+    """fig.update_layout(
         title=title,
         mapbox=dict(
             style="carto-positron",
@@ -284,7 +292,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
         ),
         margin=dict(l=0, r=0, t=40, b=0),
         height=800
-    )
+    )"""
 
     return fig
 
