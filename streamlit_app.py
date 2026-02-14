@@ -299,15 +299,15 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
         colorbar=dict(title="DHW (weeks)")
     ))
 
-    """fig.add_trace(go.Scattermapbox(
+    fig.add_trace(go.Scattermapbox(
         lon=land_lon, lat=land_lat,
         mode='lines',
         line=dict(width=3),
        
         name="Land Boundaries",
         showlegend=False
-    ))"""
-    #fig.update_layout()#(mapbox=dict(style="white-bg"))
+    ))
+    fig.update_layout()#(mapbox=dict(style="white-bg"))
     """fig.update_layout(
         title=title,
         mapbox=dict(
