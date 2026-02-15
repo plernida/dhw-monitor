@@ -322,7 +322,8 @@ def create_sst_map_mapbox(lon, lat, sst_data, title):
         mapbox=dict(
             style="stamen-terrain",
             center=dict(lat=7.5, lon=100),
-            zoom=4.3
+            zoom=4.3,
+            below='traces'
         ),
         margin=dict(l=0, r=0, t=40, b=0),
         height=800
