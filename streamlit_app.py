@@ -291,41 +291,12 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
         marker_line=dict(width=2, color='black')  # Black borders
     ))
     
-    # 2. DHW contours OVER land (Scattermapbox lines)
-    fig.add_trace(go.Scattermapbox(
-        lon=lon2d.flatten(), lat=lat2d.flatten(),
-        mode='markers',  # Dense points for density
-        marker=dict(
-            size=3,
-            color=dhw_data.flatten(),
-            colorscale='Viridis',
-            colorbar=dict(title="DHW")
-        ),
-        
-    ))
+
 
     fig.update_layout(
         mapbox=dict(
-            style="white-bg",
-            layers=[
-                dict(type="fill",
-                     source=dict(type="Feature", 
-                                 geometry=dict(type="Polygon", 
-                                coordinates=[[[90,0],[110,0],[110,14.5],[90,14.5],[90,0]]])),
-                     below="traces",
-                     
-                     
-                    ),
-                dict(
-                    sourcetype="geojson",
-                    source=land_geojson,
-                    type="line",
-                    below="traces",
-                    line=dict(width=3)
-                    
-                )
-            ]
-        ),
+            style="white-bg"),
+            ,
         margin=dict(l=0, r=0, t=40, b=0),
         height=800
     )
