@@ -280,26 +280,11 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
 def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     lon2d, lat2d = np.meshgrid(lon, lat)  # Assumes lon/lat are 1D arrays matching dhw_data shape
     fig = go.Figure()
-    fig.add_trace(go.Densitymapbox(
-        lon=lon2d.flatten(),  # 1D lon for x
-        lat=lat2d.flatten(),  # 1D lat for y
-        z=dhw_data.flatten(),
-        colorscale=[
-            [0.0, "rgb(255,255,255,0.0)"],
-            [0.3, "rgb(214,214,214)"],
-            [0.5, "rgb(235,222,196)"],
-            [0.7, "rgb(201,140,89)"],
-            [1.0, "rgb(140,77,26)"],
-        ],
-        zmin=0,
-        zmax=6,
-        # Filled contours
-        colorbar=dict(title="DHW (weeks)")
-    ))
+
 
     fig.add_trace(go.Choroplethmapbox(
         geojson=land_geojson,
-        locations=[f['properties']['Area_km2'] for f in land_geojson['features']],  # Match your property
+        locations=[f['properties']['P_NAME_E'] for f in land_geojson['features']],  # Match your property
         z=[1]*len(land_geojson['features']),  # Constant to show all
         colorscale=[[0, 'rgba(240,240,240,0.8)'], [1, 'rgba(200,200,200,0.9)']],  # Light gray land
         showscale=False,
@@ -307,7 +292,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     ))
     
     # 2. DHW contours OVER land (Scattermapbox lines)
-    """fig.add_trace(go.Scattermapbox(
+    fig.add_trace(go.Scattermapbox(
         lon=lon2d.flatten(), lat=lat2d.flatten(),
         mode='markers',  # Dense points for density
         marker=dict(
@@ -317,7 +302,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
             colorbar=dict(title="DHW")
         ),
         
-    ))"""
+    ))
 
     fig.update_layout(
         mapbox=dict(
