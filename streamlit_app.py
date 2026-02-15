@@ -296,7 +296,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     fig.update_layout(
         mapbox=dict(
             style="white-bg"),
-            ,
+            
         margin=dict(l=0, r=0, t=40, b=0),
         height=800
     )
