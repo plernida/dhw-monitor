@@ -569,7 +569,7 @@ if process_button:
                     lon, lat, dhw_total,
                     "Accumulated DHW (6 weeks)"
                 ))
-                st.plotly_chart(fig_dhw, width='stretch')
+                #st.plotly_chart(fig_dhw, width='stretch')
                             
             with col_right:
                 # Upper right: DHW Distribution
