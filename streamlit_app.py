@@ -323,7 +323,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                     below='traces',
                     type="fill",
                     opacity=0,
-                    fillcoloer="rgba(0,0,0,0)")
+                    fillcolor="rgba(0,0,0,0)")
             
                 ,
                 dict(
