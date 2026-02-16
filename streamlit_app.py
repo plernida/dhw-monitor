@@ -314,6 +314,8 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     fig.update_layout(mapbox=dict(style='stamen-watercolor'),  # Or 'carto-positron'
                   height=800, margin=dict(r=0, t=40, l=0, b=0))
 
+    fig.update_mapboxes(bounds=dict(bound_east=110,bound_west=90, bound_north=14.5, bound_south=0))
+
     return fig
 
 def create_sst_map_mapbox(lon, lat, sst_data, title):
