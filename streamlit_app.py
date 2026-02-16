@@ -319,7 +319,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                 dict(
                     type="fill",  # Target fill layers like water/landuse
                     source="composite",  # Carto-positron source
-                    "source-layer": "water",  # Common water layer name
+                    source_layer= "water",  # Common water layer name
                     below='traces',
                     paint=dict(
                         "fill-opacity": 0,  # Transparent sea
