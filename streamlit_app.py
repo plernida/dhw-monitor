@@ -17,6 +17,8 @@ from netCDF4 import Dataset
 import tempfile
 import os
 import json
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 from io import BytesIO
 import pytz
 from datetime import timedelta
@@ -326,7 +328,31 @@ def create_dhw_heatmap(lon, lat, dhw_data, title):
         title=title
     )
     return fig
-    
+def plot_cartopy_map(lon, lat, dhw_data, title):
+
+    lon2d, lat2d = np.meshgrid(lon, lat)
+      # sample DHW
+
+    fig = plt.figure(figsize=(8, 6))
+    ax = plt.axes(projection=ccrs.PlateCarree())
+
+    # DHW raster
+    im = ax.pcolormesh(
+        lon2d, lat2d, dhw_data,
+        cmap='turbo',
+        vmin=0, vmax=12,
+        transform=ccrs.PlateCarree()
+    )
+
+    # Coastlines
+    ax.coastlines(resolution='10m')
+    ax.add_feature(cfeature.LAND, facecolor='lightgray')
+
+    ax.set_extent([90, 110, 0, 15])
+
+    plt.colorbar(im, ax=ax, label="DHW (°C-weeks)")
+    st.pyplot(plot_cartopy_map())
+    return fig    
 land_gdf = gpd.read_file('https://github.com/nvkelso/natural-earth-vector/raw/refs/heads/master/110m_physical/ne_110m_coastline.shp')  # Or local shapefile
 land_geojson = land_gdf.to_json()
 
@@ -539,7 +565,7 @@ if process_button:
             
             with col_left:
                 # Portrait DHW map (tall)
-                fig_dhw = create_dhw_heatmap(
+                fig_dhw = plot_cartopy_map(
                     lon, lat, dhw_total,
                     "Accumulated DHW (6 weeks)"
                 )
