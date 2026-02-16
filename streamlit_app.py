@@ -295,7 +295,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     
     levels = np.arange(0, 8, 2)  # e.g., 25-32°C
     figure, ax = plt.subplots()
-    cs = ax.contour(lon, lat, dhw_data, levels=levels,colors='none', extend='neither')  # Matplotlib to get paths
+    cs = ax.contour(lon2d, lat2d, dhw_data, levels=levels,colors='none', extend='neither')  # Matplotlib to get paths
     plt.close(figure)
     for level_idx, level_contours in enumerate(cs.allsegs):
         for contour_verts in level_contours:
