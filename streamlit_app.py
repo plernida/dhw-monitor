@@ -317,13 +317,13 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
             bounds=dict(east=110, west=90, north=14.5, south=0),
             layers=[
                 dict(
-                    type="fill",  # Target fill layers like water/landuse
+                    sourcetype="vector",  # Target fill layers like water/landuse
                     source="composite",  # Carto-positron source
                     sourcelayer= "water",  # Common water layer name
                     below='traces',
-                    paint=dict(
-                        fill_opacity= 0,  # Transparent sea
-                        fill_color= "rgba(0,0,255,0)"  # Optional blue tint
+                    type="fill",
+                    paint_fill=dict(
+                        opacity= 0
                     )
                 ),
                 dict(
