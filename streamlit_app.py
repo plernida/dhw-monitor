@@ -312,10 +312,29 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
             ))
 
       
-    fig.update_layout(mapbox=dict(style='carto-positron',
-                                 bounds=dict(east=110,west=90, north=14.5, south=0),
-                                  layers="below"
-                                 ),  # Or 'carto-positron'
+    fig.update_layout(mapbox=dict(
+            style='carto-positron',
+            bounds=dict(east=110, west=90, north=14.5, south=0),
+            layers=[
+                dict(
+                    type="fill",  # Target fill layers like water/landuse
+                    source="composite",  # Carto-positron source
+                    "source-layer": "water",  # Common water layer name
+                    below='traces',
+                    paint=dict(
+                        "fill-opacity": 0,  # Transparent sea
+                        "fill-color": "rgba(0,0,255,0)"  # Optional blue tint
+                    )
+                ),
+                dict(
+                    type="fill",
+                    source="composite",
+                    "source-layer": "land",  # Keep land visible if needed
+                    below='traces',
+                    paint=dict("fill-opacity": 0.1)  # Subtle land
+                )
+            ]
+        ),  # Or 'carto-positron'
                   height=800, margin=dict(r=0, t=40, l=0, b=0))
 
     return fig
