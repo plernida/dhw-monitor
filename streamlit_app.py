@@ -370,7 +370,7 @@ def create_sst_map_mapbox(lon, lat, sst_data, title):
                 sourcetype="vector",  # Target fill layers like water/landuse
                 source="composite",  # Carto-positron source
                 sourcelayer= "water",  # Common water layer name
-                below='traces',
+                below='',
                 type="fill",
                 opacity=0,
                 color="rgba(0,0,0,0)")
@@ -380,7 +380,7 @@ def create_sst_map_mapbox(lon, lat, sst_data, title):
                 type="fill",
                 source="composite",
                 sourcelayer= "land",  # Keep land visible if needed
-                below='traces',
+                below='',
                 opacity=0.1
                 # Subtle land
             )
