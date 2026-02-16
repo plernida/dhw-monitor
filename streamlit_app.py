@@ -314,7 +314,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
       
     fig.update_layout(mapbox=dict(style='carto-positron',
                                  bounds=dict(east=110,west=90, north=14.5, south=0),
-                                  layers=[{"source":"mapbox-streets", "source-layer":"water", "type":"fill", "paint":{"fill-opacity":0}}]
+                                  layers="below"
                                  ),  # Or 'carto-positron'
                   height=800, margin=dict(r=0, t=40, l=0, b=0))
 
