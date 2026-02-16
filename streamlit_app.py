@@ -285,55 +285,46 @@ colorscale = [
     [1.0, "#800000"]    # dark red
 ]
 def create_dhw_heatmap(lon, lat, dhw_data, title):
-    fig_img, ax = plt.subplots(figsize=(6,4), dpi=150)
-    im = ax.imshow(
-        dhw_data,
-        origin='lower',
-        cmap='turbo',
-        vmin=0, vmax=12
-    )
-    ax.axis('off')
+    lon2d, lat2d = np.meshgrid(lon, lat)
 
-    # Save to buffer
-    import io, base64
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0)
-    plt.close(fig_img)
-    img_b64 = base64.b64encode(buf.getvalue()).decode()
+    # Flatten grid for densitymapbox
+    lon_flat = lon2d.flatten()
+    lat_flat = lat2d.flatten()
+    dhw_flat = dhw_data.flatten()
 
-    # Geographic bounds
-    bounds = [
-        [float(lon.min()), float(lat.min())],
-        [float(lon.max()), float(lat.max())]
-    ]
+    # Remove NaNs
+    mask = ~np.isnan(dhw_flat)
+    lon_flat = lon_flat[mask]
+    lat_flat = lat_flat[mask]
+    dhw_flat = dhw_flat[mask]
 
-    # --- Plotly Map ---
     fig = go.Figure()
+
+    # --- DHW Heatmap ---
+    fig.add_trace(go.Densitymapbox(
+        lon=lon_flat,
+        lat=lat_flat,
+        z=dhw_flat,
+        radius=20,              # smoothing radius
+        colorscale=colorscale,     # good for ocean heat
+        zmin=0,
+        zmax=12,                # NOAA DHW scale often 0–12+
+        showscale=True,
+        colorbar=dict(title="DHW (°C-weeks)")
+    ))
+
+    # --- Optional land overlay ---
 
     fig.update_layout(
         mapbox=dict(
             style="carto-positron",
-            layers=[
-                dict(
-                    sourcetype="image",
-                    source=f"data:image/png;base64,{img_b64}",
-                    coordinates=[
-                        [lon.min(), lat.max()],
-                        [lon.max(), lat.max()],
-                        [lon.max(), lat.min()],
-                        [lon.min(), lat.min()],
-                    ],
-                    opacity=0.8,
-                )
-            ],
-            center=dict(lat=float(np.mean(lat)), lon=float(np.mean(lon))),
-            zoom=4
+            zoom=4,
+            center=dict(lat=float(np.nanmean(lat)), lon=float(np.nanmean(lon)))
         ),
         margin=dict(r=0, t=40, l=0, b=0),
         height=800,
         title=title
     )
-
     return fig
     
 land_gdf = gpd.read_file('https://github.com/nvkelso/natural-earth-vector/raw/refs/heads/master/110m_physical/ne_110m_coastline.shp')  # Or local shapefile
