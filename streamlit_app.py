@@ -322,10 +322,10 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                     sourcelayer= "water",  # Common water layer name
                     below='traces',
                     type="fill",
-                    paint_fill=dict(
-                        opacity= 0
-                    )
-                ),
+                    opacity=0,
+                    fillcoloer="rgba(0,0,0,0)")
+            
+                ,
                 dict(
                     type="fill",
                     source="composite",
