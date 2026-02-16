@@ -351,7 +351,7 @@ def plot_cartopy_map(lon, lat, dhw_data, title):
     ax.set_extent([90, 110, 0, 15])
 
     plt.colorbar(im, ax=ax, label="DHW (°C-weeks)")
-    st.pyplot(plot_cartopy_map())
+    )
     return fig    
 land_gdf = gpd.read_file('https://github.com/nvkelso/natural-earth-vector/raw/refs/heads/master/110m_physical/ne_110m_coastline.shp')  # Or local shapefile
 land_geojson = land_gdf.to_json()
@@ -565,7 +565,7 @@ if process_button:
             
             with col_left:
                 # Portrait DHW map (tall)
-                fig_dhw = plot_cartopy_map(
+                fig_dhw = st.pyplot(plot_cartopy_map(
                     lon, lat, dhw_total,
                     "Accumulated DHW (6 weeks)"
                 )
