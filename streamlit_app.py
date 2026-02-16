@@ -352,16 +352,33 @@ def create_sst_map_mapbox(lon, lat, sst_data, title):
         colorbar=dict(title="SST (°C)")
     ))
 
-    fig.update_layout(
-        title=title,
-        mapbox=dict(
-            style="carto-positron",
-            center=dict(lat=7.5, lon=100),
-            zoom=4.3
-        ),
-        margin=dict(l=0, r=0, t=40, b=0),
-        height=800
-    )
+
+    fig.update_layout(mapbox=dict(
+        style='carto-positron',
+        bounds=dict(east=110, west=90, north=14.5, south=0),
+        layers=[
+            dict(
+                sourcetype="vector",  # Target fill layers like water/landuse
+                source="composite",  # Carto-positron source
+                sourcelayer= "water",  # Common water layer name
+                below='traces',
+                type="fill",
+                opacity=0,
+                color="rgba(0,0,0,0)")
+        
+            ,
+            dict(
+                type="fill",
+                source="composite",
+                sourcelayer= "land",  # Keep land visible if needed
+                below='traces',
+                opacity=0.1
+                # Subtle land
+            )
+        ]
+    ),  # Or 'carto-positron'
+              height=800, margin=dict(r=0, t=40, l=0, b=0))
+
 
     return fig
 
