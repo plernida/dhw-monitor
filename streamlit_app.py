@@ -292,20 +292,24 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
         marker_line=dict(width=1, color='black')
     ))
     
-    levels = np.arange(25, 33, 1)  # e.g., 25-32°C
-    cs = plt.contour(lon, lat, dhw_data, levels=levels)  # Matplotlib to get paths
-    for path in cs.collections:
-        for contour_path in path.get_paths():
-            verts = contour_path.vertices  # lon, lat pairs
+    levels = np.arange(0, 8, 2)  # e.g., 25-32°C
+    figure, ax = plt.subplots()
+    cs = ax.contour(lon, lat, dhw_data, levels=levels,colors='none', extend='neither')  # Matplotlib to get paths
+    plt.close(figure)
+    for level_idx, level_contours in enumerate(cs.allsegs):
+        for contour_verts in level_contours:
+            # contour_verts: Nx2 array [lon, lat]
+            lon_line = contour_verts[:, 0]
+            lat_line = contour_verts[:, 1]
+            
             fig.add_trace(go.Scattermapbox(
-                lon=verts[:,0], lat=verts[:,1],
+                lon=lon_line, lat=lat_line,
                 mode='lines',
-                line=dict(width=2, color='navy'),  # Or color by level
-                fill='toself',  # Optional closed fill (transparent)
-                opacity=0.8,
-                showlegend=False
+                line=dict(width=2, color='navy'),
+                name=f'DHW {levels[level_idx]:.1f}',
+                showlegend=True
             ))
-    
+        
     fig.update_layout(mapbox=dict(style='white-bg'),  # Or 'carto-positron'
                   height=600, margin=dict(r=0, t=40, l=0, b=0))
 
