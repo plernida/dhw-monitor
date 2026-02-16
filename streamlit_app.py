@@ -293,7 +293,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     ))
     
     levels = np.arange(25, 33, 1)  # e.g., 25-32°C
-    cs = plt.contour(lon, lat, sst, levels=levels)  # Matplotlib to get paths
+    cs = plt.contour(lon, lat, dhw_data, levels=levels)  # Matplotlib to get paths
     for path in cs.collections:
         for contour_path in path.get_paths():
             verts = contour_path.vertices  # lon, lat pairs
