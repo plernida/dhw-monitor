@@ -303,7 +303,8 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
 
     return fig
 
-    
+def create_sst_map_mapbox(lon, lat, sst_data, title):
+    lon2d, lat2d = np.meshgrid(lon, lat)    
     fig = go.Figure(data=go.Contour(
         x=lon2d[0],  # 1D lon for x
         y=lat2d[:, 0],  # 1D lat for y
