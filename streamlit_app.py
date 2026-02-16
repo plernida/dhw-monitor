@@ -311,7 +311,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
         marker_line=dict(width=1, color='black')
     ))
         
-    fig.update_layout(mapbox=dict(style='carto-darkmatter'),  # Or 'carto-positron'
+    fig.update_layout(mapbox=dict(style='stamen-watercolor'),  # Or 'carto-positron'
                   height=800, margin=dict(r=0, t=40, l=0, b=0))
 
     return fig
