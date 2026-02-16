@@ -329,9 +329,10 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                 dict(
                     type="fill",
                     source="composite",
-                    source_layer= "land",  # Keep land visible if needed
+                    sourcelayer= "land",  # Keep land visible if needed
                     below='traces',
-                    paint=dict(fill_opacity= 0.1)  # Subtle land
+                    opacity=0.1
+                    # Subtle land
                 )
             ]
         ),  # Or 'carto-positron'
