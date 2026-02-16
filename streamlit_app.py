@@ -310,7 +310,7 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                 showlegend=True
             ))
         
-    fig.update_layout(mapbox=dict(style='white-bg'),  # Or 'carto-positron'
+    fig.update_layout(mapbox=dict(style='carto-positron'),  # Or 'carto-positron'
                   height=600, margin=dict(r=0, t=40, l=0, b=0))
 
     return fig
