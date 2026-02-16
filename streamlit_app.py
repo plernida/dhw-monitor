@@ -276,7 +276,62 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
     )
 
     return fig
+    
+def create_dhw_heatmap(lon, lat, dhw_data, title):
+    import numpy as np
+    import plotly.graph_objects as go
 
+    lon2d, lat2d = np.meshgrid(lon, lat)
+
+    # Flatten grid for densitymapbox
+    lon_flat = lon2d.flatten()
+    lat_flat = lat2d.flatten()
+    dhw_flat = dhw_data.flatten()
+
+    # Remove NaNs
+    mask = ~np.isnan(dhw_flat)
+    lon_flat = lon_flat[mask]
+    lat_flat = lat_flat[mask]
+    dhw_flat = dhw_flat[mask]
+
+    fig = go.Figure()
+
+    # --- DHW Heatmap ---
+    fig.add_trace(go.Densitymapbox(
+        lon=lon_flat,
+        lat=lat_flat,
+        z=dhw_flat,
+        radius=20,              # smoothing radius
+        colorscale="Turbo",     # good for ocean heat
+        zmin=0,
+        zmax=12,                # NOAA DHW scale often 0–12+
+        showscale=True,
+        colorbar=dict(title="DHW (°C-weeks)")
+    ))
+
+    # --- Optional land overlay ---
+    fig.add_trace(go.Choroplethmapbox(
+        geojson=land_geojson,
+        locations=land_gdf.index,
+        z=[1]*len(land_gdf),
+        colorscale=[[0,'rgba(220,220,220,0.8)'],[1,'rgba(200,200,200,0.9)']],
+        showscale=False,
+        marker_line_width=0.5,
+        marker_line_color="black"
+    ))
+
+    fig.update_layout(
+        mapbox=dict(
+            style="carto-positron",
+            zoom=4,
+            center=dict(lat=float(np.nanmean(lat)), lon=float(np.nanmean(lon)))
+        ),
+        margin=dict(r=0, t=40, l=0, b=0),
+        height=800,
+        title=title
+    )
+
+    return fig
 land_gdf = gpd.read_file('https://github.com/nvkelso/natural-earth-vector/raw/refs/heads/master/110m_physical/ne_110m_coastline.shp')  # Or local shapefile
 land_geojson = land_gdf.to_json()
 
@@ -489,7 +544,7 @@ if process_button:
             
             with col_left:
                 # Portrait DHW map (tall)
-                fig_dhw = create_dhw_map_mapbox(
+                fig_dhw = create_dhw_heatmap(
                     lon, lat, dhw_total,
                     "Accumulated DHW (6 weeks)"
                 )
