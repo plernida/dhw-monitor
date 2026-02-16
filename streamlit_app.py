@@ -304,9 +304,6 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     return fig
 
     
-def create_sst_map_mapbox(lon, lat, sst_data, title):
-    lon2d, lat2d = np.meshgrid(lon, lat)
-
     fig = go.Figure(data=go.Contour(
         x=lon2d[0],  # 1D lon for x
         y=lat2d[:, 0],  # 1D lat for y
@@ -320,12 +317,9 @@ def create_sst_map_mapbox(lon, lat, sst_data, title):
     fig.update_layout(
         title=title,
         mapbox=dict(
-            style="geojson",
-            type='fill',
-            source='thailand_mapshaper.geojson',
+            style="carto-positron",
             center=dict(lat=7.5, lon=100),
-            zoom=4.3,
-            below='traces'
+            zoom=4.3
         ),
         margin=dict(l=0, r=0, t=40, b=0),
         height=800
