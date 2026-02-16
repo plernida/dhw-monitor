@@ -311,7 +311,8 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                 showlegend=False
             ))
 
-    fig.update_mapboxes(bounds=dict(east=110,west=90, north=14.5, south=0))    
+    fig.update_mapboxes(bounds=dict(east=110,west=90, north=14.5, south=0),
+                       opacity=0.2)    
     fig.update_layout(mapbox=dict(style='carto-darkmatter'),  # Or 'carto-positron'
                   height=800, margin=dict(r=0, t=40, l=0, b=0))
 
