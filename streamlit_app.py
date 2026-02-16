@@ -367,6 +367,17 @@ def create_sst_map_mapbox(lon, lat, sst_data, title):
 
 def create_sst_map(lon, lat, sst_data, title):
     """Create Plotly contour map for SST data"""
+    fig = go.Figure()
+    
+    fig.add_trace(go.Choroplethmapbox(
+        geojson=land_geojson,
+        locations=land_gdf.index,  # Unique IDs
+        z=[1] * len(land_gdf),  # Constant
+        colorscale=[[0, 'rgba(240,240,240,0.8)'], [1, 'rgba(200,200,200,0.9)']],
+        showscale=False,
+        marker_line=dict(width=1, color='black')
+    ))
+    
     fig = go.Figure(data=go.Contour(
         z=sst_data,
         x=lon,
