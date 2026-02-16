@@ -322,16 +322,16 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                     source_layer= "water",  # Common water layer name
                     below='traces',
                     paint=dict(
-                        "fill-opacity": 0,  # Transparent sea
-                        "fill-color": "rgba(0,0,255,0)"  # Optional blue tint
+                        fill_opacity= 0,  # Transparent sea
+                        fill_color= "rgba(0,0,255,0)"  # Optional blue tint
                     )
                 ),
                 dict(
                     type="fill",
                     source="composite",
-                    "source-layer": "land",  # Keep land visible if needed
+                    source_layer= "land",  # Keep land visible if needed
                     below='traces',
-                    paint=dict("fill-opacity": 0.1)  # Subtle land
+                    paint=dict(fill_opacity= 0.1)  # Subtle land
                 )
             ]
         ),  # Or 'carto-positron'
