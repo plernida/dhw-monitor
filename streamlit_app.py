@@ -282,6 +282,7 @@ land_geojson = land_gdf.to_json()
 
 def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     lon2d, lat2d = np.meshgrid(lon, lat)  # Assumes lon/lat are 1D arrays matching dhw_data shape
+    fig = go.Figure()
     fig.add_trace(go.Choroplethmapbox(
         geojson=land_geojson,
         locations=land_gdf.index,  # Unique IDs
