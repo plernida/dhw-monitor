@@ -568,7 +568,7 @@ if process_button:
                 fig_dhw = st.pyplot(plot_cartopy_map(
                     lon, lat, dhw_total,
                     "Accumulated DHW (6 weeks)"
-                )
+                ))
                 st.plotly_chart(fig_dhw, width='stretch')
                             
             with col_right:
