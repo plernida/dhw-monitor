@@ -276,7 +276,14 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
     )
 
     return fig
-    
+colorscale = [
+    [0.0, "#2c7bb6"],   # blue
+    [0.2, "#abd9e9"],
+    [0.4, "#ffffbf"],
+    [0.6, "#fdae61"],
+    [0.8, "#d7191c"],
+    [1.0, "#800000"]    # dark red
+]
 def create_dhw_heatmap(lon, lat, dhw_data, title):
     import numpy as np
     import plotly.graph_objects as go
@@ -301,8 +308,8 @@ def create_dhw_heatmap(lon, lat, dhw_data, title):
         lon=lon_flat,
         lat=lat_flat,
         z=dhw_flat,
-        radius=20,              # smoothing radius
-        colorscale="Turbo",     # good for ocean heat
+        radius=40,              # smoothing radius
+        colorscale=colorscale,     # good for ocean heat
         zmin=0,
         zmax=12,                # NOAA DHW scale often 0–12+
         showscale=True,
@@ -310,15 +317,6 @@ def create_dhw_heatmap(lon, lat, dhw_data, title):
     ))
 
     # --- Optional land overlay ---
-    fig.add_trace(go.Choroplethmapbox(
-        geojson=land_geojson,
-        locations=land_gdf.index,
-        z=[1]*len(land_gdf),
-        colorscale=[[0,'rgba(220,220,220,0.8)'],[1,'rgba(200,200,200,0.9)']],
-        showscale=False,
-        marker_line_width=0.5,
-        marker_line_color="black"
-    ))
 
     fig.update_layout(
         mapbox=dict(
