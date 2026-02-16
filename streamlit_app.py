@@ -283,14 +283,7 @@ land_geojson = land_gdf.to_json()
 def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     lon2d, lat2d = np.meshgrid(lon, lat)  # Assumes lon/lat are 1D arrays matching dhw_data shape
     fig = go.Figure()
-    fig.add_trace(go.Choroplethmapbox(
-        geojson=land_geojson,
-        locations=land_gdf.index,  # Unique IDs
-        z=[1] * len(land_gdf),  # Constant
-        colorscale=[[0, 'rgba(240,240,240,0.8)'], [1, 'rgba(200,200,200,0.9)']],
-        showscale=False,
-        marker_line=dict(width=1, color='black')
-    ))
+
     
     levels = np.arange(0, 8, 2)  # e.g., 25-32°C
     figure, ax = plt.subplots()
@@ -309,6 +302,14 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
                 name=f'DHW {levels[level_idx]:.1f}',
                 showlegend=False
             ))
+    fig.add_trace(go.Choroplethmapbox(
+        geojson=land_geojson,
+        locations=land_gdf.index,  # Unique IDs
+        z=[1] * len(land_gdf),  # Constant
+        colorscale=[[0, 'rgba(240,240,240,0.8)'], [1, 'rgba(200,200,200,0.9)']],
+        showscale=False,
+        marker_line=dict(width=1, color='black')
+    ))
         
     fig.update_layout(mapbox=dict(style='carto-positron'),  # Or 'carto-positron'
                   height=800, margin=dict(r=0, t=40, l=0, b=0))
