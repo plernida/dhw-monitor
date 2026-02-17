@@ -114,7 +114,7 @@ th_tz = pytz.timezone('Asia/Bangkok')
 now = datetime.now(th_tz)
 target_date = now.date() - timedelta(days=2)
 
-MIN_DATE = datetime(1981, 9, 1)
+MIN_DATE = datetime(1981, 1, 1)
 MAX_DATE = target_date
 
 st.sidebar.success(f"📅 **Latest Analysis:** {target_date.strftime('%Y-%m-%d')}")
@@ -124,7 +124,7 @@ analysis_date = st.sidebar.date_input("🎯 Analysis Center Date",
     value=target_date,
     min_value=MIN_DATE,
     max_value=MAX_DATE,
-    help="Select center date → auto 48-day backward analysis")
+    help="Select center date → auto 12-day backward analysis")
 
 
 process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
@@ -136,7 +136,7 @@ process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBase/NetCDF/V2.1/AVHRR/"
 
 @st.cache_data(ttl=3600)  # Cache for 1 hour
-def download_latest_sst(enddate, days_back=48):
+def download_latest_sst(enddate, days_back=12):
     sstdata = []
     th_lon = np.linspace(90, 110, 82)
     th_lat = np.linspace(0, 14.5, 60)
@@ -203,7 +203,7 @@ def create_coordinates():
     return LON, LAT, lon, lat
 
 
-def calculate_dhw(TSeries, baseline, threshold=1.0):
+def calculate_dhw(TSeries, MMM, threshold=1.0):
     """Calculate Degree Heating Weeks from time series"""
     dhw_weeks = []
     sst_weeks = []
@@ -213,7 +213,7 @@ def calculate_dhw(TSeries, baseline, threshold=1.0):
         end_idx = start_idx + 5
         week_mean = np.nanmean(TSeries[:, :, start_idx:end_idx], axis=2)
         sst_weeks.append(week_mean)
-        hotspot = week_mean - (baseline + threshold)
+        hotspot = week_mean - (MMM + threshold)
         dhw_week = np.where(hotspot > 0, 1, 0)
         dhw_weeks.append(dhw_week)
     
@@ -524,16 +524,21 @@ if process_button:
         enddate = analysis_date
         
         # Download 48 days BACK from analysis_date
-        TSeries = download_latest_sst(enddate, days_back=48)
+        TSeries = download_latest_sst(enddate, days_back=12)
         # Get coordinates
         LON, LAT, lon, lat = create_coordinates()
 
         # baseline
-        baseline = 29.0 + 0.5 * np.sin((LON - 90) / 20 * np.pi) + 0.3 * np.cos((LAT - 7) / 7 * np.pi)  # Keep your existing baseline logic
-        baseline += np.random.normal(0, 0.1, baseline.shape)  # Add noise if desired
+        url = "https://github.com/plernida/dhw-monitor/raw/main/data/baseline_sst.nc"
+        resp = requests.get(url)
+        resp.raise_for_status()
+
+        with Dataset('in-memory', mode='r', memory=resp.content) as nc:
+            baseline = nc.variables['sst'][:]   # read array
+        MMM = baseline.sel(lon=slice(90,110),lat=slice(0,14.5) # Add noise if desired
 
         # Calculate DHW
-        dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, baseline)
+        dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
         
         # Current SST
         sst_current = TSeries[:, :, -1]
