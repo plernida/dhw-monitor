@@ -6,6 +6,7 @@ Interactive online interface for Degree Heating Weeks monitoring
 
 import streamlit as st
 import numpy as np
+import xarray as xr
 import plotly.graph_objects as go
 from scipy import ndimage
 import matplotlib.pyplot as plt
@@ -529,12 +530,8 @@ if process_button:
         LON, LAT, lon, lat = create_coordinates()
 
         # baseline
-        url = "https://github.com/plernida/dhw-monitor/blob/main/mmm_sst_iowp_1981-2020.nc"
-        resp = requests.get(url)
-        resp.raise_for_status()
-
-        with Dataset('in-memory', mode='r', memory=resp.content) as nc:
-            baseline = nc.variables['sst'][:]   # read array
+        
+        baseline = xr.open_dataset('mmm_sst_iowp_1981-2020.nc') # read array
         MMM = baseline.sel(lon=slice(90,110),lat=slice(0,14.5)) # Add noise if desired
 
         # Calculate DHW
