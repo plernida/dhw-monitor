@@ -532,7 +532,7 @@ if process_button:
         # baseline
         
         baseline = xr.open_dataset('mmm_sst_iowp_1981-2020.nc') # read array
-        MMM = baseline.sel(lon=slice(90,110),lat=slice(0,14.5)) # Add noise if desired
+        MMM = baseline.sel(lon=slice(90,110.3),lat=slice(0,14.8)) # Add noise if desired
 
         # Calculate DHW
         dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
