@@ -134,9 +134,9 @@ process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 # NOAA OISST base URL pattern
 #NOAA_BASE_URL = "https://www.ncei.noaa.gov/thredds/fileServer/OisstBase/NetCDF/V2.1/AVHRR/"
 NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBase/NetCDF/V2.1/AVHRR/"
-
+dayback=30
 @st.cache_data(ttl=3600)  # Cache for 1 hour
-def download_latest_sst(enddate, days_back=12):
+def download_latest_sst(enddate, days_back=dayback):
     sstdata = []
     th_lon = np.linspace(90, 110, 82)
     th_lat = np.linspace(0, 14.5, 60)
@@ -231,12 +231,12 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
     else:  # Multi-level (0-6)
         colorscale = [
             [0, 'rgb(66, 112, 194)'],      # Blue - 0
-            [0.17, 'rgb(214, 214, 214)'],  # Gray - 1
-            [0.33, 'rgb(235, 222, 196)'],  # Beige - 2
-            [0.5, 'rgb(227, 204, 217)'],   # Pink - 3
-            [0.67, 'rgb(201, 140, 89)'],   # Brown - 4
-            [0.83, 'rgb(166, 89, 89)'],    # Dark brown - 5
-            [1, 'rgb(140, 77, 26)']        # Very dark - 6
+            [1, 'rgb(214, 214, 214)'],  # Gray - 1
+            [2, 'rgb(235, 222, 196)'],  # Beige - 2
+            [3, 'rgb(227, 204, 217)'],   # Pink - 3
+            [4, 'rgb(201, 140, 89)'],   # Brown - 4
+            [5, 'rgb(166, 89, 89)'],    # Dark brown - 5
+            [6, 'rgb(140, 77, 26)']        # Very dark - 6
         ]
         colorbar_title = "DHW Level"
         tickvals = list(range(7))
