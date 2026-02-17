@@ -215,7 +215,7 @@ def calculate_dhw(TSeries, MMM, threshold=1.0):
         week_mean = np.nanmean(TSeries[:, :, start_idx:end_idx], axis=2)
         sst_weeks.append(week_mean)
         hotspot = week_mean - (MMM + threshold)
-        dhw_week = np.where(hotspot > 0, 1, 0)
+        dhw_week = xr.where(hotspot > 0, 1, 0)
         dhw_weeks.append(dhw_week)
     
     # Sum all weeks
