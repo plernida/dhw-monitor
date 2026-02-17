@@ -546,9 +546,9 @@ if process_button:
         # Display statistics
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.metric("Max DHW", f"{(dhw_total.max(skipna=True))} weeks")
+            st.metric("Max DHW", f"{(dhw_total.max())} weeks")
         with col2:
-            st.metric("Avg SST", f"{(sst_current.max(skipna=True))} °C")
+            st.metric("Avg SST", f"{(sst_current.max())} °C")
         with col3:
             alert_area = (dhw_total >= 4).sum(skipna=True) / dhw_total.size * 100
             st.metric("Alert Area", f"{alert_area:.1f}%")
