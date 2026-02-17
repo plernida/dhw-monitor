@@ -529,7 +529,7 @@ if process_button:
         LON, LAT, lon, lat = create_coordinates()
 
         # baseline
-        url = "https://github.com/plernida/dhw-monitor/raw/main/data/baseline_sst.nc"
+        url = "https://github.com/plernida/dhw-monitor/blob/main/mmm_sst_iowp_1981-2020.nc"
         resp = requests.get(url)
         resp.raise_for_status()
 
