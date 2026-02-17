@@ -548,7 +548,7 @@ if process_button:
         with col1:
             st.metric("Max DHW", f"{int(dhw_total.max(skipna=True).item())} weeks")
         with col2:
-            st.metric("Avg SST", f"{(int(sst_current.max(skipna=True).item())} °C")
+            st.metric("Avg SST", f"{int(sst_current.max(skipna=True).item())} °C")
         with col3:
             alert_area = (dhw_total >= 4).sum(skipna=True) / dhw_total.size * 100
             st.metric("Alert Area", f"{alert_area:.1f}%")
