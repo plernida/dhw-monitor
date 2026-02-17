@@ -535,7 +535,7 @@ if process_button:
 
         with Dataset('in-memory', mode='r', memory=resp.content) as nc:
             baseline = nc.variables['sst'][:]   # read array
-        MMM = baseline.sel(lon=slice(90,110),lat=slice(0,14.5) # Add noise if desired
+        MMM = baseline.sel(lon=slice(90,110),lat=slice(0,14.5)) # Add noise if desired
 
         # Calculate DHW
         dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
