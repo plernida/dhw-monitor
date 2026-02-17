@@ -546,14 +546,14 @@ if process_button:
         # Display statistics
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.metric("Max DHW", f"{int(np.nanmax(dhw_total))} weeks")
+            st.metric("Max DHW", f"{int(dhw_total.max(skipna=True).item())} weeks")
         with col2:
-            st.metric("Avg SST", f"{np.nanmean(sst_current):.1f}°C")
+            st.metric("Avg SST", f"{(int(sst_current.max(skipna=True).item())} °C")
         with col3:
-            alert_area = np.sum(dhw_total >= 4) / dhw_total.size * 100
+            alert_area = (dhw_total >= 4).sum(skipna=True) / dhw_total.size * 100
             st.metric("Alert Area", f"{alert_area:.1f}%")
         with col4:
-            bleaching_area = np.sum(dhw_total >= 5) / dhw_total.size * 100
+            bleaching_area = (dhw_total >= 5).sum(skipna=True) / dhw_total.size * 100
             st.metric("Bleaching Risk", f"{bleaching_area:.1f}%", delta=f"{bleaching_area:.1f}%", delta_color="inverse")
         
         # Tabs for different views
