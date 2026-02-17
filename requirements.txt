@@ -11,3 +11,4 @@ shapely
 pyproj
 geos
 proj
+xarray
