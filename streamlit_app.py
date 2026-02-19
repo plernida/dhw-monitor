@@ -364,8 +364,8 @@ def plot_cartopy_map(lon, lat, dhw_data, title):
     plt.colorbar(im, ax=ax, label="DHW (°C-weeks)")
     
     return fig    
-#land_gdf = gpd.read_file('https://github.com/nvkelso/natural-earth-vector/raw/refs/heads/master/110m_physical/ne_110m_coastline.shp')  # Or local shapefile
-#land_geojson = land_gdf.to_json()
+land_gdf = gpd.read_file('https://github.com/nvkelso/natural-earth-vector/raw/refs/heads/master/110m_physical/ne_110m_coastline.shp')  # Or local shapefile
+land_geojson = land_gdf.to_json()
 
 def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     lon2d, lat2d = np.meshgrid(lon, lat)  # Assumes lon/lat are 1D arrays matching dhw_data shape
