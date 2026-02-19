@@ -151,9 +151,11 @@ def download_latest_sst(enddate, days_back=dayback):
         yyyymm = target_date.strftime('%Y%m')
         datestr = target_date.strftime('%Y%m%d')
         iso_date = target_date.strftime('%Y-%m-%d')
-        
+
+        age_days = (now_date - target_date).days
         # Preliminary: if target_date is within 14 days of CURRENT now_date
-        if (now_date - target_date).days <= PRELIM_WINDOW_DAYS:
+        if 0 <= age_days <= PRELIM_WINDOW_DAYS:
+        
             filename = f"oisst-avhrr-v02r01.{datestr}_preliminary.nc"
         else:
             filename = f"oisst-avhrr-v02r01.{datestr}.nc"
@@ -174,7 +176,7 @@ def download_latest_sst(enddate, days_back=dayback):
                     sst_raw = np.squeeze(sst_raw)# (lat, lon)
                     subset_lat = nc.variables['lat'][:]
                     subset_lon = nc.variables['lon'][:]
-                    time - nc.variables['time'][0]
+                    
                     # Scale and mask
                     
                     
@@ -191,13 +193,12 @@ def download_latest_sst(enddate, days_back=dayback):
                 sst_scaled = np.where(sst_raw < -100, np.nan, sst_raw)
                 
                 sstdata.append(sst_scaled)
-                time_list.append(target_date)                
-
+               
             else:
                 
             # same shape as sst_raw: (nlat, nlon)
                 if lat_ref is not None and lon_ref is not None:
-                    sstdata.append(np.full((len(lat_ref or [0]), len(lon_ref or [0])), np.nan))
+                    sstdata.append(np.full((len(lat_ref), len(lon_ref)), np.nan))
                 else:
                     sstdata.append(None)
         except Exception:
@@ -205,13 +206,14 @@ def download_latest_sst(enddate, days_back=dayback):
                 sstdata.append(np.full((len(lat_ref), len(lon_ref)), np.nan))
             else:
                 sstdata.append(None)
-            time_list.append(target_date)
-    if lat_ref is None:
+        time_list.append(target_date)
+    if lat_ref is None or lon_ref is None:
         raise RuntimeError("No successful downloads; cannot build SST array.")   
     for idx, v in enumerate(sstdata):
         if v is None:
             sstdata[idx] = np.full((len(lat_ref), len(lon_ref)), np.nan)
-    return np.stack(sstdata, axis=2)
+    sst_stack = np.stack(sstdata, axis=2)
+    return sst_stack, time_list, lat_ref, lon_ref
 
 
 # Coordinate data
@@ -537,7 +539,7 @@ if process_button:
         enddate = analysis_date
         
         # Download 48 days BACK from analysis_date
-        TSeries = download_latest_sst(enddate, days_back=30)
+        TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
         # Get coordinates
         LON, LAT, lon, lat = create_coordinates()
 
