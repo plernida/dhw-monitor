@@ -562,7 +562,7 @@ if process_button:
         with col1:
             st.metric("Max DHW", f"{(dhw_total.max().values)} weeks")
         with col2:
-            st.metric("Avg SST", f"{(np.nanmax(sst_current))} °C")
+            st.metric("Avg SST", f"{(np.nanmean(sst_current)).round(2)} °C")
         with col3:
             alert_area = xr.where(dhw_total>=4,dhw_total,0).sum() / dhw_total.size * 100
             st.metric("Alert Area", f"{alert_area:.1f}%")
