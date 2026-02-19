@@ -139,6 +139,7 @@ dayback=30
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 def download_latest_sst(enddate, days_back=dayback):
     sstdata = []
+    time_list = []
     lat_ref = None
     lon_ref = None    
 
