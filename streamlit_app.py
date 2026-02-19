@@ -527,7 +527,7 @@ if process_button:
         enddate = analysis_date
         
         # Download 48 days BACK from analysis_date
-        TSeries = download_latest_sst(enddate, days_back=12)
+        TSeries = download_latest_sst(enddate, days_back=30)
         # Get coordinates
         LON, LAT, lon, lat = create_coordinates()
 
