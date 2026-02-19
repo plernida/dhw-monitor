@@ -194,13 +194,23 @@ def download_latest_sst(enddate, days_back=dayback):
                 time_list.append(target_date)                
 
             else:
+                
             # same shape as sst_raw: (nlat, nlon)
-                sstdata.append(np.full((len(lat_ref or [0]), len(lon_ref or [0])), np.nan))
-                time_list.append(target_date)
+                if lat_ref is not None and lon_ref is not None:
+                    sstdata.append(np.full((len(lat_ref or [0]), len(lon_ref or [0])), np.nan))
+                else:
+                    sstdata.append(None)
         except Exception:
-            sstdata.append(np.full((len(lat_ref or [0]), len(lon_ref or [0])), np.nan))
+            if lat_ref is not None and lon_ref is not None:
+                sstdata.append(np.full((len(lat_ref), len(lon_ref)), np.nan))
+            else:
+                sstdata.append(None)
             time_list.append(target_date)
-            
+    if lat_ref is None:
+        raise RuntimeError("No successful downloads; cannot build SST array.")   
+    for idx, v in enumerate(sstdata):
+        if v is None:
+            sstdata[idx] = np.full((len(lat_ref), len(lon_ref)), np.nan)
     return np.stack(sstdata, axis=2)
 
 
