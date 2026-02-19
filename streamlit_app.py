@@ -214,7 +214,7 @@ def create_coordinates():
     return LON, LAT, lon, lat
 
 
-def calculate_dhw(TSeries, MMM, threshold=1.0):
+def calculate_dhw(TSeries, MMM, threshold=0.0):
     """Calculate Degree Heating Weeks from time series"""
     dhw_weeks = []
     sst_weeks = []
