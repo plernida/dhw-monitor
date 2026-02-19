@@ -214,7 +214,7 @@ def create_coordinates():
     return LON, LAT, lon, lat
 
 
-def calculate_dhw(TSeries, MMM, threshold=0.0):
+def calculate_dhw(TSeries, MMM, threshold=1.0):
     """Calculate Degree Heating Weeks from time series"""
     dhw_weeks = []
     sst_weeks = []
@@ -430,14 +430,6 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
 def create_sst_map_mapbox(lon, lat, sst_data, title):
     lon2d, lat2d = np.meshgrid(lon, lat)    
     fig = go.Figure()
-    fig.add_trace(go.Choroplethmapbox(
-        geojson=land_geojson,
-        locations=land_gdf.index,  # Unique IDs
-        z=[1] * len(land_gdf),  # Constant
-        colorscale=[[0, 'rgba(240,240,240,0.8)'], [1, 'rgba(200,200,200,0.9)']],
-        showscale=False,
-        marker_line=dict(width=1, color='black')
-    ))    
     fig.add_trace(go.Contour(
         x=lon2d[0],  # 1D lon for x
         y=lat2d[:, 0],  # 1D lat for y
