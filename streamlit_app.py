@@ -427,13 +427,13 @@ def create_dhw_map_mapbox(lon, lat, dhw_data, title):
 
     return fig
 
-def create_sst_map_mapbox(lon, lat, sst_data, title):
+def create_sst_map_mapbox(lon, lat, sstdata, title):
     lon2d, lat2d = np.meshgrid(lon, lat)    
     fig = go.Figure()
     fig.add_trace(go.Contour(
         x=lon2d[0],  # 1D lon for x
         y=lat2d[:, 0],  # 1D lat for y
-        z=sst_data,
+        z=sstdata,
         colorscale="jet",
         zmin=25,
         zmax=32,
@@ -470,7 +470,7 @@ def create_sst_map_mapbox(lon, lat, sst_data, title):
 
     return fig
 
-def create_sst_map(lon, lat, sst_data, title):
+def create_sst_map(lon, lat, sstdata, title):
     """Create Plotly contour map for SST data"""
     fig = go.Figure()
     
@@ -484,7 +484,7 @@ def create_sst_map(lon, lat, sst_data, title):
     ))
     
     fig = go.Figure(data=go.Contour(
-        z=sst_data,
+        z=sstdata,
         x=lon,
         y=lat,
         colorscale='jet',
