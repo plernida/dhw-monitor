@@ -560,10 +560,10 @@ if process_button:
         with col2:
             st.metric("Avg SST", f"{(sst_current.max())} °C")
         with col3:
-            alert_area = (dhw_total >= 4).sum() / dhw_total.shape * 100
+            alert_area = xr.where(dhw_total>=4,dhw_total,0).sum() / dhw_total.shape * 100
             st.metric("Alert Area", f"{alert_area:.1f}%")
         with col4:
-            bleaching_area = (dhw_total >= 5).sum() / dhw_total.shape * 100
+            bleaching_area = xr.where(dhw_total >= 5, dhw_total, 0).sum() / dhw_total.shape * 100
             st.metric("Bleaching Risk", f"{bleaching_area:.1f}%", delta=f"{bleaching_area:.1f}%", delta_color="inverse")
         
         # Tabs for different views
