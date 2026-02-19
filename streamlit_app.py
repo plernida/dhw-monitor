@@ -489,7 +489,7 @@ def create_sst_map(lon, lat, sstdata, title):
         y=lat,
         colorscale='jet',
         contours=dict(
-            start=28,
+            start=25
             end=32,
             size=0.5,
         ),
