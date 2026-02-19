@@ -176,7 +176,7 @@ def download_latest_sst(enddate, days_back=dayback):
                     subset_lon = nc.variables['lon'][:]
                     time - nc.variables['time'][0]
                     # Scale and mask
-                    sst_scaled = np.where(sst_raw < 0, np.nan, sst_raw)
+                    
                     
                 # Keep reference grid from first successful file
                 if lat_ref is None:
