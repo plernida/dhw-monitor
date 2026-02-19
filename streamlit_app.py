@@ -143,7 +143,7 @@ def download_latest_sst(enddate, days_back=dayback):
     lat_ref = None
     lon_ref = None    
 
-    PRELIM_WINDOW_DAYS = 14 # Relative to NOW (not enddate)
+    PRELIM_WINDOW_DAYS = 30 # Relative to NOW (not enddate)
     now_date = datetime.now(pytz.timezone('Asia/Bangkok')).date()
     
     for i in range(days_back):
