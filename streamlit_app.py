@@ -192,13 +192,13 @@ def download_latest_sst(enddate, days_back=dayback):
                 sstdata.append(sst_scaled)
                 time_list.append(target_date)                
 
-        else:
+            else:
             # same shape as sst_raw: (nlat, nlon)
+                sstdata.append(np.full((len(lat_ref or [0]), len(lon_ref or [0])), np.nan))
+                time_list.append(target_date)
+        except Exception:
             sstdata.append(np.full((len(lat_ref or [0]), len(lon_ref or [0])), np.nan))
             time_list.append(target_date)
-    except Exception:
-        sstdata.append(np.full((len(lat_ref or [0]), len(lon_ref or [0])), np.nan))
-        time_list.append(target_date)
             
     return np.stack(sstdata, axis=2)
 
