@@ -586,7 +586,7 @@ if process_button:
             with col_right:
                 # Upper right: DHW Distribution
                 st.markdown("**📊 DHW Distribution**")
-                dhw_flat = dhw_total.flatten()
+                dhw_flat = dhw_total.values.flatten()   
                 dhw_counts = pd.Series(dhw_flat).value_counts().sort_index()
                 
                 fig_dist = go.Figure(data=go.Bar(
