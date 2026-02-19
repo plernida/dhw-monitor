@@ -139,8 +139,8 @@ dayback=30
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 def download_latest_sst(enddate, days_back=dayback):
     sstdata = []
-    th_lon = np.linspace(90, 110, 82)
-    th_lat = np.linspace(0, 14.5, 60)
+    lat_ref = None
+    lon_ref = None    
 
     PRELIM_WINDOW_DAYS = 14 # Relative to NOW (not enddate)
     now_date = datetime.now(pytz.timezone('Asia/Bangkok')).date()
@@ -169,27 +169,36 @@ def download_latest_sst(enddate, days_back=dayback):
             resp = requests.get(url, timeout=30)
             if resp.status_code == 200:
                 with Dataset('in-memory', mode='r', memory=resp.content) as nc:
-                    sst_raw = nc.variables['sst'][0, :, :]  # (lat, lon)
+                    sst_raw = nc.variables['sst'][0, :, :]
+                    sst_raw = np.squeeze(sst_raw)# (lat, lon)
                     subset_lat = nc.variables['lat'][:]
                     subset_lon = nc.variables['lon'][:]
-                    
+                    time - nc.variables['time'][0]
                     # Scale and mask
                     sst_scaled = np.where(sst_raw < 0, np.nan, sst_raw)
                     
-                    # Interpolate to exact 60x82 gri
-                    from scipy.interpolate import griddata
-                    lon_grid, lat_grid = np.meshgrid(subset_lon, subset_lat)
-                    points = np.column_stack([lon_grid.ravel(), lat_grid.ravel()])
-                    values = sst_scaled.ravel()
+                # Keep reference grid from first successful file
+                if lat_ref is None:
+                    lat_ref = subset_lat
+                    lon_ref = subset_lon
+                else:
+                    # Optional: check that all days use same grid
+                    assert np.array_equal(lat_ref, subset_lat)
+                    assert np.array_equal(lon_ref, subset_lon)
                     
-                    target_lon, target_lat = np.meshgrid(th_lon, th_lat)
-                    sst_interp = griddata(points, values, (target_lon, target_lat), method='linear')
-                    # Interp to grid...
-                    sstdata.append(sst_interp)
-            else:
-                sstdata.append(np.full((60, 82), np.nan))
-        except:
-            sstdata.append(np.full((60, 82), np.nan))
+                # Scale and mask
+                sst_scaled = np.where(sst_raw < -100, np.nan, sst_raw)
+                
+                sstdata.append(sst_scaled)
+                time_list.append(target_date)                
+
+        else:
+            # same shape as sst_raw: (nlat, nlon)
+            sstdata.append(np.full((len(lat_ref or [0]), len(lon_ref or [0])), np.nan))
+            time_list.append(target_date)
+    except Exception:
+        sstdata.append(np.full((len(lat_ref or [0]), len(lon_ref or [0])), np.nan))
+        time_list.append(target_date)
             
     return np.stack(sstdata, axis=2)
 
@@ -198,8 +207,8 @@ def download_latest_sst(enddate, days_back=dayback):
 @st.cache_data
 def create_coordinates():
     """Create coordinate grid for Thai region"""
-    lon = np.linspace(90, 110, 82)
-    lat = np.linspace(0, 14.5, 60)
+    lon = np.linspace(90.125, 110.125, 81)
+    lat = np.linspace(0.125, 14.625, 59)
     LON, LAT = np.meshgrid(lon, lat)
     return LON, LAT, lon, lat
 
@@ -354,8 +363,8 @@ def plot_cartopy_map(lon, lat, dhw_data, title):
     plt.colorbar(im, ax=ax, label="DHW (°C-weeks)")
     
     return fig    
-land_gdf = gpd.read_file('https://github.com/nvkelso/natural-earth-vector/raw/refs/heads/master/110m_physical/ne_110m_coastline.shp')  # Or local shapefile
-land_geojson = land_gdf.to_json()
+#land_gdf = gpd.read_file('https://github.com/nvkelso/natural-earth-vector/raw/refs/heads/master/110m_physical/ne_110m_coastline.shp')  # Or local shapefile
+#land_geojson = land_gdf.to_json()
 
 def create_dhw_map_mapbox(lon, lat, dhw_data, title):
     lon2d, lat2d = np.meshgrid(lon, lat)  # Assumes lon/lat are 1D arrays matching dhw_data shape
