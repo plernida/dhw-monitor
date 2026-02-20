@@ -10,6 +10,7 @@ import xarray as xr
 import plotly.graph_objects as go
 from scipy import ndimage
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import pandas as pd
 import geopandas as gpd
 from datetime import datetime, timedelta
