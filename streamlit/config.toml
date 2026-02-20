@@ -1,19 +1,21 @@
+[theme]
+font = "AngsanaUPC"
+headingFont = "AngsanaUPC"
+codeFont = "monospace"
+
+# Enable static file serving
 [server]
 enableStaticServing = true
 
-[theme]
-primaryColor = "#1F77B4"
-font = "TH Sarabun New"
-headingFont = "TH Sarabun New Bold"
-
+# Custom font faces
 [[theme.fontFaces]]
-family = "TH Sarabun New"
-url = "/static/THSarabunNew.ttf"
+family = "AngsanaUPC"
+url = "/static/angsa.ttf"  # ไฟล์ใน static folder
 weight = 400
 style = "normal"
 
 [[theme.fontFaces]]
-family = "TH Sarabun New Bold"
-url = "/static/THSarabunNewBold.ttf"
+family = "AngsanaUPC"
+url = "/static/angsab.ttf"  # Bold version
 weight = 700
 style = "normal"
