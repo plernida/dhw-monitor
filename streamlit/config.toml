@@ -1,16 +1,14 @@
 [server]
-enableStaticServing = true  # ✅ Required
+enableStaticServing = true
 
 [theme]
-font = "THSarabunNew"            # Your custom font
+primaryColor = "#1F77B4"  # สีน้ำเงินทะเล
+backgroundColor = "#F8F9FA"
+font = "Prompt:https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500&display=swap"
+headingFont = "Kanit:https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&display=swap"
 
+# Custom static fonts (optional)
 [[theme.fontFaces]]
-family = "THSarabunNew"
-url = "/static/THSarabunNew.ttf"  # ✅ Path relative to app root
+family = "ATH Baht"
+url = "/static/ath_baht.ttf"
 weight = 400
-style = "normal"
-
-[[theme.fontFaces]]
-family = "THSarabunNew"
-url = "/static/THSarabunNew Bold.ttf"
-weight = 700
