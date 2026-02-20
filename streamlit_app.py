@@ -104,7 +104,7 @@ st.markdown("""
 # Title and description
 st.title("🌊 แผนที่อุณหภูมิน้ำทะเล Degree Heating Weeks (DHW) Coral Bleaching Monitor")
 st.markdown("""
-Monitor sea surface temperature anomalies and coral bleaching risk in Thai waters.
+ติดตามอุณหภูมิน้ำทะเลที่ส่งผลต่อการฟอกขาวของปะการัง Monitor sea surface temperature anomalies and coral bleaching risk in Thai waters.
 Data source: GHRSST satellite observations (90-110°E, 0-14.5°N)
 """)
 
