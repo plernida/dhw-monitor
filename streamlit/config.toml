@@ -2,13 +2,18 @@
 enableStaticServing = true
 
 [theme]
-primaryColor = "#1F77B4"  # สีน้ำเงินทะเล
-backgroundColor = "#F8F9FA"
-font = "Prompt:https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500&display=swap"
-headingFont = "Kanit:https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&display=swap"
+primaryColor = "#1F77B4"
+font = "TH Sarabun New"
+headingFont = "TH Sarabun New Bold"
 
-# Custom static fonts (optional)
 [[theme.fontFaces]]
-family = "ATH Baht"
-url = "/static/ath_baht.ttf"
+family = "TH Sarabun New"
+url = "/static/THSarabunNew.ttf"
 weight = 400
+style = "normal"
+
+[[theme.fontFaces]]
+family = "TH Sarabun New Bold"
+url = "/static/THSarabunNewBold.ttf"
+weight = 700
+style = "normal"
