@@ -384,7 +384,7 @@ def plot_cartopy_map(lon, lat, dhw_data, title):
     ax.coastlines(resolution='10m')
     ax.add_feature(cfeature.LAND, facecolor='lightgray')
 
-    ax.set_extent([90, 110, 0, 15]
+    ax.set_extent([90, 110, 0, 15])
     plt.colorbar(im, ax=ax, orientation='horizontal', label="DHW (°C-weeks)")
     
     return fig    
