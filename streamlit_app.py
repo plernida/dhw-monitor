@@ -243,6 +243,18 @@ def calculate_dhw(TSeries, MMM, threshold=1.0):
     # Sum all weeks
     dhw_total = sum(dhw_weeks)
     return dhw_weeks, dhw_total, sst_weeks
+colors_rgb = [
+    (66/255, 112/255, 194/255),    # Blue
+    (214/255, 214/255, 214/255),   # Gray
+    (235/255, 222/255, 196/255),   # Beige
+    (227/255, 204/255, 217/255),   # Pink
+    (201/255, 140/255, 89/255),    # Brown
+    (166/255, 89/255, 89/255),     # Dark brown
+    (140/255, 77/255, 26/255)      # Dark brown
+]
+
+# Create custom colormap (N=256 for smooth gradient)
+cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=256)
 
 def create_dhw_map(lon, lat, dhw_data, title, levels):
     """Create Plotly contour map for DHW data"""
@@ -360,10 +372,10 @@ def plot_cartopy_map(lon, lat, dhw_data, title):
     ax = plt.axes(projection=ccrs.PlateCarree())
 
     # DHW raster
-    im = ax.pcolormesh(
+    im = ax.contourf(
         lon2d, lat2d, dhw_data,
-        cmap='turbo',
-        vmin=0, vmax=12,
+        cmap=cmap, levels=6,
+        vmin=0, vmax=6,
         transform=ccrs.PlateCarree()
     )
 
