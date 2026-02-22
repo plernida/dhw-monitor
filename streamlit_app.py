@@ -26,7 +26,22 @@ import pytz
 from datetime import timedelta
 import warnings
 warnings.filterwarnings('ignore')
+def load_css():
+    st.markdown("""
+    <style>
+    @font-face {
+        font-family: 'Kanit';
+        src: url('/static/Kanit-Regular.ttf') format('truetype');
+        font-weight: 400;
+    }
+    html, body, [class*="css"]  {
+        font-family: 'Kanit', sans-serif !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
+load_css()
+st.title("🌊 ทดสอบ Kanit")
 
 #coast_gdf = gpd.read_file("ne_10m_coastline.shp").to_crs('EPSG:4326')  # Ensure CRS is EPSG:4326
 #coast_geojson = coast_gdf.__geo_interface__
