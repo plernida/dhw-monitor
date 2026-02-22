@@ -6,6 +6,9 @@ primaryColor = "#1F77B4"
 backgroundColor = "#FFFFFF"
 secondaryBackgroundColor = "#F8F9FA"
 textColor = "#262730"
+baseFontSize = 16      # ขนาดฟอนต์หลัก (default 16px)
+codeFontSize = "0.9rem"  # ขนาด code
+headingFontSizes = ["3rem", "2.5rem", "2rem", "1.75rem", "1.5rem", "1.25rem"]
 
 # ✅ Kanit จาก Google Fonts - ไม่ต้องไฟล์ static
 font = "Kanit:https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap"
