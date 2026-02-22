@@ -2,10 +2,48 @@
 enableStaticServing = true
 
 [theme]
+primaryColor = "#1F77B4"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F8F9FA"
+textColor = "#262730"
+
+# ✅ ชื่อฟอนต์ตรงตามไฟล์
 font = "Kanit"
+headingFont = "Kanit"
+
+# ✅ ตรวจสอบชื่อไฟล์ตรงกัน 100%
+[[theme.fontFaces]]
+family = "Kanit"
+src = "/static/Kanit-Thin.ttf"        # ไม่ใช่ url
+fontWeight = 100
+fontStyle = "normal"
 
 [[theme.fontFaces]]
 family = "Kanit"
-url = "/static/blob/main/Kanit-Regular.ttf"
-weight = 400
-style = "normal"
+src = "/static/Kanit-Light.ttf"
+fontWeight = 300
+fontStyle = "normal"
+
+[[theme.fontFaces]]
+family = "Kanit"
+src = "/static/Kanit-Regular.ttf"
+fontWeight = 400
+fontStyle = "normal"
+
+[[theme.fontFaces]]
+family = "Kanit"
+src = "/static/Kanit-Medium.ttf"
+fontWeight = 500
+fontStyle = "normal"
+
+[[theme.fontFaces]]
+family = "Kanit"
+src = "/static/Kanit-Bold.ttf"
+fontWeight = 700
+fontStyle = "normal"
+
+[[theme.fontFaces]]
+family = "Kanit"
+src = "/static/Kanit-Extrabold.ttf"
+fontWeight = 800
+fontStyle = "normal"
