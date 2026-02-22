@@ -2,17 +2,16 @@
 enableStaticServing = true
 
 [theme]
-primaryColor = "#1F77B4"           # สีน้ำเงินทะเล
-backgroundColor = "#FFFFFF"        # พื้นหลังขาว
+primaryColor = "#1F77B4"
+backgroundColor = "#FFFFFF"
 secondaryBackgroundColor = "#F8F9FA"
 textColor = "#262730"
 
-# ใช้ Kanit เป็นฟอนต์หลัก
+# ชื่อฟอนต์สำหรับ app
 font = "Kanit"
 headingFont = "Kanit"
-codeFont = "monospace"
 
-# กำหนดน้ำหนักต่างๆ ของ Kanit
+# ✅ ต้องใช้ family ไม่ใช่ font
 [[theme.fontFaces]]
 family = "Kanit"
 url = "/static/Kanit-Thin.ttf"
@@ -27,7 +26,7 @@ style = "normal"
 
 [[theme.fontFaces]]
 family = "Kanit"
-url = "/static/Kanit-Regular.ttf"  # หรือ kanit.ttf
+url = "/static/Kanit-Regular.ttf"
 weight = 400
 style = "normal"
 
