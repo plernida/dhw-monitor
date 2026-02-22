@@ -11,11 +11,11 @@ enableStaticServing = true
 [[theme.fontFaces]]
 family = "AngsanaUPC"
 url = "/static/angsa.ttf"  # ไฟล์ใน static folder
-weight = 400
+weight = 700
 style = "normal"
 
 [[theme.fontFaces]]
 family = "AngsanaUPC"
 url = "/static/angsab.ttf"  # Bold version
 weight = 700
-style = "normal"
+style = "bold"
