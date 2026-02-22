@@ -10,12 +10,12 @@ enableStaticServing = true
 # Custom font faces
 [[theme.fontFaces]]
 family = "Kanit"
-url = "/static/Kanit-Regular.ttf"  # ไฟล์ใน static folder
+url = "/static/kanit.ttf"  # ไฟล์ใน static folder
 weight = 400
 style = "normal"
 
 [[theme.fontFaces]]
 family = "Kanit"
-url = "/static/Kanit_Bold.ttf"  # Bold version
+url = "/static/kanitb.ttf"  # Bold version
 weight = 700
 style = "normal"
