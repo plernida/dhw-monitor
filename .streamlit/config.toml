@@ -1,6 +1,6 @@
 [theme]
-font = "kanit"
-headingFont = "kanit"
+font = "AngsanaUPC"
+headingFont = "AngsanaUPC"
 codeFont = "monospace"
 
 # Enable static file serving
@@ -9,13 +9,13 @@ enableStaticServing = true
 
 # Custom font faces
 [[theme.fontFaces]]
-family = "kanit"
-url = "/static/kanit.ttf"  # ไฟล์ใน static folder
+family = "AngsanaUPC"
+url = "/static/angsa.ttf"  # ไฟล์ใน static folder
 weight = 400
 style = "normal"
 
 [[theme.fontFaces]]
-family = "kanit"
-url = "/static/kanitb.ttf"  # Bold version
+family = "AngsanaUPC"
+url = "/static/angsab.ttf"  # Bold version
 weight = 700
 style = "normal"
