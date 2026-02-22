@@ -1,21 +1,18 @@
 [theme]
-font = "AngsanaUPC"
-headingFont = "AngsanaUPC"
-codeFont = "monospace"
+font = "Kanit:https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap"
+headingFont = "Kanit:https://fonts.googleapis.com/css2?family=Kanit:wght@600;700&display=swap"
 
-# Enable static file serving
 [server]
 enableStaticServing = true
 
-# Custom font faces
-[[theme.fontFaces]]
-family = "AngsanaUPC"
-url = "/static/angsa.ttf"  # ไฟล์ใน static folder
-weight = 400
-style = "normal"
+[theme]
+# สีหลัก (ปรับได้)
+primaryColor = "#1F77B4"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F5F5F5"
+textColor = "#000000"
 
-[[theme.fontFaces]]
-family = "AngsanaUPC"
-url = "/static/angsab.ttf"  # Bold version
-weight = 700
-style = "normal"
+# ใช้ Kanit จาก Google Fonts
+font = "Kanit:https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap"
+headingFont = "Kanit:https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&display=swap"
+codeFont = "monospace"
