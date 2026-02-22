@@ -6,6 +6,6 @@ font = "Kanit"
 
 [[theme.fontFaces]]
 family = "Kanit"
-url = "/static/Kanit-Regular.ttf"
+url = "/static/blob/main/Kanit-Regular.ttf"
 weight = 400
 style = "normal"
