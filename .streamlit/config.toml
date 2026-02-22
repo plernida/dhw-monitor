@@ -2,48 +2,10 @@
 enableStaticServing = true
 
 [theme]
-primaryColor = "#1F77B4"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F8F9FA"
-textColor = "#262730"
-
-# ชื่อฟอนต์สำหรับ app
 font = "Kanit"
-headingFont = "Kanit"
-
-# ✅ ต้องใช้ family ไม่ใช่ font
-[[theme.fontFaces]]
-family = "Kanit"
-url = "/static/Kanit-Thin.ttf"
-weight = 100
-style = "normal"
-
-[[theme.fontFaces]]
-family = "Kanit"
-url = "/static/Kanit-Light.ttf"
-weight = 300
-style = "normal"
 
 [[theme.fontFaces]]
 family = "Kanit"
 url = "/static/Kanit-Regular.ttf"
 weight = 400
-style = "normal"
-
-[[theme.fontFaces]]
-family = "Kanit"
-url = "/static/Kanit-Medium.ttf"
-weight = 500
-style = "normal"
-
-[[theme.fontFaces]]
-family = "Kanit"
-url = "/static/Kanit-Bold.ttf"
-weight = 700
-style = "normal"
-
-[[theme.fontFaces]]
-family = "Kanit"
-url = "/static/Kanit-Extrabold.ttf"
-weight = 800
 style = "normal"
