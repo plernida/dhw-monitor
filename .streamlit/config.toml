@@ -1,18 +1,50 @@
-[theme]
-font = "Kanit:https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap"
-headingFont = "Kanit:https://fonts.googleapis.com/css2?family=Kanit:wght@600;700&display=swap"
-
 [server]
 enableStaticServing = true
 
 [theme]
-# สีหลัก (ปรับได้)
-primaryColor = "#1F77B4"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F5F5F5"
-textColor = "#000000"
+primaryColor = "#1F77B4"           # สีน้ำเงินทะเล
+backgroundColor = "#FFFFFF"        # พื้นหลังขาว
+secondaryBackgroundColor = "#F8F9FA"
+textColor = "#262730"
 
-# ใช้ Kanit จาก Google Fonts
-font = "Kanit:https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap"
-headingFont = "Kanit:https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&display=swap"
+# ใช้ Kanit เป็นฟอนต์หลัก
+font = "Kanit"
+headingFont = "Kanit"
 codeFont = "monospace"
+
+# กำหนดน้ำหนักต่างๆ ของ Kanit
+[[theme.fontFaces]]
+family = "Kanit"
+url = "/static/Kanit-Thin.ttf"
+weight = 100
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Kanit"
+url = "/static/Kanit-Light.ttf"
+weight = 300
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Kanit"
+url = "/static/Kanit-Regular.ttf"  # หรือ kanit.ttf
+weight = 400
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Kanit"
+url = "/static/Kanit-Medium.ttf"
+weight = 500
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Kanit"
+url = "/static/Kanit-Bold.ttf"
+weight = 700
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Kanit"
+url = "/static/Kanit-Extrabold.ttf"
+weight = 800
+style = "normal"
