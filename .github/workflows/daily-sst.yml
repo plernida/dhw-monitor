@@ -15,5 +15,5 @@ jobs:
     - uses: stefanzweifel/git-auto-commit-action@v5
       with:
         commit_message: 'Daily DHW/SST PNGs'
-        file_pattern: static/*.png
+        file_pattern: static/lastest_*.png
 
