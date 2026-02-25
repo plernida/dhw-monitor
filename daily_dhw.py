@@ -9,7 +9,18 @@ from io import BytesIO
 import xarray as xr
 import warnings
 warnings.filterwarnings('ignore')
+colors_rgb = [
+    (66/255, 112/255, 194/255),    # Blue
+    (214/255, 214/255, 214/255),   # Gray
+    (235/255, 222/255, 196/255),   # Beige
+    (227/255, 204/255, 217/255),   # Pink
+    (201/255, 140/255, 89/255),    # Brown
+    (166/255, 89/255, 89/255),     # Dark brown
+    (140/255, 77/255, 26/255)      # Dark brown
+]
 
+# Create custom colormap (N=256 for smooth gradient)
+cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=256)
 # Your NOAA config
 NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBase/NetCDF/V2.1/AVHRR/"
 baseline = xr.open_dataset('mmm_sst_iowp_1981-2020.nc') # read array
@@ -111,17 +122,47 @@ def calculate_dhw(TSeries, MMM, threshold=1.0):
     return dhw_weeks, dhw_total, sst_weeks
 
 def plot_dhw_map(lon, lat, dhw_total, filename):
-    LON, LAT = np.meshgrid(lon, lat)
-    fig, ax = plt.subplots(figsize=(12, 8))
-    im = ax.contourf(LON, LAT, dhw_total, levels=7, cmap='RdYlBu_r', vmin=0, vmax=6)
-    ax.set_xlim(90, 110)
-    ax.set_ylim(0, 14.5)
+    lon2d, lat2d = np.meshgrid(lon, lat)
+    fig = plt.figure(figsize=(8, 6))
+    ax = plt.axes(projection=ccrs.PlateCarree())
+    # DHW raster
+    im = ax.contourf(
+        lon2d, lat2d, dhw_data,
+        cmap=cmap, levels=6,
+        vmin=0, vmax=6,
+        transform=ccrs.PlateCarree()
+    )
+    ax.set_extent([90, 110, 0, 15])
     ax.set_xlabel('Longitude (°E)')
     ax.set_ylabel('Latitude (°N)')
     ax.set_title('Daily DHW Total (Thai Waters)')
-    plt.colorbar(im, ax=ax, label='DHW (C-weeks)')
+        # Coastlines
+    ax.coastlines(resolution='10m')
+    ax.add_feature(cfeature.LAND, facecolor='lightgray')
+    plt.colorbar(im, ax=ax, orientation='horizontal', label="DHW (°C-weeks)")
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
+
+def create_sst_map_mapbox(lon, lat, sstdata, filename):
+    lon2d, lat2d = np.meshgrid(lon, lat)    
+    fig = plt.figure(figsize=(8, 6))
+    ax = plt.axes(projection=ccrs.PlateCarree())
+    im = ax.contourf(lon2d, lat2d, sstdata,
+                     cmap='rainbow', levels=12,
+                     vmin=23, vmax=34,
+                     transform=ccrs.PlateCarree()
+                    )
+    ax.set_extent([90, 110, 0, 15])
+    ax.set_xlabel('Longitude (°E)')
+    ax.set_ylabel('Latitude (°N)')
+    ax.set_title('Daily DHW Total (Thai Waters)')
+        # Coastlines
+    ax.coastlines(resolution='10m')
+    ax.add_feature(cfeature.LAND, facecolor='lightgray')
+    plt.colorbar(im, ax=ax, orientation='horizontal', label="DHW (°C-weeks)")
+    plt.savefig(filename, dpi=150, bbox_inches='tight')
+    plt.close()
+    
 
 # Main daily run
 thtz = pytz.timezone('Asia/Bangkok')
@@ -132,7 +173,8 @@ sst_current = sst_stack[:, :, -1]
 
 # Produce PNGs
 os.makedirs('static', exist_ok=True)
-plot_dhw_map(lon, lat, dhw_total, 'static/latest_dhw.png')
+plot_dhw_map(lon, lat, dhw_total, f"static/{today}_dhw.png")
+create_sst_map_mapbox(lon,lat,sstdata,f"static/{today}_sst.png")
 #plt.figure(figsize=(12, 8))
 #plt.contourf(np.meshgrid(lon, lat), sst_current, cmap='jet', vmin=25, vmax=32)
 #plt.colorbar(label='SST (°C)')
@@ -140,4 +182,4 @@ plot_dhw_map(lon, lat, dhw_total, 'static/latest_dhw.png')
 #plt.savefig('static/latest_sst.png', dpi=150, bbox_inches='tight')
 #plt.close()
 
-print(f"Generated PNGs for {today}")
+
