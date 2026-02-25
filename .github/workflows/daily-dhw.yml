@@ -1,18 +1,25 @@
-name: Daily DHW Update
+name: Daily DHW PNGs
 on:
   schedule:
-    - cron: '0 0 * * *'  # Midnight UTC (~7AM BKK)
-  workflow_dispatch:
+    - cron: '0 0 * * *'  # 7AM BKK daily
+  workflow_dispatch:  # Manual trigger
+
 jobs:
-  update:
+  generate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # For git-auto-commit
     steps:
     - uses: actions/checkout@v4
+      with:
+        ref: main
     - uses: actions/setup-python@v5
-      with: {python-version: '3.11'}
+      with:
+        python-version: '3.11'
     - run: pip install -r requirements.txt
     - run: python daily_dhw.py
     - uses: stefanzweifel/git-auto-commit-action@v5
       with:
-        commit_message: 'Daily DHW/SST PNGs'
+        commit_message: 'Daily DHW/SST PNGs {{date}}'
         file_pattern: static/*.png
+
