@@ -1,5 +1,6 @@
-# refresh 2026-02-25
+# refresh-2026-02-25-clear-cache  <--- ADD THIS LINE
 name: Daily DHW Update
+# ... rest unchanged
 on:
   schedule:
     - cron: '0 0 * * *'  # Midnight UTC (~7AM BKK)
