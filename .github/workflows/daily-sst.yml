@@ -11,6 +11,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         ref: main # or omit "with" entirely if main is default
+        fetch-depth:0 # Full history if neeeded
     - uses: actions/setup-python@v5
       with: {python-version: '3.11'}
     - run: pip install -r requirements.txt
