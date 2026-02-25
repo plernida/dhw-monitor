@@ -18,7 +18,7 @@ MMM = baseline['sst'].sel(lon=slice(90,110.3),lat=slice(0,14.7)) # Add noise if 
 def download_latest_sst(enddate, days_back=30):
     # Exact from your app[file:74]
     sstdata = []
-    timelist = []
+    time_list = []
     lat_ref = lon_ref = None
     PRELIM_WINDOW_DAYS = 14
     thtz = pytz.timezone('Asia/Bangkok')
