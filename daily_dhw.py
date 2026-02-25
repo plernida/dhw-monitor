@@ -11,7 +11,8 @@ warnings.filterwarnings('ignore')
 
 # Your NOAA config
 NOAANCSSBASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBaseNetCDFv2.1/AVHRR"
-MMM = np.load('mmm_sst_iowp.npy')  # Load your 1981-2020 climatology (59x81); or hardcode if small
+baseline = xr.open_dataset('mmm_sst_iowp_1981-2020.nc')
+MMM = baseline['sst'].sel(lon=slice(90,110.3),lat=slice(0,14.7))  # Load your 1981-2020 climatology (59x81); or hardcode if small
 
 def download_latest_sst(enddate, daysback=30):
     # Exact from your app[file:74]
@@ -28,15 +29,15 @@ def download_latest_sst(enddate, daysback=30):
         isodate = targetdate.strftime('%Y-%m-%d')
         agedays = (nowdate - targetdate).days
         if 0 <= agedays < PRELIMWINDOWDAYS:
-            filename = f"oisst-avhrr-v02r01.{datestr}preliminary.nc"
+            filename = f"oisst-avhrr-v02r01.{datestr}_preliminary.nc"
         else:
             filename = f"oisst-avhrr-v02r01.{datestr}.nc"
-        url = f"{NOAANCSSBASE}/{yyyymm}/{filename}?var=sst&north=14.500&west=90.000&east=110.000&south=0.000&horizStride=1&time_start={isodate}T12:00:00Z&time_end={isodate}T12:00:00Z&accept=netcdf3"
+        url = f"{NOAANCSSBASE}{yyyymm}/{filename}?var=sst&north=14.500&west=90.000&east=110.000&south=0.000&horizStride=1&time_start={isodate}T12:00:00Z&time_end={isodate}T12:00:00Z&accept=netcdf3"
         try:
             resp = requests.get(url, timeout=30)
             if resp.status_code == 200:
                 with Dataset('in-memory', mode='r', memory=resp.content) as nc:
-                    sstraw = nc.variables['sst'][0, :]
+                    sstraw = nc.variables['sst'][0, :,:]
                     sstraw = np.squeeze(sstraw)
                     subsetlat = nc.variables['lat'][:]
                     subsetlon = nc.variables['lon'][:]
@@ -68,10 +69,10 @@ def calculate_dhw(TSeries, MMM, threshold=1.0):
         endidx = startidx + 5
         weekmean = np.nanmean(TSeries[:, :, startidx:endidx], axis=2)
         sstweeks.append(weekmean)
-        hotspot = weekmean - MMM > threshold
-        dhwweek = np.where(hotspot, 1, 0)
+        hotspot = weekmean - (MMM + threshold)
+        dhwweek = xr.where(hotspot>0, 1, 0)
         dhwweeks.append(dhwweek)
-    dhwtotal = np.sum(dhwweeks, axis=0)
+    dhwtotal = sum(dhwweeks, axis=0)
     return dhwweeks, dhwtotal, sstweeks
 
 def plot_dhw_map(lon, lat, dhwtotal, filename):
