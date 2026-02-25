@@ -132,7 +132,7 @@ sst_current = sst_stack[:, :, -1]
 
 # Produce PNGs
 os.makedirs('static', exist_ok=True)
-plot_dhw_map(lon_ref, lat_ref, dhw_total, 'static/latest_dhw.png')
+plot_dhw_map(lon, lat, dhw_total, 'static/latest_dhw.png')
 #plt.figure(figsize=(12, 8))
 #plt.contourf(np.meshgrid(lon, lat), sst_current, cmap='jet', vmin=25, vmax=32)
 #plt.colorbar(label='SST (°C)')
