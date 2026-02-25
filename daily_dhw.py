@@ -141,7 +141,7 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
     ax.set_title('Daily DHW Total (Thai Waters)')
         # Coastlines
     ax.coastlines(resolution='10m')
-    ax.add_feature(cfeature.LAND, facecolor='lightgray')
+    ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='gray')
     plt.colorbar(im, ax=ax, orientation='horizontal', label="DHW (°C-weeks)")
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
@@ -161,7 +161,7 @@ def create_sst_map_mapbox(lon, lat, sstdata, filename):
     ax.set_title('Daily DHW Total (Thai Waters)')
         # Coastlines
     ax.coastlines(resolution='10m')
-    ax.add_feature(cfeature.LAND, facecolor='lightgray')
+    ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='gray')
     plt.colorbar(im, ax=ax, orientation='horizontal', label="DHW (°C-weeks)")
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
