@@ -11,7 +11,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Your NOAA config
-NOAANCSSBASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBaseNetCDFv2.1/AVHRR"
+NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBaseNetCDFv2.1/AVHRR"
 baseline = xr.open_dataset('mmm_sst_iowp_1981-2020.nc') # read array
 MMM = baseline['sst'].sel(lon=slice(90,110.3),lat=slice(0,14.7)) # Add noise if desired
 
@@ -20,7 +20,7 @@ def download_latest_sst(enddate, days_back=30):
     sstdata = []
     timelist = []
     lat_ref = lon_ref = None
-    PRELIMWINDOWDAYS = 14
+    PRELIM_WINDOW_DAYS = 14
     thtz = pytz.timezone('Asia/Bangkok')
     now_date = datetime.now(thtz).date()
     for i in range(days_back):
