@@ -177,7 +177,7 @@ sst_current = sst_stack[:, :, -1]
 # Produce PNGs
 os.makedirs('static', exist_ok=True)
 plot_dhw_map(lon, lat, dhw_total, f"static/{today}_dhw.png")
-create_sst_map_mapbox(lon,lat,sstdata,f"static/{today}_sst.png")
+create_sst_map_mapbox(lon,lat,sst_current,f"static/{today}_sst.png")
 #plt.figure(figsize=(12, 8))
 #plt.contourf(np.meshgrid(lon, lat), sst_current, cmap='jet', vmin=25, vmax=32)
 #plt.colorbar(label='SST (°C)')
