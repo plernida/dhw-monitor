@@ -4,6 +4,7 @@ from netCDF4 import Dataset
 from datetime import datetime, timedelta
 import pytz
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import os
 from io import BytesIO
 import xarray as xr
