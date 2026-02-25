@@ -15,7 +15,7 @@ NOAANCSSBASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBaseNetCDFv2.1/
 baseline = xr.open_dataset('mmm_sst_iowp_1981-2020.nc') # read array
 MMM = baseline['sst'].sel(lon=slice(90,110.3),lat=slice(0,14.7)) # Add noise if desired
 
-def download_latest_sst(enddate, daysback=30):
+def download_latest_sst(enddate, days_back=30):
     # Exact from your app[file:74]
     sstdata = []
     timelist = []
