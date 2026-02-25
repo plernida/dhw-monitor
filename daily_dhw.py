@@ -11,7 +11,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Your NOAA config
-NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBaseNetCDFv2.1/AVHRR"
+NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBase/NetCDF/V2.1/AVHRR/"
 baseline = xr.open_dataset('mmm_sst_iowp_1981-2020.nc') # read array
 MMM = baseline['sst'].sel(lon=slice(90,110.3),lat=slice(0,14.7)) # Add noise if desired
 
