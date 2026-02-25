@@ -130,7 +130,7 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
     ax = plt.axes(projection=ccrs.PlateCarree())
     # DHW raster
     im = ax.contourf(
-        lon2d, lat2d, dhw_data,
+        lon2d, lat2d, dhw_total,
         cmap=cmap, levels=6,
         vmin=0, vmax=6,
         transform=ccrs.PlateCarree()
