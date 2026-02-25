@@ -126,9 +126,9 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
 # Main daily run
 thtz = pytz.timezone('Asia/Bangkok')
 today = datetime.now(thtz).date() - timedelta(days=2)  # Your app's target
-sststack, timelist, lat, lon = download_latest_sst(today)
-dhwweeks, dhwtotal, _ = calculate_dhw(sststack, MMM)
-sstcurrent = sststack[:, :, -1]
+sst_stack, time_list, lat, lon = download_latest_sst(today)
+dhw_weeks, dhw_total, _ = calculate_dhw(sst_stack, MMM)
+sst_current = sst_stack[:, :, -1]
 
 # Produce PNGs
 os.makedirs('static', exist_ok=True)
