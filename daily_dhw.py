@@ -22,7 +22,7 @@ def download_latest_sst(enddate, days_back=30):
     latref = lonref = None
     PRELIMWINDOWDAYS = 14
     thtz = pytz.timezone('Asia/Bangkok')
-    nowdate = datetime.now(thtz).date()
+    now_date = datetime.now(thtz).date()
     for i in range(days_back):
         target_date = enddate - timedelta(days=i)
         yyyymm = target_date.strftime('%Y%m')
