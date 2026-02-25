@@ -32,7 +32,12 @@ def download_latest_sst(enddate, daysback=30):
             filename = f"oisst-avhrr-v02r01.{datestr}_preliminary.nc"
         else:
             filename = f"oisst-avhrr-v02r01.{datestr}.nc"
-        url = f"{NOAANCSSBASE}{yyyymm}/{filename}?var=sst&north=14.500&west=90.000&east=110.000&south=0.000&horizStride=1&time_start={isodate}T12:00:00Z&time_end={isodate}T12:00:00Z&accept=netcdf3"
+        url = (
+            f"{NOAA_NCSS_BASE}{yyyymm}/{filename}?"
+            f"var=sst&north=14.500&west=90.000&east=110.000&south=0.000&"
+            f"horizStride=1&time_start={iso_date}T12:00:00Z&time_end={iso_date}T12:00:00Z&"
+            f"accept=netcdf3"
+        )
         try:
             resp = requests.get(url, timeout=30)
             if resp.status_code == 200:
@@ -46,13 +51,22 @@ def download_latest_sst(enddate, daysback=30):
                 else:
                     assert np.array_equal(latref, subsetlat)
                     assert np.array_equal(lonref, subsetlon)
-                sstscaled = np.where(sstraw == -100, np.nan, sstraw)
+                sstscaled = np.where(sstraw < -100, np.nan, sstraw)
                 sstdata.append(sstscaled)
             else:
-                sstdata.append(np.full((len(latref), len(lonref)), np.nan) if latref is not None else None)
-        except:
-            sstdata.append(np.full((len(latref), len(lonref)), np.nan) if latref is not None else None)
+            # same shape as sst_raw: (nlat, nlon)
+                if latref is not None and lonref is not None:
+                    sstdata.append(np.full((len(latref), len(lonref)), np.nan))
+                else:
+                    sstdata.append(None)
+        except Exception:
+            if lat_ref is not None and lon_ref is not None:
+                sstdata.append(np.full((len(lat_ref), len(lon_ref)), np.nan))
+            else:
+                sstdata.append(None)
         timelist.append(targetdate)
+    if lat_ref is None or lon_ref is None:
+        raise RuntimeError("No successful downloads; cannot build SST array.")         
     # Fill NaNs
     for idx, v in enumerate(sstdata):
         if v is None:
@@ -65,7 +79,7 @@ def calculate_dhw(TSeries, MMM, threshold=1.0):
     dhwweeks = []
     sstweeks = []
     for week in range(6):
-        startidx = 5 - week * 5
+        startidx = (5 - week) * 5
         endidx = startidx + 5
         weekmean = np.nanmean(TSeries[:, :, startidx:endidx], axis=2)
         sstweeks.append(weekmean)
