@@ -27,7 +27,7 @@ from datetime import timedelta
 import warnings
 warnings.filterwarnings('ignore')
 
-
+plt.rcParams['font.family'] = 'Kanit'
 #coast_gdf = gpd.read_file("ne_10m_coastline.shp").to_crs('EPSG:4326')  # Ensure CRS is EPSG:4326
 #coast_geojson = coast_gdf.__geo_interface__
 
