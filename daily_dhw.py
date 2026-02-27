@@ -150,15 +150,15 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
     # Custom legend patches + labels matching your markdown
     legend_elements = [
         mpatches.Patch(color=colors_rgb[0], label='No stress'),
-        mpatches.Patch(color=colors_rgb[1], label='Watch (possible stress)'),
-        mpatches.Patch(color=colors_rgb[2], label='Alert (bleaching likely)'),
-        mpatches.Patch(color=colors_rgb[3], label='Bleaching Level 1'),
-        mpatches.Patch(color=colors_rgb[6], label='Severe bleaching expected')  # Use darkest for 6+
+        mpatches.Patch(color=colors_rgb[1], label='Watch'),
+        mpatches.Patch(color=colors_rgb[2], label='Alert'),
+        mpatches.Patch(color=colors_rgb[3], label='Bleach'),
+        mpatches.Patch(color=colors_rgb[6], label='Severe')  # Use darkest for 6+
     ]
     ax.legend(handles=legend_elements,ncol=5,  # Horizontal (5 columns)
            loc='upper center', 
            bbox_to_anchor=(0.5, -0.05),
-          fontsize=11, frameon=True, fancybox=True, shadow=True)
+          fontsize=5, frameon=True, fancybox=True, shadow=True)
     
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
