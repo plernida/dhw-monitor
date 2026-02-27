@@ -3,7 +3,16 @@ import xarray as xr
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import requests
+font_paths = {
+    'Kanit-Regular.ttf': 'https://raw.githubusercontent.com/google/fonts/main/ofl/kanit/Kanit-Regular.ttf',
+    'Kanit-Bold.ttf': 'https://raw.githubusercontent.com/google/fonts/main/ofl/kanit/Kanit-Bold.ttf'
+}
+for fname, url in font_paths.items():
+    if not os.path.exists(fname):
+        urllib.request.urlretrieve(url, fname)
+    fm.fontManager.addfont(fname)
 
+plt.rcParams['font.family'] = 'Kanit'
 st.title('NOAA SST Viewer')
 
 # Latest: Serve from repo (fast, no-wait)
@@ -21,3 +30,4 @@ if st.button('Generate Historical SST'):
         fig, ax = plt.subplots(figsize=(12, 8))
         sst.plot(ax=ax, vmin=-2, vmax=32, cmap='RdBu_r')
         st.pyplot(fig)
+
