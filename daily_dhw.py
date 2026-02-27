@@ -125,17 +125,7 @@ def calculate_dhw(TSeries, MMM, threshold=1.0):
     # Sum all weeks
     dhw_total = sum(dhw_weeks)
     return dhw_weeks, dhw_total, sst_weeks
-circles = [mpatches.Circle((0, 0), 0.3, facecolor=colors_rgb[i], edgecolor='black', linewidth=1) 
-           for i in range(7)]
-legend_labels = [
-    '🔵 **0**: No stress',
-    '⚪ **1**: Watch',  
-    '🟡 **2**: Watch',
-    '🟠 **3-4**: Alert', 
-    '🔴 **5**: Bleaching 1',
-    '🔴 **6**: Severe',
-    '🔴 **6+**: Extreme'
-]
+
 def plot_dhw_map(lon, lat, dhw_total, filename):
     lon2d, lat2d = np.meshgrid(lon, lat)
     fig = plt.figure(figsize=(8, 6))
@@ -152,11 +142,21 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
     ax.set_ylabel('Latitude (°N)')
     
         # Coastlines
-    ax.coastlines(resolution='10m')
-    #ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='gray')
-    fig.legend(circles, legend_labels, 
-           loc='lower center', bbox_to_anchor=(0.5, -0.05), ncol=1, 
-           fontsize=11, frameon=True, fancybox=True, shadow=True)
+    #ax.coastlines(resolution='10m')
+    ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='gray')
+    cbar = fig.colorbar(cs, ax=ax, shrink=0.8, pad=0.05)
+    cbar.set_label('DHW (weeks)', fontsize=12)
+    
+    # Custom legend patches + labels matching your markdown
+    legend_elements = [
+        mpatches.Patch(color=colors_rgb[0], label='No stress'),
+        mpatches.Patch(color=colors_rgb[1], label='Watch (possible stress)'),
+        mpatches.Patch(color=colors_rgb[2], label='Alert (bleaching likely)'),
+        mpatches.Patch(color=colors_rgb[3], label='Bleaching Level 1'),
+        mpatches.Patch(color=colors_rgb[6], label='Severe bleaching expected')  # Use darkest for 6+
+    ]
+    ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(0, 1),
+          fontsize=11, frameon=True, fancybox=True, shadow=True)
     
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
