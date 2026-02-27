@@ -13,6 +13,7 @@ from io import BytesIO
 import xarray as xr
 import warnings
 warnings.filterwarnings('ignore')
+plt.rcParams['font.family'] = 'Kanit'
 colors_rgb = [
     (66/255, 112/255, 194/255),    # Blue
     (214/255, 214/255, 214/255),   # Gray
