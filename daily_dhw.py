@@ -144,8 +144,8 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
         # Coastlines
     #ax.coastlines(resolution='10m')
     ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='gray')
-    cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.05)
-    cbar.set_label('DHW (weeks)', fontsize=12)
+    #cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.05)
+    #cbar.set_label('DHW (weeks)', fontsize=12)
     
     # Custom legend patches + labels matching your markdown
     legend_elements = [
@@ -155,7 +155,9 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
         mpatches.Patch(color=colors_rgb[3], label='Bleaching Level 1'),
         mpatches.Patch(color=colors_rgb[6], label='Severe bleaching expected')  # Use darkest for 6+
     ]
-    ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(0, 1),
+    ax.legend(handles=legend_elements,ncol=5,  # Horizontal (5 columns)
+           loc='upper center', 
+           bbox_to_anchor=(0.5, -0.05),
           fontsize=11, frameon=True, fancybox=True, shadow=True)
     
     plt.tight_layout()
