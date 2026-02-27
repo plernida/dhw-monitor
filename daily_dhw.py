@@ -144,7 +144,7 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
         # Coastlines
     #ax.coastlines(resolution='10m')
     ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='gray')
-    cbar = fig.colorbar(cs, ax=ax, shrink=0.8, pad=0.05)
+    cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.05)
     cbar.set_label('DHW (weeks)', fontsize=12)
     
     # Custom legend patches + labels matching your markdown
