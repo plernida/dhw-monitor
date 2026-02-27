@@ -8,6 +8,8 @@ import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+import cartopy.mpl.ticker as cticker
+from matplotlib.ticker import MultipleLocator
 import os
 from io import BytesIO
 import xarray as xr
@@ -143,10 +145,22 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
     
         # Coastlines
     #ax.coastlines(resolution='10m')
-    ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='gray')
+    ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='black',lw=0.5)
     #cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.05)
     #cbar.set_label('DHW (weeks)', fontsize=12)
     
+    ax.set_xticks(np.arange(90,111,2), crs=ccrs.PlateCarree())
+    ax.set_yticks(np.arange(0,16,2), crs=ccrs.PlateCarree())
+    #ax.coastlines('10m',zorder=3,lw=0.3)
+    
+    lon_formatter = cticker.LongitudeFormatter()
+    lat_formatter = cticker.LatitudeFormatter()
+    ax.xaxis.set_major_formatter(lon_formatter)
+    ax.yaxis.set_major_formatter(lat_formatter)
+    ax.xaxis.set_minor_locator(MultipleLocator(1))
+    ax.yaxis.set_minor_locator(MultipleLocator(1))
+    ax.tick_params(which='both',labeltop=False, labelright=False,labelleft=True,width=1,
+                  bottom=True,top=True,labelsize=mnlabel,grid_color='black',grid_linewidth=0.5)
     # Custom legend patches + labels matching your markdown
     legend_elements = [
         mpatches.Patch(color=colors_rgb[0], label='No stress'),
