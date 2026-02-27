@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import pytz
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+import matplotlib.patches as mpatches
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import os
@@ -142,7 +143,17 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
         # Coastlines
     ax.coastlines(resolution='10m')
     ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='gray')
-    plt.colorbar(im, ax=ax, orientation='horizontal', label="DHW (°C-weeks)")
+    cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.05, orientation='horizontal', label="DHW (°C-weeks)", fontsize=12)
+    legend_elements = [
+        mpatches.Patch(color=colors_rgb[0], label='🔵 **0**: No stress'),
+        mpatches.Patch(color=colors_rgb[1], label='⚪ **1-2**: Watch (possible stress)'),
+        mpatches.Patch(color=colors_rgb[2], label='🟡 **3-4**: Alert (bleaching likely)'),
+        mpatches.Patch(color=colors_rgb[3], label='🟠 **5**: Bleaching Level 1'),
+        mpatches.Patch(color=colors_rgb[6], label='🔴 **6+**: Severe bleaching expected')  # Use darkest for 6+
+    ]   
+    ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(0,1),
+             fontsize=12, frameon=True, fancybox=True, shadow=True)
+    plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
 
