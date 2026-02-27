@@ -143,7 +143,9 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
         # Coastlines
     ax.coastlines(resolution='10m')
     ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='gray')
-    cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.05, orientation='horizontal', label="DHW (°C-weeks)", fontsize=12)
+    cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.05, orientation='horizontal')
+    cbar.set_label('DHW (weeks)', fontsize=12)
+    cbar.ax.tick_params(labelsize=10)
     legend_elements = [
         mpatches.Patch(color=colors_rgb[0], label='🔵 **0**: No stress'),
         mpatches.Patch(color=colors_rgb[1], label='⚪ **1-2**: Watch (possible stress)'),
