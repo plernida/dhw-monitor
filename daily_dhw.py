@@ -17,13 +17,13 @@ import warnings
 warnings.filterwarnings('ignore')
 plt.rcParams['font.family'] = 'Kanit'
 colors_rgb = [
-    (66/255, 112/255, 194/255),    # Blue
-    (214/255, 214/255, 214/255),   # Gray
-    (235/255, 222/255, 196/255),   # Beige
-    (227/255, 204/255, 217/255),   # Pink
-    (201/255, 140/255, 89/255),    # Brown
-    (166/255, 89/255, 89/255),     # Dark brown
-    (140/255, 77/255, 26/255)      # Dark brown
+    (179/255, 226/255, 205/255),    # Blue
+    (253/255, 204/255, 138/255),   # Gray
+    (253/255, 184/255, 99/255),   # Beige
+    (230/255, 85/255, 13/255),   # Pink
+    (166/255, 54/255, 3/255),    # Brown
+    (140/255, 45/255, 4/255),     # Dark brown
+    (127/255, 0/255, 0/255)      # Dark brown
 ]
 
 # Create custom colormap (N=256 for smooth gradient)
@@ -165,9 +165,9 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
     legend_elements = [
         mpatches.Patch(color=colors_rgb[0], label='No stress'),
         mpatches.Patch(color=colors_rgb[1], label='Watch'),
-        mpatches.Patch(color=colors_rgb[2], label='Alert'),
-        mpatches.Patch(color=colors_rgb[3], label='Bleach'),
-        mpatches.Patch(color=colors_rgb[6], label='Severe')  # Use darkest for 6+
+        mpatches.Patch(color=colors_rgb[2], label='Warning'),
+        mpatches.Patch(color=colors_rgb[3], label='Alert 1'),
+        mpatches.Patch(color=colors_rgb[4], label='Alert 2')  # Use darkest for 6+
     ]
     ax.legend(handles=legend_elements,ncol=5,  # Horizontal (5 columns)
            loc='upper center', 
