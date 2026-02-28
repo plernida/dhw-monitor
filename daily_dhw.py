@@ -190,7 +190,7 @@ def create_sst_map_mapbox(lon, lat, sstdata, filename):
     fig = plt.figure(figsize=(8, 6))
     ax = plt.axes(projection=ccrs.PlateCarree())
     im = ax.contourf(lon2d, lat2d, sstdata,
-                     cmap=nipy_yellow_red,levels=np.linspace(23, 35, 20),
+                     cmap=nipy_yellow_red,levels=np.linspace(23, 36, 21),
                      extend='neither',
                      transform=ccrs.PlateCarree()
                     )
@@ -218,7 +218,7 @@ def create_sst_map_mapbox(lon, lat, sstdata, filename):
                   bottom=True,top=True,right=True,labelsize=6,grid_color='black',grid_linewidth=0.5)
     cbar=fig.colorbar(im,ax=ax,orientation='horizontal', shrink=0.8, pad=0.05)
 
-    cbar.mappable.set_clim(23, 35)
+    #cbar.mappable.set_clim(23, 35)
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
