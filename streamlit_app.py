@@ -22,6 +22,7 @@ import os
 import json
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+import cartopy.mpl.ticker as cticker
 from matplotlib.ticker import MultipleLocator
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.font_manager as fm
