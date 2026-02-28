@@ -297,63 +297,90 @@ def plot_cartopy_map(lon, lat, dhw_data, title):
 
     fig = plt.figure(figsize=(8, 6))
     ax = plt.axes(projection=ccrs.PlateCarree())
-
     # DHW raster
     im = ax.contourf(
-        lon2d, lat2d, dhw_data,
+        lon2d, lat2d, dhw_total,
         cmap=cmap, levels=6,
         vmin=0, vmax=6,
         transform=ccrs.PlateCarree()
     )
-
-    # Coastlines
-    ax.coastlines(resolution='10m')
-    ax.add_feature(cfeature.LAND, facecolor='lightgray')
-
-    ax.set_extent([90, 110, 0, 15])
-    plt.colorbar(im, ax=ax, orientation='horizontal', label="DHW (°C-weeks)")
+    ax.set_extent([91, 110, 1, 14])
+    #ax.set_xlabel('Longitude (°E)')
+    #ax.set_ylabel('Latitude (°N)')
+    
+        # Coastlines
+    #ax.coastlines(resolution='10m')
+    ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='black',lw=0.5)
+    #cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.05)
+    #cbar.set_label('DHW (weeks)', fontsize=12)
+    
+    ax.set_xticks(np.arange(92,111,2), crs=ccrs.PlateCarree())
+    ax.set_yticks(np.arange(2,16,2), crs=ccrs.PlateCarree())
+    #ax.coastlines('10m',zorder=3,lw=0.3)
+    
+    lon_formatter = cticker.LongitudeFormatter()
+    lat_formatter = cticker.LatitudeFormatter()
+    ax.xaxis.set_major_formatter(lon_formatter)
+    ax.yaxis.set_major_formatter(lat_formatter)
+    ax.xaxis.set_minor_locator(MultipleLocator(1))
+    ax.yaxis.set_minor_locator(MultipleLocator(1))
+    ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
+                  bottom=True,top=True,right=True,labelsize=6,grid_color='black',grid_linewidth=0.5)
+    # Custom legend patches + labels matching your markdown
+    legend_elements = [
+        mpatches.Patch(color=colors_rgb[0], label='No stress'),
+        mpatches.Patch(color=colors_rgb[1], label='Watch'),
+        mpatches.Patch(color=colors_rgb[2], label='Warning'),
+        mpatches.Patch(color=colors_rgb[3], label='Alert 1'),
+        mpatches.Patch(color=colors_rgb[4], label='Alert 2')  # Use darkest for 6+
+    ]
+    ax.legend(handles=legend_elements,ncol=5,  # Horizontal (5 columns)
+           loc='upper center', 
+           bbox_to_anchor=(0.5, -0.05),
+          fontsize=6, frameon=True, fancybox=True, shadow=True)
+    
+    plt.tight_layout()
     
     return fig    
 
 def create_sst_map_mapbox(lon, lat, sstdata, title):
     lon2d, lat2d = np.meshgrid(lon, lat)    
-    fig = go.Figure()
-    fig.add_trace(go.Contour(
-        x=lon2d[0],  # 1D lon for x
-        y=lat2d[:, 0],  # 1D lat for y
-        z=sstdata,
-        colorscale="jet",
-        zmin=25,
-        zmax=32,
-        colorbar=dict(title="SST (°C)")
-    ))
-
-
-    fig.update_layout(mapbox=dict(
-        style='carto-positron',
-        bounds=dict(east=110, west=90, north=14.5, south=0),
-        layers=[
-            dict(
-                sourcetype="vector",  # Target fill layers like water/landuse
-                source="composite",  # Carto-positron source
-                sourcelayer= "water",  # Common water layer name
-                below='',
-                type="fill",
-                opacity=0,
-                color="rgba(0,0,0,0)")
-        
-            ,
-            dict(
-                type="fill",
-                source="composite",
-                sourcelayer= "land",  # Keep land visible if needed
-                below='',
-                opacity=0.1
-                # Subtle land
-            )
-        ]
-    ),  # Or 'carto-positron'
-              height=800, margin=dict(r=0, t=40, l=0, b=0))
+    fig = plt.figure(figsize=(8, 6))
+    ax = plt.axes(projection=ccrs.PlateCarree())
+    im = ax.contourf(lon2d, lat2d, sstdata,
+                     cmap=nipy_yellow_red,levels=np.linspace(24,34,21),
+                     extend='neither',
+                     transform=ccrs.PlateCarree()
+                    )
+    #im.set_clim(24, 34)
+    ax.set_extent([91, 110, 1, 14])
+    #ax.set_xlabel('Longitude (°E)')
+    #ax.set_ylabel('Latitude (°N)')
+    
+        # Coastlines
+    #ax.coastlines(resolution='10m')
+    ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='black',lw=0.5)
+    #cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.05)
+    #cbar.set_label('DHW (weeks)', fontsize=12)
+    
+    ax.set_xticks(np.arange(92,111,2), crs=ccrs.PlateCarree())
+    ax.set_yticks(np.arange(2,16,2), crs=ccrs.PlateCarree())
+    #ax.coastlines('10m',zorder=3,lw=0.3)
+    
+    lon_formatter = cticker.LongitudeFormatter()
+    lat_formatter = cticker.LatitudeFormatter()
+    ax.xaxis.set_major_formatter(lon_formatter)
+    ax.yaxis.set_major_formatter(lat_formatter)
+    ax.xaxis.set_minor_locator(MultipleLocator(1))
+    ax.yaxis.set_minor_locator(MultipleLocator(1))
+    ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
+                  bottom=True,top=True,right=True,labelsize=6,grid_color='black',grid_linewidth=0.5)
+    cbar=fig.colorbar(im,ax=ax,orientation='horizontal', shrink=0.8, pad=0.05)
+    cbar.set_ticks(np.arange(24,34.1,1))
+    cbar.set_label('°C',fontsize=6)
+    cbar.ax.tick_params(labelsize=6)
+    #cbar.mappable.set_clim(23, 35)
+    plt.tight_layout()
 
 
     return fig
@@ -410,7 +437,7 @@ if process_button:
                 # Portrait DHW map (tall)
                 fig_dhw = st.pyplot(plot_cartopy_map(
                     lon, lat, dhw_total,
-                    "Accumulated DHW (6 weeks)"
+                    f"static/{enddate}_dhw.png"
                 ))
                 #st.plotly_chart(fig_dhw, width='stretch')
                             
@@ -490,7 +517,7 @@ if process_button:
             with col_left:
                 # SST map
                 fig_sst = create_sst_map_mapbox(lon, lat, sst_current,
-                                        "Current Sea Surface Temperature")
+                                        f"static/{enddate}_sst.png")
                 fig_sst.update_layout(height=800, margin=dict(l=50,r=20, t=50, b=50))
                 st.plotly_chart(fig_sst, width='stretch')
             with col_right:    
