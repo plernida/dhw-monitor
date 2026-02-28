@@ -517,8 +517,8 @@ if process_button:
             col_left, col_right = st.columns([60,40])
             with col_left:
                 # SST map
-                fig_sst = create_sst_map_mapbox(lon, lat, sst_current,
-                                        f"static/{enddate}_sst.png")
+                fig_sst = st.pyplot(create_sst_map_mapbox(lon, lat, sst_current,
+                                        f"static/{enddate}_sst.png"))
                 #fig_sst.update_layout(height=800, margin=dict(l=50,r=20, t=50, b=50))
                 #st.plotly_chart(fig_sst, width='stretch')
             with col_right:    
