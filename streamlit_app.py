@@ -36,7 +36,7 @@ plt.rcParams['font.family'] = 'Kanit'
 
 #coast_gdf = gpd.read_file("ne_10m_coastline.shp").to_crs('EPSG:4326')  # Ensure CRS is EPSG:4326
 #coast_geojson = coast_gdf.__geo_interface__
-cmap_full = plt.get_cmap('coolwarm')#nipy_spectral
+cmap_full = plt.get_cmap('nipy_spectral')#nipy_spectral
 slice_start, slice_end = 0.3, 0.9
 colors = cmap_full(np.linspace(slice_start, slice_end, 256))
 nipy_yellow_red = LinearSegmentedColormap.from_list('nipy_yellow_red', colors)
@@ -398,7 +398,9 @@ if process_button:
         # Get coordinates
         LON, LAT, lon, lat = create_coordinates()
 
-        # baseline
+        # Check for pre-generated PNGs (from daily Actions)
+        datedhw_png = f"static/{enddate.strftime('%Y-%m-%d')}_dhw.png"
+        datesst_png = f"static/{enddate.strftime('%Y-%m-%d')}_sst.png"
         
         baseline = xr.open_dataset('mmm_sst_iowp_1981-2020.nc') # read array
         MMM = baseline['sst'].sel(lon=slice(90,110.3),lat=slice(0,14.7)) # Add noise if desired
@@ -430,16 +432,22 @@ if process_button:
         
         with tab1:
             st.subheader(f"Degree Heating Weeks - {enddate.strftime('%Y-%m-%d')}")
-            
+       
+
             # NEW LAYOUT: Portrait map LEFT + distribution/stats RIGHT
             col_left, col_right = st.columns([60, 40])
             
             with col_left:
+                if os.path.exists(datedhw_png):
+                    st.success(f"✅ Using cached DHW PNG for {enddate.strftime('%Y-%m-%d')}")
+                    st.image(datedhw_png, caption="Pre-generated DHW Map", use_column_width=True)
+                else:
+                    st.info("⚠️ No cached PNG found. Computing live...")
                 # Portrait DHW map (tall)
-                fig_dhw = st.pyplot(plot_cartopy_map(
-                    lon, lat, dhw_total,
-                    f"static/{enddate}_dhw.png"
-                ))
+                    fig_dhw = st.pyplot(plot_cartopy_map(
+                        lon, lat, dhw_total,
+                        f"static/{enddate}_dhw.png"
+                    ))
                 #st.plotly_chart(fig_dhw, width='stretch')
                             
             with col_right:
@@ -516,9 +524,14 @@ if process_button:
             st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
             col_left, col_right = st.columns([60,40])
             with col_left:
+                if os.path.exists(datesst_png):
+                    st.success(f"✅ Using cached SST PNG for {enddate.strftime('%Y-%m-%d')}")
+                    st.image(datesst_png, caption="Pre-generated SST Map", use_column_width=True)
+                else:
+                    st.info("⚠️ No cached PNG found. Computing live...")
                 # SST map
-                fig_sst = st.pyplot(create_sst_map_mapbox(lon, lat, sst_current,
-                                        f"static/{enddate}_sst.png"))
+                    fig_sst = st.pyplot(create_sst_map_mapbox(lon, lat, sst_current,
+                                            f"static/{enddate}_sst.png"))
                 #fig_sst.update_layout(height=800, margin=dict(l=50,r=20, t=50, b=50))
                 #st.plotly_chart(fig_sst, width='stretch')
             with col_right:    
