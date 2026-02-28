@@ -12,6 +12,7 @@ import cartopy.mpl.ticker as cticker
 from matplotlib.ticker import MultipleLocator
 from matplotlib.colors import LinearSegmentedColormap
 import os
+import matplotlib.font_manager as fm
 from io import BytesIO
 import xarray as xr
 import warnings
