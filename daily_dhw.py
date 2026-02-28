@@ -23,7 +23,7 @@ if not any('Kanit' in f.name for f in fm.fontManager.ttflist):
 plt.rcParams['font.family'] = 'Kanit'
 
 cmap_full = plt.get_cmap('nipy_spectral')
-slice_start, slice_end = 0.45, 0.9
+slice_start, slice_end = 0.3, 0.9
 colors = cmap_full(np.linspace(slice_start, slice_end, 256))
 nipy_yellow_red = LinearSegmentedColormap.from_list('nipy_yellow_red', colors)
 
