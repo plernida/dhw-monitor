@@ -194,6 +194,7 @@ def create_sst_map_mapbox(lon, lat, sstdata, filename):
                      extend='neither',
                      transform=ccrs.PlateCarree()
                     )
+    im.set_clim(23, 35)
     ax.set_extent([91, 110, 1, 14])
     #ax.set_xlabel('Longitude (°E)')
     #ax.set_ylabel('Latitude (°N)')
