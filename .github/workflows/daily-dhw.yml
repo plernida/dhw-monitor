@@ -20,6 +20,6 @@ jobs:
     - run: python daily_dhw.py
     - uses: stefanzweifel/git-auto-commit-action@v5
       with:
-        commit_message: 'Daily DHW/SST PNGs {{date}}'
+        commit_message: 'Daily DHW/SST PNGs {{steps.date.outputs.date}}'
         file_pattern: static/*.png
 
