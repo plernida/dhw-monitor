@@ -16,6 +16,9 @@ from io import BytesIO
 import xarray as xr
 import warnings
 warnings.filterwarnings('ignore')
+if not any('Kanit' in f.name for f in fm.fontManager.ttflist):
+    os.system("wget -q -O kanit.ttf https://github.com/google/fonts/raw/main/ofl/kanit/Kanit-Regular.ttf")
+    fm.fontManager.addfont('kanit.ttf')
 plt.rcParams['font.family'] = 'Kanit'
 
 cmap_full = plt.get_cmap('nipy_spectral')
