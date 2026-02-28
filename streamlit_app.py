@@ -30,10 +30,12 @@ import pytz
 from datetime import timedelta
 import warnings
 warnings.filterwarnings('ignore')
+
 if not any('Kanit' in f.name for f in fm.fontManager.ttflist):
     os.system("wget -q -O kanit.ttf https://github.com/google/fonts/raw/main/ofl/kanit/Kanit-Regular.ttf")
-    fm.fontManager.addfont('kanit.ttf')
+    fm.fontManager.addfont('/dhw-monitor/kanit.ttf')
 plt.rcParams['font.family'] = 'Kanit'
+
 #coast_gdf = gpd.read_file("ne_10m_coastline.shp").to_crs('EPSG:4326')  # Ensure CRS is EPSG:4326
 #coast_geojson = coast_gdf.__geo_interface__
 cmap_full = plt.get_cmap('nipy_spectral')
