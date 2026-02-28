@@ -17,13 +17,13 @@ import warnings
 warnings.filterwarnings('ignore')
 plt.rcParams['font.family'] = 'Kanit'
 colors_rgb = [
-    (179/255, 226/255, 205/255),    # Blue
-    (253/255, 204/255, 138/255),   # Gray
-    (253/255, 184/255, 99/255),   # Beige
-    (230/255, 85/255, 13/255),   # Pink
-    (166/255, 54/255, 3/255),    # Brown
-    (140/255, 45/255, 4/255),     # Dark brown
-    (127/255, 0/255, 0/255)      # Dark brown
+    '#C8FAFA',    # Blue
+    '#FFF000',   # Gray
+    '#FAAA0A',   # Beige
+    '#F00000',   # Pink
+    '#960000',    # Brown
+    '#A05024',     # Dark brown
+    '#F000F0'      # Dark brown
 ]
 
 # Create custom colormap (N=256 for smooth gradient)
@@ -139,7 +139,7 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
         vmin=0, vmax=6,
         transform=ccrs.PlateCarree()
     )
-    ax.set_extent([90, 110, 0, 15])
+    ax.set_extent([91, 110, 0.5, 14])
     ax.set_xlabel('Longitude (°E)')
     ax.set_ylabel('Latitude (°N)')
     
@@ -160,7 +160,7 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
     ax.xaxis.set_minor_locator(MultipleLocator(1))
     ax.yaxis.set_minor_locator(MultipleLocator(1))
     ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
-                  bottom=True,top=True,labelsize=6,grid_color='black',grid_linewidth=0.5)
+                  bottom=True,top=True,right=True,labelsize=6,grid_color='black',grid_linewidth=0.5)
     # Custom legend patches + labels matching your markdown
     legend_elements = [
         mpatches.Patch(color=colors_rgb[0], label='No stress'),
