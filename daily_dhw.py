@@ -139,9 +139,9 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
         vmin=0, vmax=6,
         transform=ccrs.PlateCarree()
     )
-    ax.set_extent([91, 110, 0.5, 14])
-    ax.set_xlabel('Longitude (°E)')
-    ax.set_ylabel('Latitude (°N)')
+    ax.set_extent([91, 110, 1, 14])
+    #ax.set_xlabel('Longitude (°E)')
+    #ax.set_ylabel('Latitude (°N)')
     
         # Coastlines
     #ax.coastlines(resolution='10m')
@@ -149,8 +149,8 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
     #cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.05)
     #cbar.set_label('DHW (weeks)', fontsize=12)
     
-    ax.set_xticks(np.arange(90,111,2), crs=ccrs.PlateCarree())
-    ax.set_yticks(np.arange(0,16,2), crs=ccrs.PlateCarree())
+    ax.set_xticks(np.arange(92,111,2), crs=ccrs.PlateCarree())
+    ax.set_yticks(np.arange(2,16,2), crs=ccrs.PlateCarree())
     #ax.coastlines('10m',zorder=3,lw=0.3)
     
     lon_formatter = cticker.LongitudeFormatter()
@@ -188,9 +188,9 @@ def create_sst_map_mapbox(lon, lat, sstdata, filename):
                      transform=ccrs.PlateCarree()
                     )
     ax.set_extent([90, 110, 0, 15])
-    ax.set_xlabel('Longitude (°E)')
-    ax.set_ylabel('Latitude (°N)')
-    ax.set_title('Daily DHW Total (Thai Waters)')
+    #ax.set_xlabel('Longitude (°E)')
+    #ax.set_ylabel('Latitude (°N)')
+    #ax.set_title('Daily DHW Total (Thai Waters)')
         # Coastlines
     ax.coastlines(resolution='10m')
     ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='gray')
