@@ -10,12 +10,19 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import cartopy.mpl.ticker as cticker
 from matplotlib.ticker import MultipleLocator
+from matplotlib.colors import LinearSegmentedColormap
 import os
 from io import BytesIO
 import xarray as xr
 import warnings
 warnings.filterwarnings('ignore')
 plt.rcParams['font.family'] = 'Kanit'
+
+cmap_full = plt.get_cmap('nipy_spectral')
+slice_start, slice_end = 0.4, 0.75
+colors = cmap_full(np.linspace(slice_start, slice_end, 256))
+nipy_yellow_red = LinearSegmentedColormap.from_list('nipy_yellow_red', colors)
+
 colors_rgb = [
     '#C8FAFA',    # Blue
     '#FFF000',   # Gray
@@ -183,19 +190,36 @@ def create_sst_map_mapbox(lon, lat, sstdata, filename):
     fig = plt.figure(figsize=(8, 6))
     ax = plt.axes(projection=ccrs.PlateCarree())
     im = ax.contourf(lon2d, lat2d, sstdata,
-                     cmap='rainbow', levels=12,
-                     vmin=23, vmax=34,
+                     cmap=nipy_yellow_red, vmin=23, vmax=35,
                      transform=ccrs.PlateCarree()
                     )
-    ax.set_extent([90, 110, 0, 15])
+    ax.set_extent([91, 110, 1, 14])
     #ax.set_xlabel('Longitude (°E)')
     #ax.set_ylabel('Latitude (°N)')
-    #ax.set_title('Daily DHW Total (Thai Waters)')
+    
         # Coastlines
-    ax.coastlines(resolution='10m')
-    ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='gray')
-    plt.colorbar(im, ax=ax, orientation='horizontal', label="DHW (°C-weeks)")
+    #ax.coastlines(resolution='10m')
+    ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='black',lw=0.5)
+    #cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.05)
+    #cbar.set_label('DHW (weeks)', fontsize=12)
+    
+    ax.set_xticks(np.arange(92,111,2), crs=ccrs.PlateCarree())
+    ax.set_yticks(np.arange(2,16,2), crs=ccrs.PlateCarree())
+    #ax.coastlines('10m',zorder=3,lw=0.3)
+    
+    lon_formatter = cticker.LongitudeFormatter()
+    lat_formatter = cticker.LatitudeFormatter()
+    ax.xaxis.set_major_formatter(lon_formatter)
+    ax.yaxis.set_major_formatter(lat_formatter)
+    ax.xaxis.set_minor_locator(MultipleLocator(1))
+    ax.yaxis.set_minor_locator(MultipleLocator(1))
+    ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
+                  bottom=True,top=True,right=True,labelsize=6,grid_color='black',grid_linewidth=0.5)
+    cbar=fig.colorbar(im,ax=ax,orientation='horizontal', shrink=0.8, pad=0.05)
+    
+    plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
+    plt.close()
     plt.close()
     
 
