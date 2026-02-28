@@ -11,6 +11,7 @@ import plotly.graph_objects as go
 from scipy import ndimage
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+import matplotlib.patches as mpatches
 import pandas as pd
 import geopandas as gpd
 from datetime import datetime, timedelta
@@ -21,60 +22,35 @@ import os
 import json
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+from matplotlib.ticker import MultipleLocator
+from matplotlib.colors import LinearSegmentedColormap
+import matplotlib.font_manager as fm
 from io import BytesIO
 import pytz
 from datetime import timedelta
 import warnings
 warnings.filterwarnings('ignore')
-
+if not any('Kanit' in f.name for f in fm.fontManager.ttflist):
+    os.system("wget -q -O kanit.ttf https://github.com/google/fonts/raw/main/ofl/kanit/Kanit-Regular.ttf")
+    fm.fontManager.addfont('kanit.ttf')
 plt.rcParams['font.family'] = 'Kanit'
 #coast_gdf = gpd.read_file("ne_10m_coastline.shp").to_crs('EPSG:4326')  # Ensure CRS is EPSG:4326
 #coast_geojson = coast_gdf.__geo_interface__
+cmap_full = plt.get_cmap('nipy_spectral')
+slice_start, slice_end = 0.3, 0.9
+colors = cmap_full(np.linspace(slice_start, slice_end, 256))
+nipy_yellow_red = LinearSegmentedColormap.from_list('nipy_yellow_red', colors)
+colors_rgb = [
+    '#C8FAFA',    # Blue
+    '#FFF000',   # Gray
+    '#FAAA0A',   # Beige
+    '#F00000',   # Pink
+    '#960000',    # Brown
+    '#A05024',     # Dark brown
+    '#F000F0'      # Dark brown
+]
+cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=256)
 
-
-#if 'coast_geojson' not in st.session_state:
-#    st.session_state.coat_geojson = None
-#uploaded_shp = st.file_uploader("Upload coastline.shp", type=['shp'])
-
-#if uploaded_shp:
-#    # Zip upload handling for .shp + .shx/.dbf
-#    with st.spinner("Loading shapefile..."):
-#        gdf = gpd.read_file(uploaded_shp)
-#        st.session_state.coast_geojson = gdf.to_crs(epsg=4326).to_json()
-#    st.success("Shapefile memorized!")
-@st.cache_data
-def extract_lon_lat(geojson_file):
-    with open(geojson_file, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-
-    lons, lats = [], []
-
-    def add_coords(coords):
-        # coords is like [[lon, lat], [lon, lat], ...] or nested deeper
-        if not isinstance(coords, list):
-            return
-        # Coordinates list: [lon, lat]
-        if len(coords) == 2 and all(isinstance(c, (int, float)) for c in coords):
-            lon, lat = coords
-            lons.append(lon)
-            lats.append(lat)
-        else:
-            for c in coords:
-                add_coords(c)
-
-    for feature in data.get('features', []):
-        geom = feature.get('geometry')
-        if not geom:
-            continue
-        if geom['type'] in ['LineString', 'MultiLineString', 'Polygon', 'MultiPolygon']:
-            add_coords(geom['coordinates'])
-
-    return lons, lats
-    
-    # Usage
-land_lon, land_lat = extract_lon_lat('thailand_mapshaper.geojson')
-with open('thailand_mapshaper.geojson', 'r') as f:
-    land_geojson = json.load(f)
 
 # Page configuration
 st.set_page_config(
@@ -110,11 +86,11 @@ Data source: GHRSST satellite observations (90-110°E, 0-14.5°N)
 
 # Sidebar controls
 st.sidebar.header("⚙️ Auto Daily Update")
-
 # Auto current date
 th_tz = pytz.timezone('Asia/Bangkok')
 now = datetime.now(th_tz)
 target_date = now.date() - timedelta(days=2)
+
 
 MIN_DATE = datetime(1981, 1, 1)
 MAX_DATE = target_date
@@ -244,18 +220,18 @@ def calculate_dhw(TSeries, MMM, threshold=1.0):
     # Sum all weeks
     dhw_total = sum(dhw_weeks)
     return dhw_weeks, dhw_total, sst_weeks
-colors_rgb = [
-    (66/255, 112/255, 194/255),    # Blue
-    (214/255, 214/255, 214/255),   # Gray
-    (235/255, 222/255, 196/255),   # Beige
-    (227/255, 204/255, 217/255),   # Pink
-    (201/255, 140/255, 89/255),    # Brown
-    (166/255, 89/255, 89/255),     # Dark brown
-    (140/255, 77/255, 26/255)      # Dark brown
-]
+#colors_rgb = [
+#    (66/255, 112/255, 194/255),    # Blue
+#    (214/255, 214/255, 214/255),   # Gray
+#    (235/255, 222/255, 196/255),   # Beige
+#    (227/255, 204/255, 217/255),   # Pink
+#    (201/255, 140/255, 89/255),    # Brown
+#    (166/255, 89/255, 89/255),     # Dark brown
+#    (140/255, 77/255, 26/255)      # Dark brown
+#]
 
 # Create custom colormap (N=256 for smooth gradient)
-cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=256)
+#cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=256)
 
 def create_dhw_map(lon, lat, dhw_data, title, levels):
     """Create Plotly contour map for DHW data"""
@@ -314,56 +290,7 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
     )
 
     return fig
-colorscale = [
-    [0.0, "#2c7bb6"],   # blue
-    [0.2, "#abd9e9"],
-    [0.4, "#ffffbf"],
-    [0.6, "#fdae61"],
-    [0.8, "#d7191c"],
-    [1.0, "#800000"]    # dark red
-]
-def create_dhw_heatmap(lon, lat, dhw_data, title):
-    lon2d, lat2d = np.meshgrid(lon, lat)
 
-    # Flatten grid for densitymapbox
-    lon_flat = lon2d.flatten()
-    lat_flat = lat2d.flatten()
-    dhw_flat = dhw_data.flatten()
-
-    # Remove NaNs
-    mask = ~np.isnan(dhw_flat)
-    lon_flat = lon_flat[mask]
-    lat_flat = lat_flat[mask]
-    dhw_flat = dhw_flat[mask]
-
-    fig = go.Figure()
-
-    # --- DHW Heatmap ---
-    fig.add_trace(go.Densitymapbox(
-        lon=lon_flat,
-        lat=lat_flat,
-        z=dhw_flat,
-        radius=20,              # smoothing radius
-        colorscale=colorscale,     # good for ocean heat
-        zmin=0,
-        zmax=12,                # NOAA DHW scale often 0–12+
-        showscale=True,
-        colorbar=dict(title="DHW (°C-weeks)")
-    ))
-
-    # --- Optional land overlay ---
-
-    fig.update_layout(
-        mapbox=dict(
-            style="carto-positron",
-            zoom=4,
-            center=dict(lat=float(np.nanmean(lat)), lon=float(np.nanmean(lon)))
-        ),
-        margin=dict(r=0, t=40, l=0, b=0),
-        height=800,
-        title=title
-    )
-    return fig
 def plot_cartopy_map(lon, lat, dhw_data, title):
 
     lon2d, lat2d = np.meshgrid(lon, lat)
@@ -388,68 +315,6 @@ def plot_cartopy_map(lon, lat, dhw_data, title):
     plt.colorbar(im, ax=ax, orientation='horizontal', label="DHW (°C-weeks)")
     
     return fig    
-#land_gdf = gpd.read_file('https://github.com/nvkelso/natural-earth-vector/raw/refs/heads/master/110m_physical/ne_110m_coastline.shp')  # Or local shapefile
-#land_geojson = land_gdf.to_json()
-
-def create_dhw_map_mapbox(lon, lat, dhw_data, title):
-    lon2d, lat2d = np.meshgrid(lon, lat)  # Assumes lon/lat are 1D arrays matching dhw_data shape
-    fig = go.Figure()
-    
-    fig.add_trace(go.Choroplethmapbox(
-        geojson=land_geojson,
-        locations=land_gdf.index,  # Unique IDs
-        z=[1] * len(land_gdf),  # Constant
-        colorscale=[[0, 'rgba(240,240,240,0.8)'], [1, 'rgba(200,200,200,0.9)']],
-        showscale=False,
-        marker_line=dict(width=1, color='black')
-    ))    
-    
-    levels = np.arange(0, 8, 2)  # e.g., 25-32°C
-    figure, ax = plt.subplots()
-    cs = ax.contour(lon2d, lat2d, dhw_data, levels=levels,colors='none', extend='neither')  # Matplotlib to get paths
-    plt.close(figure)
-    for level_idx, level_contours in enumerate(cs.allsegs):
-        for contour_verts in level_contours:
-            # contour_verts: Nx2 array [lon, lat]
-            lon_line = contour_verts[:, 0]
-            lat_line = contour_verts[:, 1]
-            
-            fig.add_trace(go.Scattermapbox(
-                lon=lon_line, lat=lat_line,
-                mode='lines',
-                line=dict(width=2, color='navy'),
-                name=f'DHW {levels[level_idx]:.1f}',
-                showlegend=False
-            ))
-
-      
-    fig.update_layout(mapbox=dict(
-            style='carto-positron',
-            bounds=dict(east=110, west=90, north=14.5, south=0),
-            layers=[
-                dict(
-                    sourcetype="vector",  # Target fill layers like water/landuse
-                    source="composite",  # Carto-positron source
-                    sourcelayer= "water",  # Common water layer name
-                    below='traces',
-                    type="fill",
-                    opacity=0,
-                    color="rgba(0,0,0,0)")
-            
-                ,
-                dict(
-                    type="fill",
-                    source="composite",
-                    sourcelayer= "land",  # Keep land visible if needed
-                    below='traces',
-                    opacity=0.1
-                    # Subtle land
-                )
-            ]
-        ),  # Or 'carto-positron'
-                  height=800, margin=dict(r=0, t=40, l=0, b=0))
-
-    return fig
 
 def create_sst_map_mapbox(lon, lat, sstdata, title):
     lon2d, lat2d = np.meshgrid(lon, lat)    
@@ -494,62 +359,13 @@ def create_sst_map_mapbox(lon, lat, sstdata, title):
 
     return fig
 
-def create_sst_map(lon, lat, sstdata, title):
-    """Create Plotly contour map for SST data"""
-    fig = go.Figure()
-    
-    fig.add_trace(go.Choroplethmapbox(
-        geojson=land_geojson,
-        locations=land_gdf.index,  # Unique IDs
-        z=[1] * len(land_gdf),  # Constant
-        colorscale=[[0, 'rgba(240,240,240,0.8)'], [1, 'rgba(200,200,200,0.9)']],
-        showscale=False,
-        marker_line=dict(width=1, color='black')
-    ))
-    
-    fig = go.Figure(data=go.Contour(
-        z=sstdata,
-        x=lon,
-        y=lat,
-        colorscale='jet',
-        contours=dict(
-            start=25,
-            end=32,
-            size=0.5,
-        ),
-        colorbar=dict(
-            title='SST (°C)',
-            tickmode='linear',
-            tick0=28,
-            dtick=0.5
-        ),
-        hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>SST: %{z:.2f}°C<extra></extra>'
-    ))
-    
-    # Add land
-    #gulf_lon = [99.5, 101, 102, 102.5, 102, 100.5, 99.5, 99.5]
-    #gulf_lat = [6, 6.5, 8, 10, 12, 13.5, 12, 6]
-    
-
-    fig.update_layout(
-        title=dict(text=title, x=0.5, xanchor='center'),
-        xaxis_title='Longitude (°E)',
-        yaxis_title='Latitude (°N)',
-        height=600,
-        hovermode='closest',
-        plot_bgcolor='rgba(240,245,250,1)',
-        xaxis=dict(range=[90, 110]),
-        yaxis=dict(range=[0, 14.5])
-    )
-
-    return fig
 
 # Main processing
 if process_button:
     with st.spinner('Processing DHW analysis...'):
         # Use SELECTED date as analysis center
+
         enddate = analysis_date
-        
         # Download 48 days BACK from analysis_date
         TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
         # Get coordinates
