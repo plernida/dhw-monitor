@@ -190,11 +190,11 @@ def create_sst_map_mapbox(lon, lat, sstdata, filename):
     fig = plt.figure(figsize=(8, 6))
     ax = plt.axes(projection=ccrs.PlateCarree())
     im = ax.contourf(lon2d, lat2d, sstdata,
-                     cmap=nipy_yellow_red,vmin=23,vmax=35,levels=26,
+                     cmap=nipy_yellow_red,vmin=24,vmax=34,levels=20,
                      extend='neither',
                      transform=ccrs.PlateCarree()
                     )
-    im.set_clim(23, 35)
+    im.set_clim(24, 34)
     ax.set_extent([91, 110, 1, 14])
     #ax.set_xlabel('Longitude (°E)')
     #ax.set_ylabel('Latitude (°N)')
