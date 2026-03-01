@@ -407,7 +407,8 @@ if process_button:
 
         # Calculate DHW
         dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
-        
+        dhw_weeks = xr.DataArray(dhw_weeks, dims=('week', 'lat', 'lon'))
+        sst_weeks = xr.DataArray(sst_weeks, dims=('week', 'lat', 'lon'))
         # Current SST
         sst_current = TSeries[:, :, -1]
         
@@ -488,17 +489,7 @@ if process_button:
                 }
                 risk_df = pd.DataFrame(risk_data)
                 st.dataframe(risk_df, width='stretch', hide_index=True)
-            
-            # Alert levels legend (below everything)
-            st.markdown("""
-            **DHW Alert Levels:**
-            - 🔵 **0**: No stress
-            - ⚪ **1-2**: Watch (possible stress)
-            - 🟡 **3-4**: Alert (bleaching likely)
-            - 🟠 **5**: Bleaching Level 1
-            - 🔴 **6+**: Severe bleaching expected
-            """)
-        
+       
         with tab2:
             st.subheader("Weekly Hotspot Analysis")
             
@@ -515,9 +506,9 @@ if process_button:
                 for col_idx in range(3):
                     week_idx = row * 3 + col_idx
                     with cols[col_idx]:
-                        fig = create_dhw_map(lon, lat, dhw_weeks[week_idx],
-                                           date_labels[week_idx], 2)
-                        fig.update_layout(height=350)
+                        fig = st.pyplot(plot_cartopy_map(lon, lat, dhw_weeks[week_idx],
+                                           date_labels[week_idx]))
+                        #fig.update_layout(height=350)
                         st.plotly_chart(fig, width='stretch')
         
         with tab3:
