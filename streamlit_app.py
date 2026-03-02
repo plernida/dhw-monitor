@@ -406,7 +406,7 @@ if process_button:
         MMM = baseline['sst'].sel(lon=slice(90,110.3),lat=slice(0,14.7)) # Add noise if desired
 
         # Calculate DHW
-        #dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
+        dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
         #dhw_weeks = xr.DataArray(dhw_weeks, dims=('week', 'lat', 'lon'))
         #sst_weeks = xr.DataArray(sst_weeks, dims=('week', 'lat', 'lon'))
         # Current SST
