@@ -507,9 +507,9 @@ if process_button:
                     week_idx = row * 3 + col_idx
                     with cols[col_idx]:
                         fig = create_dhw_map(lon, lat, dhw_weeks[week_idx],
-                                           date_labels[week_idx])
-                        #fig.update_layout(height=350)
-                        #st.plotly_chart(fig, width='stretch')
+                                           date_labels[week_idx],2)
+                        fig.update_layout(height=350)
+                        st.plotly_chart(fig, width='stretch')
         
         with tab3:
             st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
