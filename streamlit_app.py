@@ -290,7 +290,56 @@ def create_dhw_map(lon, lat, dhw_data, title, levels):
     )
 
     return fig
-
+def plot_dhw_week(lon, lat, dhw_total, title):
+    lon2d, lat2d = np.meshgrid(lon, lat)
+    fig = plt.figure(figsize=(8, 6))
+    ax = plt.axes(projection=ccrs.PlateCarree())
+    # DHW raster
+    im = ax.contourf(
+        lon2d, lat2d, dhw_total,
+        cmap=cmap, levels=6,
+        vmin=0, vmax=6,
+        transform=ccrs.PlateCarree()
+    )
+    ax.set_extent([91, 110, 1, 14])
+    #ax.set_xlabel('Longitude (°E)')
+    #ax.set_ylabel('Latitude (°N)')
+    
+        # Coastlines
+    #ax.coastlines(resolution='10m')
+    ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='black',lw=0.5)
+    #cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.05)
+    #cbar.set_label('DHW (weeks)', fontsize=12)
+    
+    ax.set_xticks(np.arange(92,111,2), crs=ccrs.PlateCarree())
+    ax.set_yticks(np.arange(2,16,2), crs=ccrs.PlateCarree())
+    #ax.coastlines('10m',zorder=3,lw=0.3)
+    
+    lon_formatter = cticker.LongitudeFormatter()
+    lat_formatter = cticker.LatitudeFormatter()
+    ax.xaxis.set_major_formatter(lon_formatter)
+    ax.yaxis.set_major_formatter(lat_formatter)
+    ax.xaxis.set_minor_locator(MultipleLocator(1))
+    ax.yaxis.set_minor_locator(MultipleLocator(1))
+    ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
+                  bottom=True,top=True,right=True,labelsize=6,grid_color='black',grid_linewidth=0.5)
+    # Custom legend patches + labels matching your markdown
+    legend_elements = [
+        mpatches.Patch(color=colors_rgb[0], label='No stress'),
+        mpatches.Patch(color=colors_rgb[1], label='Watch'),
+        mpatches.Patch(color=colors_rgb[2], label='Warning'),
+        mpatches.Patch(color=colors_rgb[3], label='Alert 1'),
+        mpatches.Patch(color=colors_rgb[4], label='Alert 2')  # Use darkest for 6+
+    ]
+    ax.legend(handles=legend_elements,ncol=5,  # Horizontal (5 columns)
+           loc='upper center', 
+           bbox_to_anchor=(0.5, -0.05),
+          fontsize=6, frameon=True, fancybox=True, shadow=True)
+    ax.set_title(title, fontsize=10)
+    plt.tight_layout()
+    #plt.savefig(filename, dpi=150, bbox_inches='tight')
+    plt.close()
+    
 def plot_cartopy_map(lon, lat, dhw_data, title):
 
     lon2d, lat2d = np.meshgrid(lon, lat)
@@ -440,10 +489,10 @@ if process_button:
             
             with col_left:
                 if os.path.exists(datedhw_png):
-                    st.success(f"✅ Using cached DHW PNG for {enddate.strftime('%Y-%m-%d')}")
+                    #st.success(f"✅ Using cached DHW PNG for {enddate.strftime('%Y-%m-%d')}")
                     st.image(datedhw_png, caption="Pre-generated DHW Map", use_column_width=True)
                 else:
-                    st.info("⚠️ No cached PNG found. Computing live...")
+                    #st.info("⚠️ No cached PNG found. Computing live...")
                 # Portrait DHW map (tall)
                     fig_dhw = st.pyplot(plot_cartopy_map(
                         lon, lat, dhw_total,
@@ -492,24 +541,42 @@ if process_button:
        
         with tab2:
             st.subheader("Weekly Hotspot Analysis")
-            
-            # Calculate date labels
             date_labels = []
             for week in range(6):
                 end_day = enddate - timedelta(days=week*5)
                 start_day = end_day - timedelta(days=4)
                 date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
             
-            # Display in 2 rows
-            for row in range(2):
-                cols = st.columns(3)
-                for col_idx in range(3):
-                    week_idx = row * 3 + col_idx
-                    with cols[col_idx]:
-                        fig = create_dhw_map(lon, lat, dhw_weeks[week_idx],
-                                           date_labels[week_idx],2)
-                        fig.update_layout(height=350)
-                        st.plotly_chart(fig, width='stretch')
+            # Check static PNGs first
+            static_images = []
+            all_exist = True
+            for week_idx in range(6):
+                img_path = f"static/dhw_week_{week_idx+1:02d}.png"
+                if os.path.exists(img_path):
+                    static_images.append(img_path)
+                else:
+                    all_exist = False
+                    break
+            
+            if all_exist:
+                # Display static PNGs in grid
+                for row in range(2):
+                    cols = st.columns(3)
+                    for col_idx in range(3):
+                        week_idx = row * 3 + col_idx
+                        with cols[col_idx]:
+                            st.image(static_images[week_idx], 
+                                    caption=date_labels[week_idx], 
+                                    use_column_width=True)
+            else:
+                # Fallback: generate & display Plotly
+                for row in range(2):
+                    cols = st.columns(3)
+                    for col_idx in range(3):
+                        week_idx = row * 3 + col_idx
+                        with cols[col_idx]:
+                            plot_dhw_week(lon, lat, dhw_weeks[week_idx],date_labels[week_idx])
+
         
         with tab3:
             st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
