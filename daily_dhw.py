@@ -243,6 +243,20 @@ sst_current = sst_stack[:, :, -1]
 os.makedirs('static', exist_ok=True)
 plot_dhw_map(lon, lat, dhw_total, f"static/{today}_dhw.png")
 create_sst_map_mapbox(lon,lat,sst_current,f"static/{today}_sst.png")
+date_labels = []
+for week in range(6):
+    end_day = today - timedelta(days=week*5)
+    start_day = end_day - timedelta(days=4)
+    date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
+
+# Display in 2 rows
+for row in range(2):
+    cols = st.columns(3)
+    for col_idx in range(3):
+        week_idx = row * 3 + col_idx
+        with cols[col_idx]:
+            fig = plot_cartopy_map(lon, lat, dhw_weeks[week_idx],
+                               date_labels[week_idx]))
 #plt.figure(figsize=(12, 8))
 #plt.contourf(np.meshgrid(lon, lat), sst_current, cmap='jet', vmin=25, vmax=32)
 #plt.colorbar(label='SST (°C)')
