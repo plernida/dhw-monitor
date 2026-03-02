@@ -399,16 +399,16 @@ if process_button:
         LON, LAT, lon, lat = create_coordinates()
 
         # Check for pre-generated PNGs (from daily Actions)
-        datedhw_png = f"static/{enddate.strftime('%Y-%m-%d')}_dhw.png"
-        datesst_png = f"static/{enddate.strftime('%Y-%m-%d')}_sst.png"
+        #datedhw_png = f"static/{enddate.strftime('%Y-%m-%d')}_dhw.png"
+        #datesst_png = f"static/{enddate.strftime('%Y-%m-%d')}_sst.png"
         
         baseline = xr.open_dataset('mmm_sst_iowp_1981-2020.nc') # read array
         MMM = baseline['sst'].sel(lon=slice(90,110.3),lat=slice(0,14.7)) # Add noise if desired
 
         # Calculate DHW
-        dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
-        dhw_weeks = xr.DataArray(dhw_weeks, dims=('week', 'lat', 'lon'))
-        sst_weeks = xr.DataArray(sst_weeks, dims=('week', 'lat', 'lon'))
+        #dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
+        #dhw_weeks = xr.DataArray(dhw_weeks, dims=('week', 'lat', 'lon'))
+        #sst_weeks = xr.DataArray(sst_weeks, dims=('week', 'lat', 'lon'))
         # Current SST
         sst_current = TSeries[:, :, -1]
         
@@ -506,10 +506,10 @@ if process_button:
                 for col_idx in range(3):
                     week_idx = row * 3 + col_idx
                     with cols[col_idx]:
-                        fig = st.pyplot(plot_cartopy_map(lon, lat, dhw_weeks[week_idx],
-                                           date_labels[week_idx]))
+                        fig = create_dhw_map(lon, lat, dhw_weeks[week_idx],
+                                           date_labels[week_idx])
                         #fig.update_layout(height=350)
-                        st.plotly_chart(fig, width='stretch')
+                        #st.plotly_chart(fig, width='stretch')
         
         with tab3:
             st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
