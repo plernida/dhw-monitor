@@ -139,6 +139,56 @@ def calculate_dhw(TSeries, MMM, threshold=1.0):
     dhw_total = sum(dhw_weeks)
     return dhw_weeks, dhw_total, sst_weeks
 
+def plot_dhw_week(lon, lat, dhw_total, title, filename):
+    lon2d, lat2d = np.meshgrid(lon, lat)
+    fig = plt.figure(figsize=(8, 6))
+    ax = plt.axes(projection=ccrs.PlateCarree())
+    # DHW raster
+    im = ax.contourf(
+        lon2d, lat2d, dhw_total,
+        cmap=cmap, levels=6,
+        vmin=0, vmax=6,
+        transform=ccrs.PlateCarree()
+    )
+    ax.set_extent([91, 110, 1, 14])
+    #ax.set_xlabel('Longitude (°E)')
+    #ax.set_ylabel('Latitude (°N)')
+    
+        # Coastlines
+    #ax.coastlines(resolution='10m')
+    ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='black',lw=0.5)
+    #cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.05)
+    #cbar.set_label('DHW (weeks)', fontsize=12)
+    
+    ax.set_xticks(np.arange(92,111,2), crs=ccrs.PlateCarree())
+    ax.set_yticks(np.arange(2,16,2), crs=ccrs.PlateCarree())
+    #ax.coastlines('10m',zorder=3,lw=0.3)
+    
+    lon_formatter = cticker.LongitudeFormatter()
+    lat_formatter = cticker.LatitudeFormatter()
+    ax.xaxis.set_major_formatter(lon_formatter)
+    ax.yaxis.set_major_formatter(lat_formatter)
+    ax.xaxis.set_minor_locator(MultipleLocator(1))
+    ax.yaxis.set_minor_locator(MultipleLocator(1))
+    ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
+                  bottom=True,top=True,right=True,labelsize=6,grid_color='black',grid_linewidth=0.5)
+    # Custom legend patches + labels matching your markdown
+    legend_elements = [
+        mpatches.Patch(color=colors_rgb[0], label='No stress'),
+        mpatches.Patch(color=colors_rgb[1], label='Watch'),
+        mpatches.Patch(color=colors_rgb[2], label='Warning'),
+        mpatches.Patch(color=colors_rgb[3], label='Alert 1'),
+        mpatches.Patch(color=colors_rgb[4], label='Alert 2')  # Use darkest for 6+
+    ]
+    ax.legend(handles=legend_elements,ncol=5,  # Horizontal (5 columns)
+           loc='upper center', 
+           bbox_to_anchor=(0.5, -0.05),
+          fontsize=6, frameon=True, fancybox=True, shadow=True)
+    ax.title(title, fontsize=6)
+    plt.tight_layout()
+    plt.savefig(filename, dpi=150, bbox_inches='tight')
+    plt.close()
+    
 def plot_dhw_map(lon, lat, dhw_total, filename):
     lon2d, lat2d = np.meshgrid(lon, lat)
     fig = plt.figure(figsize=(8, 6))
@@ -188,7 +238,7 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
-
+    
 def create_sst_map_mapbox(lon, lat, sstdata, filename):
     lon2d, lat2d = np.meshgrid(lon, lat)    
     fig = plt.figure(figsize=(8, 6))
@@ -250,7 +300,7 @@ for week in range(6):
     date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
 
 for week_idx in range(6):
-    plot_dhw_map(lon, lat, dhw_weeks[week_idx], f"static/dhw_week_{week_idx+1:02d}.png")
+    plot_dhw_map(lon, lat, dhw_weeks[week_idx],date_labels[week_idx], f"static/dhw_week_{week_idx+1:02d}.png")
 
 #plt.figure(figsize=(12, 8))
 #plt.contourf(np.meshgrid(lon, lat), sst_current, cmap='jet', vmin=25, vmax=32)
