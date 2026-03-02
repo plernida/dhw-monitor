@@ -184,7 +184,7 @@ def plot_dhw_week(lon, lat, dhw_total, title, filename):
            loc='upper center', 
            bbox_to_anchor=(0.5, -0.05),
           fontsize=6, frameon=True, fancybox=True, shadow=True)
-    ax.set_title(title, fontsize=6)
+    ax.set_title(title, fontsize=10)
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
