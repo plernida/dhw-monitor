@@ -399,8 +399,8 @@ if process_button:
         LON, LAT, lon, lat = create_coordinates()
 
         # Check for pre-generated PNGs (from daily Actions)
-        #datedhw_png = f"static/{enddate.strftime('%Y-%m-%d')}_dhw.png"
-        #datesst_png = f"static/{enddate.strftime('%Y-%m-%d')}_sst.png"
+        datedhw_png = f"static/{enddate.strftime('%Y-%m-%d')}_dhw.png"
+        datesst_png = f"static/{enddate.strftime('%Y-%m-%d')}_sst.png"
         
         baseline = xr.open_dataset('mmm_sst_iowp_1981-2020.nc') # read array
         MMM = baseline['sst'].sel(lon=slice(90,110.3),lat=slice(0,14.7)) # Add noise if desired
