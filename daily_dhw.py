@@ -256,7 +256,7 @@ for row in range(2):
         week_idx = row * 3 + col_idx
         with cols[col_idx]:
             fig = plot_cartopy_map(lon, lat, dhw_weeks[week_idx],
-                               date_labels[week_idx]))
+                               date_labels[week_idx])
 #plt.figure(figsize=(12, 8))
 #plt.contourf(np.meshgrid(lon, lat), sst_current, cmap='jet', vmin=25, vmax=32)
 #plt.colorbar(label='SST (°C)')
