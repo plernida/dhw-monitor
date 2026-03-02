@@ -249,14 +249,10 @@ for week in range(6):
     start_day = end_day - timedelta(days=4)
     date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
 
-# Display in 2 rows
-for row in range(2):
-    cols = st.columns(3)
-    for col_idx in range(3):
-        week_idx = row * 3 + col_idx
-        with cols[col_idx]:
-            fig = plot_cartopy_map(lon, lat, dhw_weeks[week_idx],
-                               date_labels[week_idx])
+for week_idx in range(6):
+    fig = plot_cartopy_map(lon, lat, dhw_weeks[week_idx], date_labels[week_idx])
+    filename = f"static/dhw_week_{week_idx+1:02d}.png"
+    fig.write_image(filename, scale=2)
 #plt.figure(figsize=(12, 8))
 #plt.contourf(np.meshgrid(lon, lat), sst_current, cmap='jet', vmin=25, vmax=32)
 #plt.colorbar(label='SST (°C)')
