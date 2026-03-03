@@ -297,7 +297,7 @@ for week in range(6):
     date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
 
 for week_idx in range(6):
-    plot_dhw_week(lon, lat, dhw_weeks[week_idx],date_labels[week_idx], f"static/dhw_week_{week_idx+1:02d}.png")
+    plot_dhw_week(lon, lat, dhw_weeks[week_idx],date_labels[week_idx], f"static/dhw_week_{date_labels[week_idx]}.png")
 
 #plt.figure(figsize=(12, 8))
 #plt.contourf(np.meshgrid(lon, lat), sst_current, cmap='jet', vmin=25, vmax=32)
