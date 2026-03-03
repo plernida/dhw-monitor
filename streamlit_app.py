@@ -538,22 +538,25 @@ if process_button:
        
         with tab2:
             st.subheader("Weekly Hotspot Analysis")
-            #dhw_weeks = []  # Your computation code here (loop over 6 weeks)
+            
+            # 1. ALWAYS compute dhw_weeks fresh
+            dhw_weeks = []
             date_labels = []
+            datestr = enddate.strftime('%Y%m%d')  # e.g., '20260303'
             for week in range(6):
                 end_day = enddate - timedelta(days=week*5)
                 start_day = end_day - timedelta(days=4)
                 date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
-                # ... compute dhw_week = xr.where(hotspot > 0, 1, 0)
-                # dhw_weeks.append(dhw_week)
-            
+                
+                # COMPUTE hotspot for this week (your code here)
+
+            # 2. Check today-only static PNGs (simple numeric names)
             today_str = datetime.now().strftime('%Y%m%d')
-            use_static = (enddate.strftime('%Y%m%d') == today_str)
+            use_static = (datestr == today_str)
+            static_images = []
+            all_exist = use_static
             
             if use_static:
-                # Try static PNGs for today only
-                all_exist = True
-                static_images = []
                 for week_idx in range(6):
                     img_path = f"static/dhw_week_{date_labels[week_idx]}.png"
                     if os.path.exists(img_path):
@@ -561,29 +564,30 @@ if process_button:
                     else:
                         all_exist = False
                         break
-                
-                if all_exist:
-                    # Fast static display
-                    for row in range(2):
-                        cols = st.columns(3)
-                        for col_idx in range(3):
-                            week_idx = row * 3 + col_idx
-                            with cols[col_idx]:
-                                st.image(static_images[week_idx], 
-                                        caption=date_labels[week_idx], 
-                                        use_column_width=True)
-                    #st.success("Loaded today's cached PNGs from static/")
-                 
-                else:
-                    #st.info("Computing live maps (static PNGs only available for today)")
-    
-            # Always display live plots (Plotly or matplotlib)
-                    for row in range(2):
-                        cols = st.columns(3)
-                        for col_idx in range(3):
-                            week_idx = row * 3 + col_idx
-                            with cols[col_idx]:
-                                plot_dhw_week(lon, lat, dhw_weeks[week_idx], date_labels[week_idx])
+            
+            # 3. Display: static if available, else live + save PNGs
+            if all_exist:
+                for row in range(2):
+                    cols = st.columns(3)
+                    for col_idx in range(3):
+                        week_idx = row * 3 + col_idx
+                        with cols[col_idx]:
+                            st.image(static_images[week_idx], 
+                                    caption=date_labels[week_idx], 
+                                    use_column_width=True)
+                st.success("Loaded today's cached PNGs")
+            else:
+                # Live plots + save PNGs for this date
+                os.makedirs("static", exist_ok=True)
+                for row in range(2):
+                    cols = st.columns(3)
+                    for col_idx in range(3):
+                        week_idx = row * 3 + col_idx
+                        with cols[col_idx]:
+                            # Plot AND save PNG
+                            png_path = f"static/{datestr}_week_{week_idx+1:02d}.png"
+                            plot_dhw_week(lon, lat, dhw_weeks[week_idx], 
+                                        date_labels[week_idx])
                 
         with tab3:
             st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
