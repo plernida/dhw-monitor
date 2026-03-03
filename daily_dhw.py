@@ -146,8 +146,8 @@ def plot_dhw_week(lon, lat, dhw_total, title, filename):
     # DHW raster
     im = ax.contourf(
         lon2d, lat2d, dhw_weeks,
-        cmap=cmap, levels=6,
-        vmin=0, vmax=6,
+        cmap='RdBu, levels=2,
+        vmin=0, vmax=1,
         transform=ccrs.PlateCarree()
     )
     ax.set_extent([91, 110, 1, 14])
@@ -172,19 +172,9 @@ def plot_dhw_week(lon, lat, dhw_total, title, filename):
     ax.yaxis.set_minor_locator(MultipleLocator(1))
     ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
                   bottom=True,top=True,right=True,labelsize=6,grid_color='black',grid_linewidth=0.5)
-    # Custom legend patches + labels matching your markdown
-    legend_elements = [
-        mpatches.Patch(color=colors_rgb[0], label='No stress'),
-        mpatches.Patch(color=colors_rgb[1], label='Watch'),
-        mpatches.Patch(color=colors_rgb[2], label='Warning'),
-        mpatches.Patch(color=colors_rgb[3], label='Alert 1'),
-        mpatches.Patch(color=colors_rgb[4], label='Alert 2')  # Use darkest for 6+
-    ]
-    ax.legend(handles=legend_elements,ncol=5,  # Horizontal (5 columns)
-           loc='upper center', 
-           bbox_to_anchor=(0.5, -0.05),
-          fontsize=6, frameon=True, fancybox=True, shadow=True)
+
     ax.set_title(title, fontsize=10)
+    plt.colorbar(im, ax=ax, shrink=0.8, pad=0.1)
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
