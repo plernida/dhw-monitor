@@ -297,8 +297,8 @@ def plot_dhw_week(lon, lat, dhw_total, title):
     # DHW raster
     im = ax.contourf(
         lon2d, lat2d, dhw_total,
-        cmap=cmap, levels=6,
-        vmin=0, vmax=6,
+        cmap=cmap, levels=2,
+        vmin=0, vmax=1,
         transform=ccrs.PlateCarree()
     )
     ax.set_extent([91, 110, 1, 14])
@@ -327,10 +327,7 @@ def plot_dhw_week(lon, lat, dhw_total, title):
     legend_elements = [
         mpatches.Patch(color=colors_rgb[0], label='No stress'),
         mpatches.Patch(color=colors_rgb[1], label='Watch'),
-        mpatches.Patch(color=colors_rgb[2], label='Warning'),
-        mpatches.Patch(color=colors_rgb[3], label='Alert 1'),
-        mpatches.Patch(color=colors_rgb[4], label='Alert 2')  # Use darkest for 6+
-    ]
+
     ax.legend(handles=legend_elements,ncol=5,  # Horizontal (5 columns)
            loc='upper center', 
            bbox_to_anchor=(0.5, -0.05),
@@ -541,42 +538,52 @@ if process_button:
        
         with tab2:
             st.subheader("Weekly Hotspot Analysis")
+            dhw_weeks = []  # Your computation code here (loop over 6 weeks)
             date_labels = []
             for week in range(6):
                 end_day = enddate - timedelta(days=week*5)
                 start_day = end_day - timedelta(days=4)
                 date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
+                # ... compute dhw_week = xr.where(hotspot > 0, 1, 0)
+                # dhw_weeks.append(dhw_week)
             
-            # Check static PNGs first
-            static_images = []
-            all_exist = True
-            for week_idx in range(6):
-                img_path = f"static/dhw_week_{week_idx+1:02d}.png"
-                if os.path.exists(img_path):
-                    static_images.append(img_path)
-                else:
-                    all_exist = False
-                    break
+            today_str = datetime.now().strftime('%Y%m%d')
+            use_static = (enddate.strftime('%Y%m%d') == today_str)
             
-            if all_exist:
-                # Display static PNGs in grid
-                for row in range(2):
-                    cols = st.columns(3)
-                    for col_idx in range(3):
-                        week_idx = row * 3 + col_idx
-                        with cols[col_idx]:
-                            st.image(static_images[week_idx], 
-                                    caption=date_labels[week_idx], 
-                                    use_column_width=True)
+            if use_static:
+                # Try static PNGs for today only
+                all_exist = True
+                static_images = []
+                for week_idx in range(6):
+                    img_path = f"static/dhw_week_{date_labels[week_idx]}.png"
+                    if os.path.exists(img_path):
+                        static_images.append(img_path)
+                    else:
+                        all_exist = False
+                        break
+                
+                if all_exist:
+                    # Fast static display
+                    for row in range(2):
+                        cols = st.columns(3)
+                        for col_idx in range(3):
+                            week_idx = row * 3 + col_idx
+                            with cols[col_idx]:
+                                st.image(static_images[week_idx], 
+                                        caption=date_labels[week_idx], 
+                                        use_column_width=True)
+                    #st.success("Loaded today's cached PNGs from static/")
+                    return  # Skip live plots
             else:
-                # Fallback: generate & display Plotly
-                for row in range(2):
-                    cols = st.columns(3)
-                    for col_idx in range(3):
-                        week_idx = row * 3 + col_idx
-                        with cols[col_idx]:
-                            plot_dhw_week(lon, lat, dhw_weeks[week_idx],date_labels[week_idx])
-
+                st.info("Computing live maps (static PNGs only available for today)")
+    
+            # Always display live plots (Plotly or matplotlib)
+            for row in range(2):
+                cols = st.columns(3)
+                for col_idx in range(3):
+                    week_idx = row * 3 + col_idx
+                    with cols[col_idx]:
+                        plot_dhw_week(lon, lat, dhw_weeks[week_idx], date_labels[week_idx])
         
         with tab3:
             st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
