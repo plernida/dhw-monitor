@@ -573,17 +573,17 @@ if process_button:
                                         caption=date_labels[week_idx], 
                                         use_column_width=True)
                     #st.success("Loaded today's cached PNGs from static/")
-                    return  # Skip live plots
-            else:
-                st.info("Computing live maps (static PNGs only available for today)")
-    
-            # Always display live plots (Plotly or matplotlib)
-            for row in range(2):
-                cols = st.columns(3)
-                for col_idx in range(3):
-                    week_idx = row * 3 + col_idx
-                    with cols[col_idx]:
-                        plot_dhw_week(lon, lat, dhw_weeks[week_idx], date_labels[week_idx])
+                 
+                else:
+                    st.info("Computing live maps (static PNGs only available for today)")
+        
+                # Always display live plots (Plotly or matplotlib)
+                    for row in range(2):
+                        cols = st.columns(3)
+                        for col_idx in range(3):
+                            week_idx = row * 3 + col_idx
+                            with cols[col_idx]:
+                                plot_dhw_week(lon, lat, dhw_weeks[week_idx], date_labels[week_idx])
         
         with tab3:
             st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
