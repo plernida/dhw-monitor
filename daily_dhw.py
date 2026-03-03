@@ -139,13 +139,13 @@ def calculate_dhw(TSeries, MMM, threshold=1.0):
     dhw_total = sum(dhw_weeks)
     return dhw_weeks, dhw_total, sst_weeks
 
-def plot_dhw_week(lon, lat, dhw_total, title, filename):
+def plot_dhw_week(lon, lat, dhw_week, title, filename):
     lon2d, lat2d = np.meshgrid(lon, lat)
     fig = plt.figure(figsize=(8, 6))
     ax = plt.axes(projection=ccrs.PlateCarree())
     # DHW raster
     im = ax.contourf(
-        lon2d, lat2d, dhw_weeks,
+        lon2d, lat2d, dhw_week,
         cmap='RdBu', levels=2,
         vmin=0, vmax=1,
         transform=ccrs.PlateCarree()
