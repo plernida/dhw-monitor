@@ -566,10 +566,10 @@ if process_button:
             if enddate == datetime.now().date():
                 static_paths = [f"static/dhw_week_{date_labels[i]}.png"
                                for i in range(6)]
-            if all(os.path.exists(p) for p in static_paths):
-                show_image_grid(static_paths, date_labels)
-                st.success("✅ Cached PNGs")
-                st.rerun()  # Skip live plots
+                if all(os.path.exists(p) for p in static_paths):
+                    show_image_grid(static_paths, date_labels)
+                    st.success("✅ Cached PNGs")
+                    st.rerun()  # Skip live plots
             show_plot_grid(lon, lat, dhw_weeks, date_labels)
                 
         with tab3:
