@@ -553,7 +553,8 @@ if process_button:
             # 2. Check today-only static PNGs (simple numeric names)
             today_str = datetime.now().strftime('%Y%m%d')
             use_static = (datestr == today_str)
-            
+
+            static_images = []
             all_exist = use_static
             
             if use_static:
@@ -578,7 +579,7 @@ if process_button:
                 st.success("Loaded today's cached PNGs")
             else:
                 # Live plots + save PNGs for this date
-                os.makedirs("static", exist_ok=True)
+                #os.makedirs("static", exist_ok=True)
                 for row in range(2):
                     cols = st.columns(3)
                     for col_idx in range(3):
