@@ -572,7 +572,7 @@ if process_button:
                     for col_idx in range(3):
                         week_idx = row * 3 + col_idx
                         with cols[col_idx]:
-                            st.image(static_images[week_idx], 
+                            st.image(f"static/dhw_week_{date_labels[week_idx]}.png", 
                                     caption=date_labels[week_idx], 
                                     use_column_width=True)
                 st.success("Loaded today's cached PNGs")
