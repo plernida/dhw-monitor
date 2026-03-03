@@ -563,7 +563,7 @@ if process_button:
             
             # 1. ALWAYS compute dhw_weeks fresh
             date_labels = compute_weekly_dhw(enddate) 
-            if enddate.date() == datetime.now().date():
+            if enddate == datetime.now().date():
                 static_paths = [f"static/dhw_week_{date_labels[i]}.png"
                                for i in range(6)]
             if all(os.path.exists(p) for p in static_paths):
