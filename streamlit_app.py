@@ -432,7 +432,7 @@ def create_sst_map_mapbox(lon, lat, sstdata, title):
 
     return fig
 def compute_weekly_dhw(enddate):
-    labels = []
+    date_labels = []
     for week in range(6):
         end_day = enddate - timedelta(days=week*5)
         start_day = end_day - timedelta(days=4)
