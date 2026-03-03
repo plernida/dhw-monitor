@@ -538,7 +538,7 @@ if process_button:
        
         with tab2:
             st.subheader("Weekly Hotspot Analysis")
-            dhw_weeks = []  # Your computation code here (loop over 6 weeks)
+            #dhw_weeks = []  # Your computation code here (loop over 6 weeks)
             date_labels = []
             for week in range(6):
                 end_day = enddate - timedelta(days=week*5)
@@ -574,17 +574,17 @@ if process_button:
                                         use_column_width=True)
                     #st.success("Loaded today's cached PNGs from static/")
                  
-            else:
-                st.info("Computing live maps (static PNGs only available for today)")
+                else:
+                    #st.info("Computing live maps (static PNGs only available for today)")
     
             # Always display live plots (Plotly or matplotlib)
-            for row in range(2):
-                cols = st.columns(3)
-                for col_idx in range(3):
-                    week_idx = row * 3 + col_idx
-                    with cols[col_idx]:
-                        plot_dhw_week(lon, lat, dhw_weeks[week_idx], date_labels[week_idx])
-        
+                    for row in range(2):
+                        cols = st.columns(3)
+                        for col_idx in range(3):
+                            week_idx = row * 3 + col_idx
+                            with cols[col_idx]:
+                                plot_dhw_week(lon, lat, dhw_weeks[week_idx], date_labels[week_idx])
+                
         with tab3:
             st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
             col_left, col_right = st.columns([60,40])
