@@ -540,7 +540,7 @@ if process_button:
             st.subheader("Weekly Hotspot Analysis")
             
             # 1. ALWAYS compute dhw_weeks fresh
-            dhw_weeks = []
+            
             date_labels = []
             datestr = enddate.strftime('%Y%m%d')  # e.g., '20260303'
             for week in range(6):
@@ -584,8 +584,6 @@ if process_button:
                     for col_idx in range(3):
                         week_idx = row * 3 + col_idx
                         with cols[col_idx]:
-                            # Plot AND save PNG
-                            png_path = f"static/{datestr}_week_{week_idx+1:02d}.png"
                             plot_dhw_week(lon, lat, dhw_weeks[week_idx], 
                                         date_labels[week_idx])
                 
