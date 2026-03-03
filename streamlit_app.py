@@ -326,7 +326,7 @@ def plot_dhw_week(lon, lat, dhw_total, title):
     # Custom legend patches + labels matching your markdown
     legend_elements = [
         mpatches.Patch(color=colors_rgb[0], label='No stress'),
-        mpatches.Patch(color=colors_rgb[1], label='Watch'),
+        mpatches.Patch(color=colors_rgb[1], label='Watch')]
 
     ax.legend(handles=legend_elements,ncol=5,  # Horizontal (5 columns)
            loc='upper center', 
