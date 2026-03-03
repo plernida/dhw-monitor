@@ -146,7 +146,7 @@ def plot_dhw_week(lon, lat, dhw_week, title, filename):
     # DHW raster
     im = ax.contourf(
         lon2d, lat2d, dhw_week,
-        cmap='RdBu', levels=2,
+        cmap=cmap, levels=2,
         vmin=0, vmax=1,
         transform=ccrs.PlateCarree()
     )
