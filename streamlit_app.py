@@ -26,6 +26,7 @@ import cartopy.mpl.ticker as cticker
 from matplotlib.ticker import MultipleLocator
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.font_manager as fm
+from matplotlib.colors import ListedColormap
 from io import BytesIO
 import pytz
 from datetime import timedelta
