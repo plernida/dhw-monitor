@@ -40,7 +40,7 @@ plt.rcParams['font.family'] = 'Kanit'
 cmap_full = plt.get_cmap('coolwarm')#nipy_spectral
 slice_start, slice_end = 0.3, 0.9
 colors = cmap_full(np.linspace(slice_start, slice_end, 256))
-nipy_yellow_red = LinearSegmentedColormap.from_list('coolwarm_slice', colors)#'nipy_yellow_red
+coolwarm_slice = LinearSegmentedColormap.from_list('coolwarm_slice', colors)#'nipy_yellow_red
 colors_rgb = [
     '#C8FAFA',    # Blue
     '#FFF000',   # Gray
