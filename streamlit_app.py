@@ -562,20 +562,51 @@ if process_button:
         with tab2:
             st.subheader("Weekly Hotspot Analysis")
             
-            # 1. ALWAYS compute dhw_weeks fresh
-            date_labels = compute_weekly_dhw(enddate) 
-            dhw_weeky = dhw_weeks
-            if enddate == datetime.now().date():
-                static_paths = [f"static/dhw_week_{date_labels[i]}.png"
-                               for i in range(6)]
-                if all(os.path.exists(p) for p in static_paths):
-                    show_image_grid(static_paths, date_labels)
-                    st.success("✅ Cached PNGs")
-                    st.rerun()  # Skip live plots
-                else:
-                    show_plot_grid(lon, lat, dhw_weeky, date_labels)
+            date_labels = []
+            datestr = enddate.strftime('%Y%m%d')
+            dhw_weeks = []  # Add this!
+            
+            for week in range(6):
+                end_day = enddate - timedelta(days=week*5)
+                start_day = end_day - timedelta(days=4)
+                date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
+    
+            # Static check
+            today_str = datetime.now().strftime('%Y%m%d')
+            use_static = (datestr == today_str)
+            
+            static_images = []  # FIX 1: Define list
+            all_exist = use_static
+            
+            if use_static:
+                for week_idx in range(6):
+                    img_path = f"static/{today_str}_week_{week_idx+1:02d}.png"  # FIX 2: Clean numeric names
+                    if os.path.exists(img_path):
+                        static_images.append(img_path)
+                    else:
+                        all_exist = False
+                        break
+            
+            # Display
+            if all_exist:
+                for row in range(2):
+                    cols = st.columns(3)
+                    for col_idx in range(3):
+                        week_idx = row * 3 + col_idx
+                        with cols[col_idx]:
+                            st.image(static_images[week_idx],  # FIX 3: Use list, not regenerate path
+                                    caption=date_labels[week_idx], 
+                                    use_column_width=True)
+                st.success("Loaded today's cached PNGs")
             else:
-                show_plot_grid(lon, lat, dhw_weeky, date_labels)
+                # Live plots fallback
+                for row in range(2):
+                    cols = st.columns(3)
+                    for col_idx in range(3):
+                        week_idx = row * 3 + col_idx
+                        with cols[col_idx]:
+                            st.pyplot(plot_dhw_week(lon, lat, dhw_weeks[week_idx], date_labels[week_idx]))
+
                 
         with tab3:
             st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
