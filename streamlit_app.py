@@ -572,16 +572,16 @@ if process_button:
                 date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
             if enddate == datetime.now().date():
                 static_paths = [f"static/{datestr}_week_{i+1:02d}.png" for i in range(6)]
-            if all(os.path.exists(p) for p in static_paths):
-                for row in range(2):
-                    cols = st.columns(3)
-                    for col_idx in range(3):
-                        week_idx = row * 3 + col_idx
-                        with cols[col_idx]:
-                            st.image(static_paths[week_idx], 
-                                    caption=date_labels[week_idx],      
-                                     use_column_width=True)
-                st.success("✅ Cached PNGs")
+                if all(os.path.exists(p) for p in static_paths):
+                    for row in range(2):
+                        cols = st.columns(3)
+                        for col_idx in range(3):
+                            week_idx = row * 3 + col_idx
+                            with cols[col_idx]:
+                                st.image(static_paths[week_idx], 
+                                        caption=date_labels[week_idx],      
+                                         use_column_width=True)
+                                st.success("✅ Cached PNGs")
             else:
                 for row in range(2):
                     cols = st.columns(3)
