@@ -33,7 +33,7 @@ from datetime import timedelta
 import warnings
 warnings.filterwarnings('ignore')
 
-font_path = "static/font/kanit.ttf"
+font_path = "static/Kanit-Regular.ttf"
 
 if os.path.exists(font_path):
     fm.fontManager.addfont(font_path)
