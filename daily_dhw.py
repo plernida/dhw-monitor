@@ -23,10 +23,10 @@ if not any('Kanit' in f.name for f in fm.fontManager.ttflist):
     fm.fontManager.addfont('kanit.ttf')
 plt.rcParams['font.family'] = 'Kanit'
 
-cmap_full = plt.get_cmap('nipy_spectral')
+cmap_full = plt.get_cmap('coolwarm')#nipy_spectral
 slice_start, slice_end = 0.3, 0.9
 colors = cmap_full(np.linspace(slice_start, slice_end, 256))
-nipy_yellow_red = LinearSegmentedColormap.from_list('nipy_yellow_red', colors)
+nipy_yellow_red = LinearSegmentedColormap.from_list('coolwarm_slice', colors)#'nipy_yellow_red
 
 colors_rgb = [
     '#C8FAFA',    # Blue
@@ -242,7 +242,7 @@ def create_sst_map_mapbox(lon, lat, sstdata, filename):
     fig = plt.figure(figsize=(8, 6))
     ax = plt.axes(projection=ccrs.PlateCarree())
     im = ax.contourf(lon2d, lat2d, sstdata,
-                     cmap=nipy_yellow_red,levels=np.linspace(24,34,21),
+                     cmap=coolwarm_slice,levels=np.linspace(24,34,21),
                      extend='neither',
                      transform=ccrs.PlateCarree()
                     )
