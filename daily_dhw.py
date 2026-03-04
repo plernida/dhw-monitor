@@ -1,4 +1,5 @@
 import numpy as np
+import json
 import requests
 from netCDF4 import Dataset
 from datetime import datetime, timedelta
@@ -279,6 +280,25 @@ def create_sst_map_mapbox(lon, lat, sstdata, filename):
     plt.close()
     plt.close()
     
+def update_bleaching_history(date, value):
+
+    os.makedirs("static", exist_ok=True)
+    filepath = "static/bleaching_history.json"
+
+    # โหลด history เดิม
+    if os.path.exists(filepath):
+        with open(filepath, "r") as f:
+            history = json.load(f)
+    else:
+        history = {}
+
+    # บันทึกค่าของวันนี้
+    history[date.strftime("%Y-%m-%d")] = float(value)
+
+    # save กลับ
+    with open(filepath, "w") as f:
+        json.dump(history, f, indent=2)
+
 
 # Main daily run
 thtz = pytz.timezone('Asia/Bangkok')
@@ -287,6 +307,8 @@ sst_stack, time_list, lat, lon = download_latest_sst(today)
 dhw_weeks, dhw_total, _ = calculate_dhw(sst_stack, MMM)
 sst_current = sst_stack[:, :, -1]
 
+bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
+update_bleaching_history(today, bleaching_area)
 # Produce PNGs
 os.makedirs('static', exist_ok=True)
 plot_dhw_map(lon, lat, dhw_total, f"static/{today}_dhw.png")
