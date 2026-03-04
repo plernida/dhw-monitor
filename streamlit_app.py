@@ -570,26 +570,38 @@ if process_button:
                 end_day = enddate - timedelta(days=week*5)
                 start_day = end_day - timedelta(days=4)
                 date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
-            if enddate == datetime.now().date():
-                static_paths = [f"static/{datestr}_week_{i+1:02d}.png" for i in range(6)]
-                if all(os.path.exists(p) for p in static_paths):
-                    for row in range(2):
-                        cols = st.columns(3)
-                        for col_idx in range(3):
-                            week_idx = row * 3 + col_idx
-                            with cols[col_idx]:
-                                st.image(static_paths[week_idx], 
-                                        caption=date_labels[week_idx],      
-                                         use_column_width=True)
-                                st.success("✅ Cached PNGs")
-            else:
+            static_paths = [f"static/{datestr}_week_{i+1:02d}.png" for i in range(6)]
+            
+            st.write("Total dhw_weeks:", len(dhw_weeks))
+            st.write("Static files:", static_paths)
+
                 for row in range(2):
                     cols = st.columns(3)
                     for col_idx in range(3):
                         week_idx = row * 3 + col_idx
+            
                         with cols[col_idx]:
-                            st.pyplot(plot_dhw_week(lon, lat, dhw_weeks[week_idx], date_labels[week_idx]))
-
+            
+                            # กรณีมีไฟล์ PNG
+                            if week_idx < len(static_paths) and os.path.exists(static_paths[week_idx]):
+                                st.image(
+                                    static_paths[week_idx],
+                                    caption=date_labels[week_idx],
+                                    use_column_width=True
+                                )
+                                st.success("✅ Cached PNG")
+                            # กรณีไม่มีไฟล์ → plot สด
+                            elif week_idx < len(dhw_weeks):
+                                fig = plot_dhw_week(
+                                    lon,
+                                    lat,
+                                    dhw_weeks[week_idx],
+                                    date_labels[week_idx]
+                                )
+                                st.pyplot(fig)
+            
+                            else:
+                                st.warning("⚠ No data available")
 
                 
         with tab3:
