@@ -432,29 +432,7 @@ def create_sst_map_mapbox(lon, lat, sstdata, title):
 
 
     return fig
-def compute_weekly_dhw(enddate):
-    date_labels = []
-    for week in range(6):
-        end_day = enddate - timedelta(days=week*5)
-        start_day = end_day - timedelta(days=4)
-        date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
-    return date_labels
 
-def show_image_grid(paths, labels):
-    for row in range(2):
-        cols = st.columns(3)
-        for col_idx in range(3):
-            idx = row*3 + col_idx
-            with cols[col_idx]:
-                st.image(paths[idx], caption=labels[idx], use_column_width=True)
-
-def show_plot_grid(lon, lat, weeks, labels):
-    for row in range(2):
-        cols = st.columns(3)
-        for col_idx in range(3):
-            idx = row*3 + col_idx
-            with cols[col_idx]:
-                st.pyplot(plot_dhw_week(lon, lat, weeks[idx], labels[idx]))
 
 
 # Main processing
@@ -492,10 +470,10 @@ if process_button:
         with col2:
             st.metric("Avg SST", f"{float(np.nanmean(sst_current)):.2f} °C")
         with col3:
-            alert_area = xr.where(dhw_total>=4,1,0).sum() / dhw_total.size * 100
+            alert_area = xr.where(dhw_total>=2,1,0).sum() / dhw_total.size * 100
             st.metric("Alert Area", f"{alert_area:.1f}%")
         with col4:
-            bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
+            bleaching_area = xr.where(dhw_total >= 3, 1, 0).sum() / dhw_total.size * 100
             st.metric("Bleaching Risk", f"{bleaching_area:.1f}%", delta=f"{bleaching_area:.1f}%", delta_color="inverse")
         
         # Tabs for different views
@@ -614,7 +592,7 @@ if process_button:
                     st.success(f"✅ Using cached SST PNG for {enddate.strftime('%Y-%m-%d')}")
                     st.image(datesst_png, caption="Pre-generated SST Map", use_column_width=True)
                 else:
-                    st.info("⚠️ No cached PNG found. Computing live...")
+                    #st.info("⚠️ No cached PNG found. Computing live...")
                 # SST map
                     fig_sst = st.pyplot(create_sst_map_mapbox(lon, lat, sst_current,
                                             f"static/{enddate}_sst.png"))
