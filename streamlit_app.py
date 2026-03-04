@@ -570,7 +570,10 @@ if process_button:
                     show_image_grid(static_paths, date_labels)
                     st.success("✅ Cached PNGs")
                     st.rerun()  # Skip live plots
-            show_plot_grid(lon, lat, dhw_weeks, date_labels)
+                else:
+                    show_plot_grid(lon, lat, dhw_weeks, date_labels)
+            else:
+                show_plot_grid(lon, lat, dhw_weeks, date_labels)
                 
         with tab3:
             st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
