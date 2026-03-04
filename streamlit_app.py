@@ -582,7 +582,7 @@ if process_button:
                                     caption=date_labels[week_idx],      
                                      use_column_width=True)
                 st.success("✅ Cached PNGs")
-                return
+            else:
                 for row in range(2):
                     cols = st.columns(3)
                     for col_idx in range(3):
