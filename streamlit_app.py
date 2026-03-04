@@ -433,31 +433,39 @@ def create_sst_map_mapbox(lon, lat, sstdata, title):
 
     return fig
 
-def save_bleaching_value(date, value):
+def update_bleaching_history(date, value):
+
     os.makedirs("static", exist_ok=True)
+    filepath = "static/bleaching_history.json"
 
-    data = {
-        "date": date.strftime("%Y-%m-%d"),
-        "bleaching_area": float(value)
-    }
-
-    with open("static/bleaching_today.json", "w") as f:
-        json.dump(data, f)
-
-
-def load_previous_bleaching():
-
-    filepath = "static/bleaching_today.json"
-
+    # โหลด history เดิม
     if os.path.exists(filepath):
         with open(filepath, "r") as f:
-            data = json.load(f)
-        return data["bleaching_area"]
+            history = json.load(f)
+    else:
+        history = {}
 
-    return None
+    # บันทึกค่าของวันนี้
+    history[date.strftime("%Y-%m-%d")] = float(value)
 
+    # save กลับ
+    with open(filepath, "w") as f:
+        json.dump(history, f, indent=2)
 
+def get_previous_bleaching(date):
 
+    filepath = "static/bleaching_history.json"
+
+    if not os.path.exists(filepath):
+        return None
+
+    with open(filepath, "r") as f:
+        history = json.load(f)
+
+    yesterday = (date - timedelta(days=1)).strftime("%Y-%m-%d")
+
+    return history.get(yesterday)
+    
 # Main processing
 #if process_button:
 with st.spinner('Processing DHW analysis...'):
@@ -499,13 +507,14 @@ with st.spinner('Processing DHW analysis...'):
         alert_area = xr.where(dhw_total>=4,1,0).sum() / dhw_total.size * 100
         st.metric("Alert Area", f"{alert_area:.1f}%")
     with col4:
-        previous_bleaching = load_previous_bleaching()
         bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
-        save_bleaching_value(enddate, bleaching_area)
+        previous_bleaching = get_previous_bleaching(enddate)
+
         if previous_bleaching is not None:
             delta_bleaching = bleaching_area - previous_bleaching
         else:
             delta_bleaching = 0
+        update_bleaching_history(enddate, bleaching_area)
         st.metric("Bleaching Risk", f"{bleaching_area:.1f}%", delta=f"{delta_bleaching:.1f}%", delta_color="inverse")
     
     # Tabs for different views
