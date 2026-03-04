@@ -180,7 +180,7 @@ def plot_dhw_week(lon, lat, dhw_week, title, filename):
     ax.legend(handles=legend_elements,ncol=2,  # Horizontal (5 columns)
            loc='upper center', 
            bbox_to_anchor=(0.5, -0.05),
-          fontsize=10, frameon=True, fancybox=True, shadow=True)
+          fontsize=20, frameon=True, fancybox=True, shadow=True)
     ax.set_title(title, fontsize=20)
     #plt.colorbar(im, ax=ax, shrink=0.8, pad=0.1)
     plt.tight_layout()
