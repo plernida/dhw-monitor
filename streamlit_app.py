@@ -40,7 +40,7 @@ plt.rcParams['font.family'] = 'Kanit'
 cmap_full = plt.get_cmap('Spectral_r')#nipy_spectral
 slice_start, slice_end = 0, 0.9
 colors = cmap_full(np.linspace(slice_start, slice_end, 256))
-rainbow_slice = LinearSegmentedColormap.from_list('rainbow_slice', colors)#'nipy_yellow_red
+spectral_slice = LinearSegmentedColormap.from_list('spectral_slice', colors)#'nipy_yellow_red
 colors_rgb = [
     '#C8FAFA',    # Blue
     '#FFF000',   # Gray
@@ -396,7 +396,7 @@ def create_sst_map_mapbox(lon, lat, sstdata, title):
     fig = plt.figure(figsize=(8, 6))
     ax = plt.axes(projection=ccrs.PlateCarree())
     im = ax.contourf(lon2d, lat2d, sstdata,
-                     cmap=rainbow_slice,levels=np.linspace(24,34,21),
+                     cmap=spectral_slice,levels=np.linspace(24,34,21),
                      extend='neither',
                      transform=ccrs.PlateCarree()
                     )
