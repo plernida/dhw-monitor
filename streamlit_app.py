@@ -486,9 +486,9 @@ with st.spinner('Processing DHW analysis...'):
     # Success message
     st.success("✅ Data processed successfully!")
 
-    save_bleaching_value(enddate, bleaching_area)
+    
     previous=(enddate-timedelta(days=1)).strftime("%Y-%m-%d")
-    previous_bleaching = load_previous_bleaching()
+    
     # Display statistics
 
     col1, col2, col3, col4 = st.columns(4)
@@ -500,7 +500,9 @@ with st.spinner('Processing DHW analysis...'):
         alert_area = xr.where(dhw_total>=4,1,0).sum() / dhw_total.size * 100
         st.metric("Alert Area", f"{alert_area:.1f}%")
     with col4:
+        previous_bleaching = load_previous_bleaching()
         bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
+        save_bleaching_value(enddate, bleaching_area)
         if previous_bleaching is not None:
             delta_bleaching = bleaching_area - previous_bleaching
         else:
