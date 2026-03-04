@@ -441,13 +441,13 @@ def save_bleaching_value(date, value):
         "bleaching_area": float(value)
     }
 
-    with open(f"static/bleaching_{date}.json", "w") as f:
+    with open("static/bleaching_today.json", "w") as f:
         json.dump(data, f)
 
 
 def load_previous_bleaching():
 
-    filepath = f"static/bleaching_{previous}.json"
+    filepath = "static/bleaching_today.json"
 
     if os.path.exists(filepath):
         with open(filepath, "r") as f:
@@ -487,8 +487,7 @@ with st.spinner('Processing DHW analysis...'):
     st.success("✅ Data processed successfully!")
 
     
-    previous=(enddate-timedelta(days=1)).strftime("%Y-%m-%d")
-    
+   
     # Display statistics
 
     col1, col2, col3, col4 = st.columns(4)
