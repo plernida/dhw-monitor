@@ -575,33 +575,33 @@ if process_button:
             st.write("Total dhw_weeks:", len(dhw_weeks))
             st.write("Static files:", static_paths)
 
-                for row in range(2):
-                    cols = st.columns(3)
-                    for col_idx in range(3):
-                        week_idx = row * 3 + col_idx
-            
-                        with cols[col_idx]:
-            
-                            # กรณีมีไฟล์ PNG
-                            if week_idx < len(static_paths) and os.path.exists(static_paths[week_idx]):
-                                st.image(
-                                    static_paths[week_idx],
-                                    caption=date_labels[week_idx],
-                                    use_column_width=True
-                                )
-                                st.success("✅ Cached PNG")
-                            # กรณีไม่มีไฟล์ → plot สด
-                            elif week_idx < len(dhw_weeks):
-                                fig = plot_dhw_week(
-                                    lon,
-                                    lat,
-                                    dhw_weeks[week_idx],
-                                    date_labels[week_idx]
-                                )
-                                st.pyplot(fig)
-            
-                            else:
-                                st.warning("⚠ No data available")
+            for row in range(2):
+                cols = st.columns(3)
+                for col_idx in range(3):
+                    week_idx = row * 3 + col_idx
+        
+                    with cols[col_idx]:
+        
+                        # กรณีมีไฟล์ PNG
+                        if week_idx < len(static_paths) and os.path.exists(static_paths[week_idx]):
+                            st.image(
+                                static_paths[week_idx],
+                                caption=date_labels[week_idx],
+                                use_column_width=True
+                            )
+                            st.success("✅ Cached PNG")
+                        # กรณีไม่มีไฟล์ → plot สด
+                        elif week_idx < len(dhw_weeks):
+                            fig = plot_dhw_week(
+                                lon,
+                                lat,
+                                dhw_weeks[week_idx],
+                                date_labels[week_idx]
+                            )
+                            st.pyplot(fig)
+        
+                        else:
+                            st.warning("⚠ No data available")
 
                 
         with tab3:
