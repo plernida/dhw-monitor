@@ -628,8 +628,8 @@ with st.spinner('Processing DHW analysis...'):
         col_left, col_right = st.columns([60,40])
         with col_left:
             if os.path.exists(datesst_png):
-                st.success(f"✅ Using cached SST PNG for {enddate.strftime('%Y-%m-%d')}")
-                st.image(datesst_png, caption="Pre-generated SST Map", use_column_width=True)
+                #st.success(f"✅ Using cached SST PNG for {enddate.strftime('%Y-%m-%d')}")
+                st.image(datesst_png, caption="", use_column_width=True)
             else:
                 #st.info("⚠️ No cached PNG found. Computing live...")
             # SST map
