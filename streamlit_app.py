@@ -588,7 +588,7 @@ if process_button:
                     for col_idx in range(3):
                         week_idx = row * 3 + col_idx
                         with cols[col_idx]:
-                            plot_dhw_week(lon, lat, dhw_weeks[week_idx], date_labels[week_idx])
+                            st.pyplot(plot_dhw_week(lon, lat, dhw_weeks[week_idx], date_labels[week_idx]))
                             st.pyplot(plt.gcf())
                             plt.close('all')
 
