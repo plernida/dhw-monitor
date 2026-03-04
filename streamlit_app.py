@@ -563,7 +563,7 @@ if process_button:
             st.subheader("Weekly Hotspot Analysis")
             
             date_labels = []
-            datestr = enddate.strftime('%Y%m%d')
+            datestr = enddate.strftime('%Y-%m-%d')
 
 
             for week in range(6):
