@@ -37,7 +37,7 @@ font_path = "static/font/kanit.ttf"
 
 if os.path.exists(font_path):
     fm.fontManager.addfont(font_path)
-    plt.rcParams['font.family'] = 'Kanit'
+    plt.rcParams['font.family'] = ['Kanit','DejaVu Sans','Arial']
 
 #coast_gdf = gpd.read_file("ne_10m_coastline.shp").to_crs('EPSG:4326')  # Ensure CRS is EPSG:4326
 #coast_geojson = coast_gdf.__geo_interface__
