@@ -37,10 +37,10 @@ plt.rcParams['font.family'] = 'Kanit'
 
 #coast_gdf = gpd.read_file("ne_10m_coastline.shp").to_crs('EPSG:4326')  # Ensure CRS is EPSG:4326
 #coast_geojson = coast_gdf.__geo_interface__
-cmap_full = plt.get_cmap('coolwarm')#nipy_spectral
+cmap_full = plt.get_cmap('rainbow')#nipy_spectral
 slice_start, slice_end = 0.3, 0.9
 colors = cmap_full(np.linspace(slice_start, slice_end, 256))
-coolwarm_slice = LinearSegmentedColormap.from_list('coolwarm_slice', colors)#'nipy_yellow_red
+rainbow_slice = LinearSegmentedColormap.from_list('rainbow_slice', colors)#'nipy_yellow_red
 colors_rgb = [
     '#C8FAFA',    # Blue
     '#FFF000',   # Gray
@@ -396,7 +396,7 @@ def create_sst_map_mapbox(lon, lat, sstdata, title):
     fig = plt.figure(figsize=(8, 6))
     ax = plt.axes(projection=ccrs.PlateCarree())
     im = ax.contourf(lon2d, lat2d, sstdata,
-                     cmap=coolwarm_slice,levels=np.linspace(24,34,21),
+                     cmap=rainbow_slice,levels=np.linspace(24,34,21),
                      extend='neither',
                      transform=ccrs.PlateCarree()
                     )
