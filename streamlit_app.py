@@ -628,9 +628,9 @@ with st.spinner('Processing DHW analysis...'):
             )
             st.plotly_chart(fig_hist, width='stretch')
 
-    else:
+    #else:
     # Landing page
-    st.info("👈 Click 'Generate DHW Analysis' in the sidebar to begin")
+    #st.info("👈 Click 'Generate DHW Analysis' in the sidebar to begin")
 
 # Instructions
 with st.expander("📖 How to Use This Dashboard"):
