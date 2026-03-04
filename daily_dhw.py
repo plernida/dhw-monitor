@@ -13,6 +13,7 @@ from matplotlib.ticker import MultipleLocator
 from matplotlib.colors import LinearSegmentedColormap
 import os
 import matplotlib.font_manager as fm
+from matplotlib.colors import ListedColormap
 from io import BytesIO
 import xarray as xr
 import warnings
@@ -146,7 +147,7 @@ def plot_dhw_week(lon, lat, dhw_week, title, filename):
     # DHW raster
     im = ax.contourf(
         lon2d, lat2d, dhw_week,
-        cmap=cmap, levels=2,
+        cmap=ListedColormap(colors_rgb[0:2]), levels=2,
         vmin=0, vmax=1,
         transform=ccrs.PlateCarree()
     )
