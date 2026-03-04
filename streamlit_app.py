@@ -564,7 +564,7 @@ if process_button:
             
             date_labels = []
             datestr = enddate.strftime('%Y%m%d')
-            dhw_weeks = []  # Add this!
+            
             
             for week in range(6):
                 end_day = enddate - timedelta(days=week*5)
