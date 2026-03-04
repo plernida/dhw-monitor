@@ -564,7 +564,7 @@ if process_button:
                         if week_idx < len(static_paths) and os.path.exists(static_paths[week_idx]):
                             st.image(
                                 static_paths[week_idx],
-                                caption=date_labels[week_idx],
+                                caption="",#date_labels[week_idx],
                                 use_column_width=True
                             )
                             
