@@ -335,7 +335,7 @@ def plot_dhw_week(lon, lat, dhw_total, title):
     ax.set_title(title, fontsize=10)
     plt.tight_layout()
     #plt.savefig(filename, dpi=150, bbox_inches='tight')
-    plt.close()
+    return fig
     
 def plot_cartopy_map(lon, lat, dhw_data, title):
 
@@ -592,12 +592,14 @@ if process_button:
                             st.success("✅ Cached PNG")
                         # กรณีไม่มีไฟล์ → plot สด
                         elif week_idx < len(dhw_weeks):
-                            fig = st.pyplot(plot_dhw_week(
+                            fig = plot_dhw_week(
                                 lon,
                                 lat,
                                 dhw_weeks[week_idx],
                                 date_labels[week_idx]
-                            ))
+                            )
+                            st.pyplot(fig)
+                            plt.close(fig)
                             
         
                         else:
