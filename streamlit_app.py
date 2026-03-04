@@ -141,7 +141,10 @@ def download_latest_sst(enddate, days_back=dayback):
         ds.close()
         sstdata = [sst_3d[t, :, :] for t in range(sst_3d.shape[0])]
         return np.stack(sstdata), time_list, lat_ref, lon_ref
-
+    except Exception as e:
+        st.error(f"Download failed: {e}. Falling back to NaN array.")
+        shape = (days_back, 290, 400)  # Approx your region
+        return np.full(shape, np.nan), [str(now_date - timedelta(d)) for d in range(days_back)], np.linspace(0,14.5,290), np.linspace(90,110,400)
 
 
 
