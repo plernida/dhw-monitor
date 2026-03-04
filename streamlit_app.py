@@ -379,9 +379,9 @@ def plot_cartopy_map(lon, lat, dhw_data, title):
     ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
                   bottom=True,top=True,right=True,labelsize=10,grid_color='black',grid_linewidth=0.5)
     # Custom legend patches + labels matching your markdown
-    ax.annotate(title[7:17],xy=(1, 0), xycoords='axes fraction',fontsize=10,fontweight='bold',
-                xytext=(10,10), textcoords='offset points',
-                ha='right', va='bottom')
+    ax.annotate(f"Degree Heating Weeks \n{title[7:17]}",xy=(1, 1), xycoords='axes fraction',fontsize=15,fontweight='bold',
+                xytext=(-10,-10), textcoords='offset points',
+                ha='right', va='top')
     legend_elements = [
         mpatches.Patch(color=colors_rgb[0], label='No stress'),
         mpatches.Patch(color=colors_rgb[1], label='Watch'),
@@ -429,11 +429,14 @@ def create_sst_map_mapbox(lon, lat, sstdata, title):
     ax.xaxis.set_minor_locator(MultipleLocator(1))
     ax.yaxis.set_minor_locator(MultipleLocator(1))
     ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
-                  bottom=True,top=True,right=True,labelsize=6,grid_color='black',grid_linewidth=0.5)
+                  bottom=True,top=True,right=True,labelsize=10,grid_color='black',grid_linewidth=0.5)
     cbar=fig.colorbar(im,ax=ax,orientation='horizontal', shrink=0.8, pad=0.05)
     cbar.set_ticks(np.arange(24,34.1,1))
-    cbar.set_label('°C',fontsize=6)
-    cbar.ax.tick_params(labelsize=6)
+    cbar.set_label('°C',fontsize=10)
+    cbar.ax.tick_params(labelsize=16)
+    ax.annotate(f"Sea Surface Temperatures \n{title[7:17]}",xy=(1, 1), xycoords='axes fraction',fontsize=15,fontweight='bold',
+            xytext=(-10,-10), textcoords='offset points',
+            ha='right', va='top')
     #cbar.mappable.set_clim(23, 35)
     plt.tight_layout()
 
