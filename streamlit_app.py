@@ -509,12 +509,10 @@ with st.spinner('Processing DHW analysis...'):
     with col4:
         bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
         previous_bleaching = get_previous_bleaching(enddate)
-
         if previous_bleaching is not None:
             delta_bleaching = bleaching_area - previous_bleaching
         else:
             delta_bleaching = 0
-        update_bleaching_history(enddate, bleaching_area)
         st.metric("Bleaching Risk", f"{bleaching_area:.1f}%", delta=f"{delta_bleaching:.1f}%", delta_color="inverse")
     
     # Tabs for different views
