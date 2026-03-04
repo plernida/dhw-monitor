@@ -563,6 +563,7 @@ if process_button:
             
             # 1. ALWAYS compute dhw_weeks fresh
             date_labels = compute_weekly_dhw(enddate) 
+            dhw_weeky = dhw_weeks
             if enddate == datetime.now().date():
                 static_paths = [f"static/dhw_week_{date_labels[i]}.png"
                                for i in range(6)]
@@ -571,9 +572,9 @@ if process_button:
                     st.success("✅ Cached PNGs")
                     st.rerun()  # Skip live plots
                 else:
-                    show_plot_grid(lon, lat, dhw_weeks, date_labels)
+                    show_plot_grid(lon, lat, dhw_weeky, date_labels)
             else:
-                show_plot_grid(lon, lat, dhw_weeks, date_labels)
+                show_plot_grid(lon, lat, dhw_weeky, date_labels)
                 
         with tab3:
             st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
