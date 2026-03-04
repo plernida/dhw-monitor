@@ -433,6 +433,31 @@ def create_sst_map_mapbox(lon, lat, sstdata, title):
 
     return fig
 
+def save_bleaching_value(date, value):
+    os.makedirs("static", exist_ok=True)
+
+    data = {
+        "date": date.strftime("%Y-%m-%d"),
+        "bleaching_area": float(value)
+    }
+
+    with open(f"static/bleaching_{date}.json", "w") as f:
+        json.dump(data, f)
+save_bleaching_value(enddate, bleaching_area)
+previous=(enddate-timedelta(days=1)).strftime("%Y-%m-%d")
+
+def load_previous_bleaching():
+
+    filepath = f"static/bleaching_{previous}.json"
+
+    if os.path.exists(filepath):
+        with open(filepath, "r") as f:
+            data = json.load(f)
+        return data["bleaching_area"]
+
+    return None
+
+previous_bleaching = load_previous_bleaching()
 
 
 # Main processing
@@ -464,6 +489,7 @@ with st.spinner('Processing DHW analysis...'):
     st.success("✅ Data processed successfully!")
     
     # Display statistics
+
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.metric("Max DHW", f"{(dhw_total.max().values)} weeks")
@@ -474,7 +500,11 @@ with st.spinner('Processing DHW analysis...'):
         st.metric("Alert Area", f"{alert_area:.1f}%")
     with col4:
         bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
-        st.metric("Bleaching Risk", f"{bleaching_area:.1f}%", delta=f"{bleaching_area:.1f}%", delta_color="inverse")
+        if previous_bleaching is not None:
+            delta_bleaching = bleaching_area - previous_bleaching
+        else:
+            delta_bleaching = 0
+        st.metric("Bleaching Risk", f"{bleaching_area:.1f}%", delta=f"{delta_bleaching:.1f}%", delta_color="inverse")
     
     # Tabs for different views
     tab1, tab2, tab3 = st.tabs(["📊 Accumulated DHW", "🗓️ Weekly Hotspots", "🌡️ Current SST"])
