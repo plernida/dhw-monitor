@@ -388,7 +388,7 @@ def plot_cartopy_map(lon, lat, dhw_data, title):
     ax.legend(handles=legend_elements,ncol=5,  # Horizontal (5 columns)
            loc='upper center', 
            bbox_to_anchor=(0.5, -0.05),
-          fontsize=15 frameon=True, fancybox=True, shadow=True)
+          fontsize=15, frameon=True, fancybox=True, shadow=True)
     
     plt.tight_layout()
     
