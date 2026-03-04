@@ -453,7 +453,8 @@ def show_plot_grid(lon, lat, weeks, labels):
         for col_idx in range(3):
             idx = row*3 + col_idx
             with cols[col_idx]:
-                plot_dhw_week(lon, lat, weeks[idx], labels[idx])
+                st.pyplot(plot_dhw_week(lon, lat, weeks[idx], labels[idx]))
+
 
 # Main processing
 if process_button:
