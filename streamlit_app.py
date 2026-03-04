@@ -117,85 +117,32 @@ process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 # NOAA OISST base URL pattern
 #NOAA_BASE_URL = "https://www.ncei.noaa.gov/thredds/fileServer/OisstBase/NetCDF/V2.1/AVHRR/"
 NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBase/NetCDF/V2.1/AVHRR/"
+CRW_ERDDAP_BASE = "https://coastwatch.noaa.gov/erddap/griddap/noaacrwsstDaily"
 dayback=30
 @st.cache_data(ttl=3600)  # Cache for 1 hour
+
 def download_latest_sst(enddate, days_back=dayback):
-    sstdata = []
-    time_list = []
-    lat_ref = None
-    lon_ref = None    
-
-    PRELIM_WINDOW_DAYS = 14 # Relative to NOW (not enddate)
     now_date = datetime.now(pytz.timezone('Asia/Bangkok')).date()
-    
-    for i in range(days_back):
-        target_date = enddate - timedelta(days=i)
-        yyyymm = target_date.strftime('%Y%m')
-        datestr = target_date.strftime('%Y%m%d')
-        iso_date = target_date.strftime('%Y-%m-%d')
 
-        age_days = (now_date - target_date).days
-        # Preliminary: if target_date is within 14 days of CURRENT now_date
-        if 0 <= age_days <= PRELIM_WINDOW_DAYS:
-        
-            filename = f"oisst-avhrr-v02r01.{datestr}_preliminary.nc"
-        else:
-            filename = f"oisst-avhrr-v02r01.{datestr}.nc"
-        
-        url = (
-            f"{NOAA_NCSS_BASE}{yyyymm}/{filename}?"
-            f"var=sst&north=14.500&west=90.000&east=110.000&south=0.000&"
-            f"horizStride=1&time_start={iso_date}T12:00:00Z&time_end={iso_date}T12:00:00Z&"
-            f"accept=netcdf3"
-        )
-        
-        # Silent download + error handling (as before)
-        try:
-            resp = requests.get(url, timeout=30)
-            if resp.status_code == 200:
-                with Dataset('in-memory', mode='r', memory=resp.content) as nc:
-                    sst_raw = nc.variables['sst'][0, :, :]
-                    sst_raw = np.squeeze(sst_raw)# (lat, lon)
-                    subset_lat = nc.variables['lat'][:]
-                    subset_lon = nc.variables['lon'][:]
-                    
-                    # Scale and mask
-                    
-                    
-                # Keep reference grid from first successful file
-                if lat_ref is None:
-                    lat_ref = subset_lat
-                    lon_ref = subset_lon
-                else:
-                    # Optional: check that all days use same grid
-                    assert np.array_equal(lat_ref, subset_lat)
-                    assert np.array_equal(lon_ref, subset_lon)
-                    
-                # Scale and mask
-                sst_scaled = np.where(sst_raw < -100, np.nan, sst_raw)
-                
-                sstdata.append(sst_scaled)
-               
-            else:
-                
-            # same shape as sst_raw: (nlat, nlon)
-                if lat_ref is not None and lon_ref is not None:
-                    sstdata.append(np.full((len(lat_ref), len(lon_ref)), np.nan))
-                else:
-                    sstdata.append(None)
-        except Exception:
-            if lat_ref is not None and lon_ref is not None:
-                sstdata.append(np.full((len(lat_ref), len(lon_ref)), np.nan))
-            else:
-                sstdata.append(None)
-        time_list.append(target_date)
-    if lat_ref is None or lon_ref is None:
-        raise RuntimeError("No successful downloads; cannot build SST array.")   
-    for idx, v in enumerate(sstdata):
-        if v is None:
-            sstdata[idx] = np.full((len(lat_ref), len(lon_ref)), np.nan)
-    sst_stack = np.stack(sstdata, axis=2)
-    return sst_stack, time_list, lat_ref, lon_ref
+    start_time = (enddate - timedelta(days=days_back-1)).strftime('%Y-%m-%dT12:00:00Z')
+    url = (
+        f"{CRW_ERDDAP_BASE}.nc?"
+        f"analysed_sst[{start_time}:1:now][0.0:0.05:14.5][90.0:0.05:110.0],"
+        f"time[{start_time}:1:now],"
+        f"latitude[0.0:0.05:14.5],"
+        f"longitude[90.0:0.05:110.0]"
+    )
+    try:
+        ds = xr.open_dataset(url).load()
+        sst_3d = ds['analysed_sst'].values  # (time, lat, lon); NaN for land/ice
+        time_list = pd.to_datetime(ds['time'].values).strftime('%Y-%m-%d').tolist()
+        lat_ref = ds['latitude'].values
+        lon_ref = ds['longitude'].values
+        ds.close()
+        sstdata = [sst_3d[t, :, :] for t in range(sst_3d.shape[0])]
+        return np.stack(sstdata), time_list, lat_ref, lon_ref
+
+
 
 
 # Coordinate data
@@ -379,7 +326,7 @@ def plot_cartopy_map(lon, lat, dhw_data, title):
     ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
                   bottom=True,top=True,right=True,labelsize=10,grid_color='black',grid_linewidth=0.5)
     # Custom legend patches + labels matching your markdown
-    ax.annotate(f"Degree Heating Weeks \n{title[7:17]}",xy=(1, 1), xycoords='axes fraction',fontsize=15,fontweight='bold',
+    ax.annotate(f"Daily  \n{title[7:17]}",xy=(1, 1), xycoords='axes fraction',fontsize=15,fontweight='bold',
                 xytext=(-25,-10), textcoords='offset points',
                 ha='right', va='top')
     legend_elements = [
