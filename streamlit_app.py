@@ -380,7 +380,7 @@ def plot_cartopy_map(lon, lat, dhw_data, title):
                   bottom=True,top=True,right=True,labelsize=10,grid_color='black',grid_linewidth=0.5)
     # Custom legend patches + labels matching your markdown
     ax.annotate(f"Degree Heating Weeks \n{title[7:17]}",xy=(1, 1), xycoords='axes fraction',fontsize=15,fontweight='bold',
-                xytext=(-15,-10), textcoords='offset points',
+                xytext=(-25,-10), textcoords='offset points',
                 ha='right', va='top')
     legend_elements = [
         mpatches.Patch(color=colors_rgb[0], label='No stress'),
@@ -435,7 +435,7 @@ def create_sst_map_mapbox(lon, lat, sstdata, title):
     cbar.set_label('°C',fontsize=10)
     cbar.ax.tick_params(labelsize=16)
     ax.annotate(f"Sea Surface Temperatures \n{title[7:17]}",xy=(1, 1), xycoords='axes fraction',fontsize=15,fontweight='bold',
-            xytext=(-15,-10), textcoords='offset points',
+            xytext=(-25,-10), textcoords='offset points',
             ha='right', va='top')
     #cbar.mappable.set_clim(23, 35)
     plt.tight_layout()
