@@ -592,13 +592,13 @@ if process_button:
                             st.success("✅ Cached PNG")
                         # กรณีไม่มีไฟล์ → plot สด
                         elif week_idx < len(dhw_weeks):
-                            fig = plot_dhw_week(
+                            fig = st.pyplot(plot_dhw_week(
                                 lon,
                                 lat,
                                 dhw_weeks[week_idx],
                                 date_labels[week_idx]
-                            )
-                            st.pyplot(fig)
+                            ))
+                            
         
                         else:
                             st.warning("⚠ No data available")
