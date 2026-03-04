@@ -528,7 +528,7 @@ with st.spinner('Processing DHW analysis...'):
         with col_left:
             if os.path.exists(datedhw_png):
                 #st.success(f"✅ Using cached DHW PNG for {enddate.strftime('%Y-%m-%d')}")
-                st.image(datedhw_png, caption="Pre-generated DHW Map", use_column_width=True)
+                st.image(datedhw_png, caption="", use_column_width=True)
             else:
                 #st.info("⚠️ No cached PNG found. Computing live...")
             # Portrait DHW map (tall)
