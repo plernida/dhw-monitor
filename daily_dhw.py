@@ -172,7 +172,7 @@ def plot_dhw_week(lon, lat, dhw_week, title, filename):
     ax.xaxis.set_minor_locator(MultipleLocator(1))
     ax.yaxis.set_minor_locator(MultipleLocator(1))
     ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
-                  bottom=True,top=True,right=True,labelsize=6,grid_color='black',grid_linewidth=0.5)
+                  bottom=True,top=True,right=True,labelsize=10,grid_color='black',grid_linewidth=0.5)
     legend_elements = [
         mpatches.Patch(color=colors_rgb[0], label='No stress'),
         mpatches.Patch(color=colors_rgb[1], label='Watch'),
@@ -180,8 +180,8 @@ def plot_dhw_week(lon, lat, dhw_week, title, filename):
     ax.legend(handles=legend_elements,ncol=2,  # Horizontal (5 columns)
            loc='upper center', 
            bbox_to_anchor=(0.5, -0.05),
-          fontsize=6, frameon=True, fancybox=True, shadow=True)
-    ax.set_title(title, fontsize=10)
+          fontsize=10, frameon=True, fancybox=True, shadow=True)
+    ax.set_title(title, fontsize=20)
     #plt.colorbar(im, ax=ax, shrink=0.8, pad=0.1)
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
