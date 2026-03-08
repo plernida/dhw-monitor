@@ -523,7 +523,7 @@ with st.spinner('Processing DHW analysis...'):
         with col_left:
             if os.path.exists(datedhw_png):
                 #st.success(f"✅ Using cached DHW PNG for {enddate.strftime('%Y-%m-%d')}")
-                st.image(datedhw_png, caption="", use_column_width=True)
+                st.image(datedhw_png, caption="", width="stretch")
             else:
                 #st.info("⚠️ No cached PNG found. Computing live...")
             # Portrait DHW map (tall)
@@ -599,7 +599,7 @@ with st.spinner('Processing DHW analysis...'):
                         st.image(
                             static_paths[week_idx],
                             caption="",#date_labels[week_idx],
-                            use_column_width=True
+                            width="stretch"
                         )
                         
                     # กรณีไม่มีไฟล์ → plot สด
@@ -624,7 +624,7 @@ with st.spinner('Processing DHW analysis...'):
         with col_left:
             if os.path.exists(datesst_png):
                 #st.success(f"✅ Using cached SST PNG for {enddate.strftime('%Y-%m-%d')}")
-                st.image(datesst_png, caption="", use_column_width=True)
+                st.image(datesst_png, caption="", width="stretch")
             else:
                 #st.info("⚠️ No cached PNG found. Computing live...")
             # SST map
