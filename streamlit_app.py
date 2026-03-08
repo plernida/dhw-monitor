@@ -116,35 +116,69 @@ process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 
 # NOAA OISST base URL pattern
 #NOAA_BASE_URL = "https://www.ncei.noaa.gov/thredds/fileServer/OisstBase/NetCDF/V2.1/AVHRR/"
-NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBase/NetCDF/V2.1/AVHRR/"
+#NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBase/NetCDF/V2.1/AVHRR/"
 CRW_ERDDAP_BASE = "https://coastwatch.noaa.gov/erddap/griddap/noaacrwsstDaily"
 dayback=30
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 
-def download_latest_sst(enddate, days_back=dayback):
-    now_date = datetime.now(pytz.timezone('Asia/Bangkok')).date()
+def download_latest_sst(enddate, days_back=30):
 
-    start_time = (enddate - timedelta(days=days_back-1)).strftime('%Y-%m-%dT12:00:00Z')
+    thtz = pytz.timezone('Asia/Bangkok')
+    now_date = datetime.now(thtz).date()
+
+    # CRW usually lags ~2 days
+    latest_available = now_date - timedelta(days=2)
+
+    if enddate > latest_available:
+        enddate = latest_available
+
+    start_date = enddate - timedelta(days=days_back - 1)
+
+    start_time = start_date.strftime('%Y-%m-%dT12:00:00Z')
+    end_time = enddate.strftime('%Y-%m-%dT12:00:00Z')
+
     url = (
         f"{CRW_ERDDAP_BASE}.nc?"
-        f"analysed_sst[{start_time}:1:now][0.0:0.05:14.5][90.0:0.05:110.0],"
-        f"time[{start_time}:1:now],"
-        f"latitude[0.0:0.05:14.5],"
-        f"longitude[90.0:0.05:110.0]"
+        f"analysed_sst"
+        f"[({start_time}):1:({end_time})]"
+        f"[(0.025):1:(14.075)]"
+        f"[(90.025):1:(110.025)]"
     )
-    try:
-        ds = xr.open_dataset(url).load()
-        sst_3d = ds['analysed_sst'].values  # (time, lat, lon); NaN for land/ice
-        time_list = pd.to_datetime(ds['time'].values).strftime('%Y-%m-%d').tolist()
-        lat_ref = ds['latitude'].values
-        lon_ref = ds['longitude'].values
-        ds.close()
-        sstdata = [sst_3d[t, :, :] for t in range(sst_3d.shape[0])]
-        return np.stack(sstdata), time_list, lat_ref, lon_ref
-    except Exception as e:
-        st.error(f"Download failed: {e}. Falling back to NaN array.")
-        shape = (days_back, 290, 400)  # Approx your region
-        return np.full(shape, np.nan), [str(now_date - timedelta(d)) for d in range(days_back)], np.linspace(0,14.5,290), np.linspace(90,110,400)
+
+    #print("Downloading:", url)
+
+    r = requests.get(url, stream=True, timeout=120)
+    r.raise_for_status()
+
+    local_file = "latest_sst.nc"
+
+    with open(local_file, "wb") as f:
+        for chunk in r.iter_content(chunk_size=1024*1024):
+            f.write(chunk)
+
+    #print("Download complete")
+
+    ds = xr.open_dataset(local_file)
+
+    # convert Kelvin → Celsius
+    ds["analysed_sst"] = ds["analysed_sst"] - 273.15
+
+    # rename to match AVHRR variable naming if needed
+    ds = ds.rename({
+        "latitude": "lat",
+        "longitude": "lon",
+        "analysed_sst": "sst"
+    })
+
+    # reorder dimensions to match your DHW code
+    ds = ds.transpose("lat", "lon", "time")
+
+    sst_stack = ds["sst"].values
+    lat_ref = ds["lat"].values
+    lon_ref = ds["lon"].values
+    time_list = ds["time"].values
+
+    return sst_stack, time_list, lat_ref, lon_ref
 
 
 
