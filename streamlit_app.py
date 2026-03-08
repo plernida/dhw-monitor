@@ -475,8 +475,8 @@ with st.spinner('Processing DHW analysis...'):
     datedhw_png = f"static/{enddate.strftime('%Y-%m-%d')}_dhw.png"
     datesst_png = f"static/{enddate.strftime('%Y-%m-%d')}_sst.png"
     
-    baseline = xr.open_dataset('mmm_sst_iowp_1981-2020.nc') # read array
-    MMM = baseline['sst'].sel(lon=slice(90,110.3),lat=slice(0,14.7)) # Add noise if desired
+    baseline = xr.open_dataset('crw_mmm_sst_thailand_1985-2025.nc') # read array
+    MMM = baseline['sst'].copy()#sel(lon=slice(90,110.3),lat=slice(0,14.7)) # Add noise if desired
 
     # Calculate DHW
     dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
