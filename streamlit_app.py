@@ -326,7 +326,7 @@ def plot_dhw_week(lon, lat, dhw_total, title):
     #plt.savefig(filename, dpi=150, bbox_inches='tight')
     return fig
     
-def plot_cartopy_map(lon, lat, dhw_data, title):
+def plot_cartopy_map(lon, lat, dhw_total, title):
 
     lon2d, lat2d = np.meshgrid(lon, lat)
       # sample DHW
