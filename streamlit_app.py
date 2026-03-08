@@ -97,17 +97,17 @@ now = datetime.now(th_tz)
 target_date = now.date() - timedelta(days=2)
 
 
-MIN_DATE = datetime(1981, 1, 1)
+MIN_DATE = datetime(1985, 1, 1)
 MAX_DATE = target_date
 
 st.sidebar.success(f"📅 **Latest Analysis:** {target_date.strftime('%Y-%m-%d')}")
-st.sidebar.info("✅ NOAA OISST v2.1: 1981-09-01 → present")
+st.sidebar.info("✅ CRW SST 5km: 1985-01-01 → present")
 
 analysis_date = st.sidebar.date_input("🎯 Analysis Center Date",
     value=target_date,
     min_value=MIN_DATE,
     max_value=MAX_DATE,
-    help="Select center date → auto 12-day backward analysis")
+    help="Select center date → auto 30-day backward analysis")
 
 
 process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
@@ -120,7 +120,6 @@ process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 CRW_ERDDAP_BASE = "https://coastwatch.noaa.gov/erddap/griddap/noaacrwsstDaily"
 dayback=30
 @st.cache_data(ttl=3600)  # Cache for 1 hour
-
 def download_latest_sst(enddate, days_back=30):
 
     thtz = pytz.timezone('Asia/Bangkok')
