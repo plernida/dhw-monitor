@@ -361,7 +361,7 @@ def plot_cartopy_map(lon, lat, dhw_total, title):
     ax.xaxis.set_minor_locator(MultipleLocator(1))
     ax.yaxis.set_minor_locator(MultipleLocator(1))
     ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
-                  bottom=True,top=True,right=True,labelsize=10,grid_color='black',grid_linewidth=0.5)
+                  bottom=True,top=True,right=True,labelsize=8,grid_color='black',grid_linewidth=0.5)
     # Custom legend patches + labels matching your markdown
     ax.annotate(f"Daily  \n{title[7:17]}",xy=(1, 1), xycoords='axes fraction',fontsize=10,fontweight='bold',
                 xytext=(-25,-10), textcoords='offset points',
