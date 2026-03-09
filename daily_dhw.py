@@ -202,7 +202,7 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
     ax.xaxis.set_minor_locator(MultipleLocator(1))
     ax.yaxis.set_minor_locator(MultipleLocator(1))
     ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
-                  bottom=True,top=True,right=True,labelsize=6,grid_color='black',grid_linewidth=0.5)
+                  bottom=True,top=True,right=True,labelsize=15,grid_color='black',grid_linewidth=0.5)
     # Custom legend patches + labels matching your markdown
     legend_elements = [
         mpatches.Patch(color=colors_rgb[0], label='No stress'),
@@ -216,7 +216,7 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
     ax.legend(handles=legend_elements,ncol=7,  # Horizontal (5 columns)
            loc='upper center', 
            bbox_to_anchor=(0.5, -0.05),
-          fontsize=6, frameon=True, fancybox=True, shadow=True)
+          fontsize=10, frameon=True, fancybox=True, shadow=True)
     
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
