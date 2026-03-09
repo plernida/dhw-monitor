@@ -77,10 +77,6 @@ st.markdown("""
         padding: 3 px;
     }
 
-    <style>
-    div[data-testid="stHorizontalBlock"] {
-        justify-content: flex-end;
-    }
     </style>
     """, unsafe_allow_html=True)
 
