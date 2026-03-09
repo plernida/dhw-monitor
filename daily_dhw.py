@@ -42,9 +42,9 @@ colors_rgb = [
 # Create custom colormap (N=256 for smooth gradient)
 cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=256)
 # Your NOAA config
-NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBase/NetCDF/V2.1/AVHRR/"
+CRW_ERDDAP_BASE = "https://coastwatch.noaa.gov/erddap/griddap/noaacrwsstDaily"
 baseline = xr.open_dataset('crw_mmm_sst_thailand_1985-2025.nc') # read array
-MMM = baseline['sst'].copy()#sel(lon=slice(90,110),lat=slice(0,14.7)) # Add noise if desired
+MMM = baseline['sst'].sel(lon=slice(90,110),lat=slice(14.1,0))
 
 def download_latest_sst(enddate, days_back=30):
 
@@ -70,7 +70,7 @@ def download_latest_sst(enddate, days_back=30):
         f"[(90.025):1:(110.025)]"
     )
 
-    print("Downloading:", url)
+    #print("Downloading:", url)
 
     r = requests.get(url, stream=True, timeout=120)
     r.raise_for_status()
@@ -81,7 +81,7 @@ def download_latest_sst(enddate, days_back=30):
         for chunk in r.iter_content(chunk_size=1024*1024):
             f.write(chunk)
 
-    print("Download complete")
+    #print("Download complete")
 
     ds = xr.open_dataset(local_file)
 
