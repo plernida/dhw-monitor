@@ -77,22 +77,9 @@ st.markdown("""
         padding: 3 px;
     }
 
-    /* Metric styling */
-    div[data-testid="stMetric"] {
-        text-align: left;
-    }
-    
-    div[data-testid="stMetricLabel"] {
-        font-size: 18px;
-    }
-    
-    div[data-testid="stMetricValue"] {
-        font-size: 18px;
-        font-weight: 200;
-    }
-    
-    div[data-testid="stMetricDelta"] {
-        font-size: 16px;
+    <style>
+    div[data-testid="stHorizontalBlock"] {
+        justify-content: flex-end;
     }
     </style>
     """, unsafe_allow_html=True)
