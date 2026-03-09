@@ -74,7 +74,7 @@ st.markdown("""
     .stPlotlyChart {
         background-color: white;
         border-radius: 5px;
-        padding: 10px;
+        padding: 3 px;
     }
 
     /* Metric styling */
@@ -88,7 +88,7 @@ st.markdown("""
     
     div[data-testid="stMetricValue"] {
         font-size: 18px;
-        font-weight: 90;
+        font-weight: 200;
     }
     
     div[data-testid="stMetricDelta"] {
@@ -498,7 +498,7 @@ with st.spinner('Processing DHW analysis...'):
     sst_current = TSeries[:, :, -1]
     
     # Success message
-    st.success("✅ Data processed successfully!")
+    #st.success("✅ Data processed successfully!")
 
     
    
