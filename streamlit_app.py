@@ -76,6 +76,24 @@ st.markdown("""
         border-radius: 5px;
         padding: 10px;
     }
+
+    /* Metric styling */
+    div[data-testid="stMetric"] {
+        text-align: center;
+    }
+    
+    div[data-testid="stMetricLabel"] {
+        font-size: 18px;
+    }
+    
+    div[data-testid="stMetricValue"] {
+        font-size: 40px;
+        font-weight: 700;
+    }
+    
+    div[data-testid="stMetricDelta"] {
+        font-size: 16px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
