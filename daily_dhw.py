@@ -289,13 +289,7 @@ def update_bleaching_history(date, value):
 # Main daily run
 thtz = pytz.timezone('Asia/Bangkok')
 today = datetime.now(thtz).date() - timedelta(days=2)  # Your app's target
-stats = {
-"date": today.strftime("%Y-%m-%d"),
-"max_dhw": float(dhw_total.max()),
-"avg_sst": round(float(np.nanmean(sst_current)), 2),
-"alert_area": round(float((dhw_total >= 4).sum() / dhw_total.size * 100), 1),
-"bleaching_area": round(float((dhw_total >= 5).sum() / dhw_total.size * 100), 2)
-}
+
 sst_stack, time_list, lat, lon = download_latest_sst(today)
 dhw_weeks, dhw_total, _ = calculate_dhw(sst_stack, MMM)
 sst_current = sst_stack[:, :, -1]
@@ -303,10 +297,16 @@ sst_current = sst_stack[:, :, -1]
 os.makedirs("static", exist_ok=True)
 dhw_total.to_netcdf("static/dhw_total.nc")
 sst_current.to_netcdf("static/sst_current.nc")
+
+stats = {
+"date": today.strftime("%Y-%m-%d"),
+"max_dhw": float(dhw_total.max()),
+"avg_sst": round(float(np.nanmean(sst_current)), 2),
+"alert_area": round(float((dhw_total >= 4).sum() / dhw_total.size * 100), 1),
+"bleaching_area": round(float((dhw_total >= 5).sum() / dhw_total.size * 100), 2)
+}
 with open("static/dhw_stats.json", "w") as f:
     json.dump(stats, f)
-
-
 
 bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
 update_bleaching_history(today, bleaching_area)
