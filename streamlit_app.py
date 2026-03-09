@@ -375,7 +375,7 @@ def plot_cartopy_map(lon, lat, dhw_total, title):
         mpatches.Patch(color=colors_rgb[5], label='Al 3'),
         mpatches.Patch(color=colors_rgb[6], label='Al 4')# Use darkest for 6+
     ]
-    ax.legend(handles=legend_elements,ncol=5,  # Horizontal (5 columns)
+    ax.legend(handles=legend_elements,ncol=7,  # Horizontal (5 columns)
            loc='upper center', 
            bbox_to_anchor=(0.5, -0.05),
           fontsize=10, frameon=True, fancybox=True, shadow=True)
@@ -519,7 +519,7 @@ with st.spinner('Processing DHW analysis...'):
    
 
         # NEW LAYOUT: Portrait map LEFT + distribution/stats RIGHT
-        col_left, col_right = st.columns([60, 40])
+        col_left, col_right = st.columns([80, 20])
         
         with col_left:
             if os.path.exists(datedhw_png):
