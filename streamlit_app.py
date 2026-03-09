@@ -457,28 +457,48 @@ def get_previous_bleaching(date):
     
 # Main processing
 #if process_button:
+
 with st.spinner('Processing DHW analysis...'):
-    # Use SELECTED date as analysis center
-
-    enddate = analysis_date
-    # Download 48 days BACK from analysis_date
-    TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
-    # Get coordinates
-    LON, LAT, lon, lat = create_coordinates()
-
     # Check for pre-generated PNGs (from daily Actions)
     datedhw_png = f"static/{enddate.strftime('%Y-%m-%d')}_dhw.png"
     datesst_png = f"static/{enddate.strftime('%Y-%m-%d')}_sst.png"
     
-    baseline = xr.open_dataset('crw_mmm_sst_thailand_1985-2025.nc') # read array
-    MMM = baseline['sst'].sel(lon=slice(90,110),lat=slice(14.1,0))
+
+    if os.path.exists(datedhw_png) and os.path.exists(datesst_png):
+        with open("static/dhw_stats.json") as f:
+            stats = json.load(f)
+        dhw_total = xr.open_dataset("static/dhw_total.nc")
+        sst_current = xr.open_dataset("static/sst_current.nc")
+    else:
+    # Only download if needed
+        enddate = analysis_date
+        baseline = xr.open_dataset('crw_mmm_sst_thailand_1985-2025.nc') # read array
+        MMM = baseline['sst'].sel(lon=slice(90,110),lat=slice(14.1,0))
+        TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
+    
+        # calculate DHW
+        dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
+        LON, LAT, lon, lat = create_coordinates()
+        sst_current = TSeries[:, :, -1]
+        
+    # Use SELECTED date as analysis center
+
+    
+    # Download 48 days BACK from analysis_date
+   #TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
+    # Get coordinates
+    
+
+
+    
+
 
     # Calculate DHW
-    dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
+    #dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
     #dhw_weeks = xr.DataArray(dhw_weeks, dims=('week', 'lat', 'lon'))
     #sst_weeks = xr.DataArray(sst_weeks, dims=('week', 'lat', 'lon'))
     # Current SST
-    sst_current = TSeries[:, :, -1]
+    
     
     # Success message
     #st.success("✅ Data processed successfully!")
@@ -489,14 +509,26 @@ with st.spinner('Processing DHW analysis...'):
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("Max DHW", f"{(dhw_total.max().values)} weeks")
+        if enddate == datetime.now(thtz).date() - timedelta(days=2):
+            st.metric("Max DHW", f"{stats['max_dhw']} weeks")
+        else:
+            st.metric("Max DHW", f"{(dhw_total.max().values)} weeks")
     with col2:
-        st.metric("Avg SST", f"{float(np.nanmean(sst_current)):.2f} °C")
+        if enddate == datetime.now(thtz).date() - timedelta(days=2):
+            st.metric("AVG SST", f"{stats['avg_sst']} °C")       
+        else:
+            st.metric("Avg SST", f"{float(np.nanmean(sst_current)):.2f} °C")
     with col3:
-        alert_area = xr.where(dhw_total>=4,1,0).sum() / dhw_total.size * 100
-        st.metric("Alert Area", f"{alert_area:.1f}%")
+        if enddate == datetime.now(thtz).date() - timedelta(days=2):
+            alert_area = stats['alert_area'] 
+        else:
+            alert_area = xr.where(dhw_total>=4,1,0).sum() / dhw_total.size * 100
+            st.metric("Alert Area", f"{alert_area:.1f}%")
     with col4:
-        bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
+        if enddate == datetime.now(thtz).date() - timedelta(days=2):
+            bleaching_area = stats['bleaching_area']
+        else:
+            bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
         previous_bleaching = get_previous_bleaching(enddate)
         if previous_bleaching is not None:
             delta_bleaching = bleaching_area - previous_bleaching
