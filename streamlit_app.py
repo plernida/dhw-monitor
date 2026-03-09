@@ -47,7 +47,7 @@ colors = cmap_full(np.linspace(slice_start, slice_end, 256))
 spectral_slice = LinearSegmentedColormap.from_list('spectral_slice', colors)#'nipy_yellow_red
 colors_rgb = [
     '#C8FAFA',    # Blue
-    '#FFF000',   # Gray
+    #'#FFF000',   # Gray
     '#FAAA0A',   # Beige
     '#F00000',   # Pink
     '#960000',    # Brown
