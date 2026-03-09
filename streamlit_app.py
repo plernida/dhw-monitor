@@ -186,8 +186,8 @@ def download_latest_sst(enddate, days_back=30):
 @st.cache_data
 def create_coordinates():
     """Create coordinate grid for Thai region"""
-    lon = np.linspace(90.125, 110.125, 81)
-    lat = np.linspace(0.125, 14.625, 59)
+    lon = np.linspace(90.025, 109.975, 400)
+    lat = np.linspace(0.025, 14.075, 282)
     LON, LAT = np.meshgrid(lon, lat)
     return LON, LAT, lon, lat
 
