@@ -458,6 +458,8 @@ def get_previous_bleaching(date):
 # Main processing
 #if process_button:
 enddate = analysis_date
+thtz = pytz.timezone('Asia/Bangkok')
+
 with st.spinner('Processing DHW analysis...'):
     # Check for pre-generated PNGs (from daily Actions)
     datedhw_png = f"static/{enddate.strftime('%Y-%m-%d')}_dhw.png"
