@@ -57,37 +57,7 @@ colors_rgb = [
 cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=7)
 
 
-# Page configuration
-st.set_page_config(
-    page_title="DHW Coral Bleaching Monitor",
-    page_icon="🌊",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
 
-# Custom CSS for better styling
-st.markdown("""
-    <style>
-    .main {
-        padding: 0rem 1rem;
-    }
-    h1 {
-        color: #1f77b4;
-    }
-    .stPlotlyChart {
-        background-color: white;
-        border-radius: 5px;
-        padding: 10px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-# Title and description
-st.title("🌊 แผนที่อุณหภูมิน้ำทะเล Degree Heating Weeks (DHW) Coral Bleaching Monitor")
-st.markdown("""
-ติดตามอุณหภูมิน้ำทะเลที่ส่งผลต่อการฟอกขาวของปะการัง Monitor sea surface temperature anomalies and coral bleaching risk in Thai waters.
-Data source: GHRSST satellite observations (90-110°E, 0-14.5°N)
-""")
 
 # Sidebar controls
 st.sidebar.header("⚙️ Auto Daily Update")
