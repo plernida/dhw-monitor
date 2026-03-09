@@ -290,7 +290,8 @@ today = datetime.now(thtz).date() - timedelta(days=2)  # Your app's target
 sst_stack, time_list, lat, lon = download_latest_sst(today)
 dhw_weeks, dhw_total, _ = calculate_dhw(sst_stack, MMM)
 sst_current = sst_stack[:, :, -1]
-os.makedirs('static', exist_ok=True)
+
+os.makedirs("static", exist_ok=True)
 dhw_total.to_netcdf("static/dhw_total.nc")
 sst_current.to_netcdf("static/sst_current.nc")
 
