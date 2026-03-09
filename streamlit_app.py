@@ -160,7 +160,7 @@ def download_latest_sst(enddate, days_back=30):
     ds = xr.open_dataset(local_file)
 
     # convert Kelvin → Celsius
-    ds["analysed_sst"] = ds["analysed_sst"] - 273.15
+    #ds["analysed_sst"] = ds["analysed_sst"] - 273.15
 
     # rename to match AVHRR variable naming if needed
     ds = ds.rename({
