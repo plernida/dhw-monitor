@@ -79,7 +79,7 @@ st.markdown("""
 
     /* Metric styling */
     div[data-testid="stMetric"] {
-        text-align: center;
+        text-align: left;
     }
     
     div[data-testid="stMetricLabel"] {
@@ -87,8 +87,8 @@ st.markdown("""
     }
     
     div[data-testid="stMetricValue"] {
-        font-size: 40px;
-        font-weight: 700;
+        font-size: 18px;
+        font-weight: 90;
     }
     
     div[data-testid="stMetricDelta"] {
