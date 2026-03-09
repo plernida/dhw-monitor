@@ -46,7 +46,7 @@ slice_start, slice_end = 0, 0.9
 colors = cmap_full(np.linspace(slice_start, slice_end, 256))
 spectral_slice = LinearSegmentedColormap.from_list('spectral_slice', colors)#'nipy_yellow_red
 colors_rgb = [
-    #'#C8FAFA',    # Blue
+    '#C8FAFA',    # Blue
     '#FFF000',   # Gray
     '#FAAA0A',   # Beige
     '#F00000',   # Pink
@@ -54,7 +54,7 @@ colors_rgb = [
     '#A05024',     # Dark brown
     '#F000F0'      # Dark brown
 ]
-cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=256)
+cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=7)
 
 
 # Page configuration
