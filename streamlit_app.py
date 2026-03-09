@@ -56,6 +56,13 @@ colors_rgb = [
 ]
 cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=7)
 
+st.set_page_config(
+    page_title="DHW Coral Bleaching Monitor",
+    page_icon="🌊",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
 st.markdown("""
     <style>
     .main {
