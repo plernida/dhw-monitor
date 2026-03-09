@@ -56,6 +56,21 @@ colors_rgb = [
 ]
 cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=7)
 
+st.markdown("""
+    <style>
+    .main {
+        padding: 0rem 1rem;
+    }
+    h1 {
+        color: #1f77b4;
+    }
+    .stPlotlyChart {
+        background-color: white;
+        border-radius: 5px;
+        padding: 10px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 
 
