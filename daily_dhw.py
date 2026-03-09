@@ -290,7 +290,7 @@ today = datetime.now(thtz).date() - timedelta(days=2)  # Your app's target
 sst_stack, time_list, lat, lon = download_latest_sst(today)
 dhw_weeks, dhw_total, _ = calculate_dhw(sst_stack, MMM)
 sst_current = sst_stack[:, :, -1]
-
+os.makedirs('static', exist_ok=True)
 dhw_total.to_netcdf("static/dhw_total.nc")
 sst_current.to_netcdf("static/sst_current.nc")
 
@@ -308,7 +308,7 @@ with open("static/dhw_stats.json", "w") as f:
 bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
 update_bleaching_history(today, bleaching_area)
 # Produce PNGs
-os.makedirs('static', exist_ok=True)
+
 plot_dhw_map(lon, lat, dhw_total, f"static/{today}_dhw.png")
 create_sst_map_mapbox(lon,lat,sst_current,f"static/{today}_sst.png")
 date_labels = []
