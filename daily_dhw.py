@@ -209,9 +209,11 @@ def plot_dhw_map(lon, lat, dhw_total, filename):
         mpatches.Patch(color=colors_rgb[1], label='Watch'),
         mpatches.Patch(color=colors_rgb[2], label='Warning'),
         mpatches.Patch(color=colors_rgb[3], label='Alert 1'),
-        mpatches.Patch(color=colors_rgb[4], label='Alert 2')  # Use darkest for 6+
+        mpatches.Patch(color=colors_rgb[4], label='Al 2'),
+        mpatches.Patch(color=colors_rgb[5], label='Al 3'),
+        mpatches.Patch(color=colors_rgb[6], label='Al 4')# Use darkest for 6+
     ]
-    ax.legend(handles=legend_elements,ncol=5,  # Horizontal (5 columns)
+    ax.legend(handles=legend_elements,ncol=7,  # Horizontal (5 columns)
            loc='upper center', 
            bbox_to_anchor=(0.5, -0.05),
           fontsize=6, frameon=True, fancybox=True, shadow=True)
