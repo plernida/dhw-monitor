@@ -283,19 +283,15 @@ def update_bleaching_history(date, value):
     with open(filepath, "w") as f:
         json.dump(history, f, indent=2)
 
-def stats():
-    os.makedirs("static", exist_ok=True)
-    stats = {
-    "date": today.strftime("%Y-%m-%d"),
-    "max_dhw": float(dhw_total.max()),
-    "avg_sst": round(float(np.nanmean(sst_current)), 2),
-    "alert_area": round(float((dhw_total >= 4).sum() / dhw_total.size * 100), 1),
-    "bleaching_area": round(float((dhw_total >= 5).sum() / dhw_total.size * 100), 2)
-    }
+stats = {
+"date": today.strftime("%Y-%m-%d"),
+"max_dhw": float(dhw_total.max()),
+"avg_sst": round(float(np.nanmean(sst_current)), 2),
+"alert_area": round(float((dhw_total >= 4).sum() / dhw_total.size * 100), 1),
+"bleaching_area": round(float((dhw_total >= 5).sum() / dhw_total.size * 100), 2)
+}
 
-    with open("static/dhw_stats.json", "w") as f:
-        json.dump(stats, f)
-stats()
+
 # Main daily run
 thtz = pytz.timezone('Asia/Bangkok')
 today = datetime.now(thtz).date() - timedelta(days=2)  # Your app's target
@@ -306,6 +302,8 @@ sst_current = sst_stack[:, :, -1]
 os.makedirs("static", exist_ok=True)
 dhw_total.to_netcdf("static/dhw_total.nc")
 sst_current.to_netcdf("static/sst_current.nc")
+with open("static/dhw_stats.json", "w") as f:
+    json.dump(stats, f)
 
 
 
