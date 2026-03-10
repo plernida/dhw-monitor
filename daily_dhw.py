@@ -290,7 +290,7 @@ thtz = pytz.timezone('Asia/Bangkok')
 today = datetime.now(thtz).date() - timedelta(days=2)
 
 try:
-    sststack, timelist, lat, lon = downloadlatestsst(today)
+    sststack, timelist, lat, lon = download_latest_sst(today)
     print("SST downloaded successfully")
     
     dhwweeks, dhwtotal, sstweeks = calculate_dhw(sststack, MMM)
