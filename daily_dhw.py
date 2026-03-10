@@ -300,20 +300,17 @@ try:
     
     sst_current = sst_stack[:, :, -1]
     
-    # Safer NetCDF writes
-    print("Saving NetCDF files...")
-    try:
-        # Remove if exists to avoid corruption
-        for nc_file in ['dhw_total.nc', 'sst_current.nc']:
-            nc_path = f'static/{nc_file}'
-            if os.path.exists(nc_path):
-                os.remove(nc_path)
-        dhw_total.to_netcdf('static/dhw_total.nc')
-        sst_current.to_netcdf('static/sst_current.nc')
-        print("NetCDF files saved successfully")
-    except Exception as e:
-        print(f"NetCDF save failed: {e}")
-        raise
+    os.makedirs('static', exist_ok=True)
+    
+    # Safe NetCDF overwrite
+    for nc_file in ['dhw_total.nc', 'sst_current.nc']:
+        nc_path = f'static/{nc_file}'
+        if os.path.exists(nc_path):
+            os.remove(nc_path)
+    
+    dhw_total.to_netcdf('static/dhw_total.nc')
+    sst_current.to_netcdf('static/sst_current.nc')
+    print("NetCDF files saved")
     
     stats = {
         'date': today.strftime('%Y-%m-%d'),
@@ -325,21 +322,22 @@ try:
     with open('static/dhw_stats.json', 'w') as f:
         json.dump(stats, f, indent=2)
     print("dhw_stats.json saved")
+
     
     # plotting code...
 
     # Produce PNGs
     
-plot_dhw_map(lon, lat, dhw_total, f"static/{today}_dhw.png")
-create_sst_map_mapbox(lon,lat,sst_current,f"static/{today}_sst.png")
-date_labels = []
-for week in range(6):
-    end_day = today - timedelta(days=week*5)
-    start_day = end_day - timedelta(days=4)
-    date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
-
-for week_idx in range(6):
-    plot_dhw_week(lon, lat, dhw_weeks[week_idx],date_labels[week_idx], f"static/{today}_week_{week_idx+1:02d}.png")
+    plot_dhw_map(lon, lat, dhw_total, f"static/{today}_dhw.png")
+    create_sst_map_mapbox(lon,lat,sst_current,f"static/{today}_sst.png")
+    date_labels = []
+    for week in range(6):
+        end_day = today - timedelta(days=week*5)
+        start_day = end_day - timedelta(days=4)
+        date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
+    
+    for week_idx in range(6):
+        plot_dhw_week(lon, lat, dhw_weeks[week_idx],date_labels[week_idx], f"static/{today}_week_{week_idx+1:02d}.png")
 
 
 
