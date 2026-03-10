@@ -298,7 +298,7 @@ try:
     bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
     update_bleaching_history(today, bleaching_area)
     
-    sstcurrent = sststack[:, :, -1]
+    sst_current = sst_stack[:, :, -1]
     
     os.makedirs('static', exist_ok=True)
     dhw_total.to_netcdf('static/dhw_total.nc',mode='w-')
