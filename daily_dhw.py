@@ -301,8 +301,8 @@ try:
     sst_current = sst_stack[:, :, -1]
     
     os.makedirs('static', exist_ok=True)
-    dhw_total.to_netcdf('static/dhw_total.nc',mode='w-')
-    sst_current.to_netcdf('static/sst_current.nc',mode='w-')
+    dhw_total.to_netcdf('static/dhw_total.nc',mode='w')
+    sst_current.to_netcdf('static/sst_current.nc',mode='w')
     print("NetCDF files saved")
     
     stats = {
