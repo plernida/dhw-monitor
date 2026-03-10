@@ -18,6 +18,13 @@ jobs:
         python-version: '3.11'
     - run: pip install -r requirements.txt
     - run: python daily_dhw.py
+    - uses: actions/upload-artifact@v4
+    if: always()
+    with:
+      name: dhw-files-${{ github.run_id }}
+      path: static/
+    
+    # UPDATED: Commit ALL generated files
     - uses: stefanzweifel/git-auto-commit-action@v5
       with:
         commit_message: 'Daily DHW/SST PNGs {{date}}'
