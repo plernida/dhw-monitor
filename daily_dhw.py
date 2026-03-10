@@ -295,6 +295,8 @@ try:
     
     dhwweeks, dhwtotal, sstweeks = calculate_dhw(sststack, MMM)
     print("DHW calculated")
+    bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
+    update_bleaching_history(today, bleaching_area)
     
     sstcurrent = sststack[:, :, -1]
     
@@ -315,8 +317,7 @@ try:
     print("stats.json saved")
     
     # plotting code...
-    bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
-    update_bleaching_history(today, bleaching_area)
+
     # Produce PNGs
     
     plot_dhw_map(lon, lat, dhw_total, f"static/{today}_dhw.png")
