@@ -286,42 +286,55 @@ def update_bleaching_history(date, value):
 
 
 
-# Main daily run
 thtz = pytz.timezone('Asia/Bangkok')
-today = datetime.now(thtz).date() - timedelta(days=3)  # Your app's target
+today = datetime.now(thtz).date() - timedelta(days=2)
 
-sst_stack, time_list, lat, lon = download_latest_sst(today)
-dhw_weeks, dhw_total, _ = calculate_dhw(sst_stack, MMM)
-sst_current = sst_stack[:, :, -1]
+try:
+    sststack, timelist, lat, lon = downloadlatestsst(today)
+    print("SST downloaded successfully")
+    
+    dhwweeks, dhwtotal, sstweeks = calculate_dhw(sststack, MMM)
+    print("DHW calculated")
+    
+    sstcurrent = sststack[:, :, -1]
+    
+    os.makedirs('static', exist_ok=True)
+    dhwtotal.to_netcdf('static/dhw_total.nc')
+    sstcurrent.to_netcdf('static/sst_current.nc')
+    print("NetCDF files saved")
+    
+    stats = {
+        'date': today.strftime('%Y-%m-%d'),
+        'max_dhw': float(dhwtotal.max()),
+        'avg_sst': round(float(np.nanmean(sstcurrent)), 2),
+        'alertarea': round(float((dhwtotal >= 4).sum() / dhwtotal.size * 100), 1),
+        'bleachingarea': round(float((dhwtotal >= 5).sum() / dhwtotal.size * 100), 2)
+    }
+    with open('static/dhwstats.json', 'w') as f:
+        json.dump(stats, f)
+    print("stats.json saved")
+    
+    # plotting code...
+    bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
+    update_bleaching_history(today, bleaching_area)
+    # Produce PNGs
+    
+    plot_dhw_map(lon, lat, dhw_total, f"static/{today}_dhw.png")
+    create_sst_map_mapbox(lon,lat,sst_current,f"static/{today}_sst.png")
+    date_labels = []
+    for week in range(6):
+        end_day = today - timedelta(days=week*5)
+        start_day = end_day - timedelta(days=4)
+        date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
+    
+    for week_idx in range(6):
+        plot_dhw_week(lon, lat, dhw_weeks[week_idx],date_labels[week_idx], f"static/{today}_week_{week_idx+1:02d}.png")
+except Exception as e:
+    print(f"Script failed: {e}")
+    import traceback
+    traceback.print_exc()
 
-os.makedirs("static", exist_ok=True)
-dhw_total.to_netcdf("static/dhw_total.nc")
-sst_current.to_netcdf("static/sst_current.nc")
 
-stats = {
-"date": today.strftime("%Y-%m-%d"),
-"max_dhw": float(dhw_total.max()),
-"avg_sst": round(float(np.nanmean(sst_current)), 2),
-"alert_area": round(float((dhw_total >= 4).sum() / dhw_total.size * 100), 1),
-"bleaching_area": round(float((dhw_total >= 5).sum() / dhw_total.size * 100), 2)
-}
-with open("static/dhw_stats.json", "w") as f:
-    json.dump(stats, f)
-
-bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
-update_bleaching_history(today, bleaching_area)
-# Produce PNGs
-
-plot_dhw_map(lon, lat, dhw_total, f"static/{today}_dhw.png")
-create_sst_map_mapbox(lon,lat,sst_current,f"static/{today}_sst.png")
-date_labels = []
-for week in range(6):
-    end_day = today - timedelta(days=week*5)
-    start_day = end_day - timedelta(days=4)
-    date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
-
-for week_idx in range(6):
-    plot_dhw_week(lon, lat, dhw_weeks[week_idx],date_labels[week_idx], f"static/{today}_week_{week_idx+1:02d}.png")
 
 #plt.figure(figsize=(12, 8))
 #plt.contourf(np.meshgrid(lon, lat), sst_current, cmap='jet', vmin=25, vmax=32)
