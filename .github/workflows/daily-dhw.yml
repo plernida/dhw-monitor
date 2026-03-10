@@ -8,7 +8,7 @@ jobs:
   generate:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # For git-auto-commit
+      contents: write
     steps:
     - uses: actions/checkout@v4
       with:
@@ -18,11 +18,13 @@ jobs:
         python-version: '3.11'
     - run: pip install -r requirements.txt
     - run: python daily_dhw.py
-    - run: ls -lh static
     
-    # UPDATED: Commit ALL generated files
+    - uses: actions/upload-artifact@v4
+      with:
+        name: dhw-files-${{ github.run_id }}
+        path: static/
+    
     - uses: stefanzweifel/git-auto-commit-action@v5
       with:
-        commit_message: 'Daily DHW data'
+        commit_message: 'Daily DHW/SST files {{date}}'
         file_pattern: static/**
-
