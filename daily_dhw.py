@@ -310,8 +310,8 @@ try:
 
     dhw_total.name = "dhw"
     sst_current.name = "sst"
-    dhw_total.to_netcdf('/static/dhw_total.nc',engine='scipy')
-    sst_current.to_netcdf('/static/sst_current.nc',engine='scipy')
+    dhw_total.to_netcdf('static/dhw_total.nc',engine='scipy')
+    sst_current.to_netcdf('static/sst_current.nc',engine='scipy')
     print("NetCDF files saved")
     
     stats = {
