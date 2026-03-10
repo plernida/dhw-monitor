@@ -327,9 +327,9 @@ try:
     # plotting code...
 
     # Produce PNGs
+    plot_dhw_map(lon, lat, dhw_total, f"static/{today.strftime('%Y-%m-%d')}_dhw.png")
+    create_sst_map_mapbox(lon, lat, sst_current, f"static/{today.strftime('%Y-%m-%d')}_sst.png")
     
-    plot_dhw_map(lon, lat, dhw_total, f"static/{today}_dhw.png")
-    create_sst_map_mapbox(lon,lat,sst_current,f"static/{today}_sst.png")
     date_labels = []
     for week in range(6):
         end_day = today - timedelta(days=week*5)
@@ -337,7 +337,29 @@ try:
         date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
     
     for week_idx in range(6):
-        plot_dhw_week(lon, lat, dhw_weeks[week_idx],date_labels[week_idx], f"static/{today}_week_{week_idx+1:02d}.png")
+        plot_dhw_week(lon, lat, dhw_weeks[week_idx], date_labels[week_idx], 
+                     f"static/{today.strftime('%Y-%m-%d')}_week_{week_idx+1:02d}.png")
+    
+    bleaching_area = (xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100).item()
+    update_bleaching_history(today, bleaching_area)
+    
+    print("All files generated successfully!")
+    
+except Exception as e:
+    print(f"Error in main run: {e}")
+    import traceback
+    traceback.print_exc()
+    
+    #plot_dhw_map(lon, lat, dhw_total, f"static/{today}_dhw.png")
+    #create_sst_map_mapbox(lon,lat,sst_current,f"static/{today}_sst.png")
+    #date_labels = []
+    #for week in range(6):
+    #    end_day = today - timedelta(days=week*5)
+    #    start_day = end_day - timedelta(days=4)
+    #    date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
+    
+    #for week_idx in range(6):
+    #    plot_dhw_week(lon, lat, dhw_weeks[week_idx],date_labels[week_idx], f"static/{today}_week_{week_idx+1:02d}.png")
 
 
 
