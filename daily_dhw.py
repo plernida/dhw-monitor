@@ -308,7 +308,7 @@ try:
     stats = {
         'date': today.strftime('%Y-%m-%d'),
         'max_dhw': float(dhw_total.max()),
-        'avg_sst': round(float(np.nanmean(sst_current)), 2),
+        'avg_sst': round(float(np.nanmean(sst_current)), 3),
         'alertarea': round(float((dhw_total >= 4).sum() / dhw_total.size * 100), 1),
         'bleachingarea': round(float((dhw_total >= 5).sum() / dhw_total.size * 100), 2)
     }
