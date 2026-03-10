@@ -287,7 +287,7 @@ def update_bleaching_history(date, value):
 
 
 thtz = pytz.timezone('Asia/Bangkok')
-today = datetime.now(thtz).date() - timedelta(days=3)
+today = datetime.now(thtz).date() - timedelta(days=2)
 
 try:
     sst_stack, time_list, lat, lon = download_latest_sst(today)
