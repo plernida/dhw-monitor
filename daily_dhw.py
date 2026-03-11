@@ -307,10 +307,10 @@ try:
         if os.path.exists(nc_path):
             os.remove(nc_path)
 
-    dhw_total.name = "dhw"
-    sst_current.name = "sst"
-    dhw_total.to_netcdf('static/dhw_total.nc',engine='scipy')
-    sst_current.to_netcdf('static/sst_current.nc',engine='scipy')
+    dhw_total
+    sst_current
+    dhw_total.to_netcdf('static/dhw_total.nc')
+    sst_current.to_netcdf('static/sst_current.nc')
     print("NetCDF files saved")
     
     stats = {
