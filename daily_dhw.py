@@ -299,18 +299,15 @@ try:
     
     sst_current = sst_stack[:, :, -1]
     
-    os.makedirs('static', exist_ok=True)
+    os.makedirs("static", exist_ok=True)
     
-    # Safe NetCDF overwrite
-    for nc_file in ['dhw_total.nc', 'sst_current.nc']:
-        nc_path = f'static/{nc_file}'
-        if os.path.exists(nc_path):
-            os.remove(nc_path)
-
-
-    dhw_total.to_netcdf('static/dhw_total.nc')
-    sst_current.to_netcdf('static/sst_current.nc')
-    print("NetCDF files saved")
+    for nc_file, ds in [("dhw_total.nc", dhw_total),
+                        ("sst_current.nc", sst_current)]:
+        tmp = os.path.join("static", f"tmp_{nc_file}")
+        final = os.path.join("static", nc_file)
+    
+        ds.to_netcdf(tmp)          # write fresh file
+        os.replace(tmp, final) 
     
     stats = {
         'date': today.strftime('%Y-%m-%d'),
