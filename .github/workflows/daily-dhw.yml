@@ -1,7 +1,7 @@
 name: Daily DHW PNGs
 on:
   schedule:
-    - cron: '0 0 * * *'  # 7AM BKK daily
+    - cron: '0 3 * * *'  # 7AM BKK daily
   workflow_dispatch:  # Manual trigger
 
 jobs:
@@ -17,6 +17,10 @@ jobs:
       with:
         python-version: '3.11'
     - run: pip install -r requirements.txt
+    - name: Clean static (force fresh files)
+      run: |
+        rm -f static/*.nc static/*.json static/*.png
+        mkdir -p static
     - run: python daily_dhw.py
     
     - uses: actions/upload-artifact@v4
