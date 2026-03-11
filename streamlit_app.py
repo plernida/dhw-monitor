@@ -19,7 +19,6 @@ import requests
 from netCDF4 import Dataset
 import tempfile
 import os
-import glob
 import json
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
@@ -34,35 +33,8 @@ from datetime import timedelta
 import warnings
 warnings.filterwarnings('ignore')
 
-font_path = "static/Kanit-Regular.ttf"
+plt.rcParams['font.family'] = 'Kanit'
 
-if os.path.exists(font_path):
-    fm.fontManager.addfont(font_path)
-    plt.rcParams['font.family'] = ['Kanit','DejaVu Sans','Arial']
-
-@st.cache_data(ttl=600)
-def get_static_pngs(pattern):
-    """Get sorted PNGs matching pattern (newest first)."""
-    files = glob.glob(pattern)
-    if not files:
-        return []
-    # Sort by mod time, newest first
-    sorted_files = sorted(files, key=os.path.getmtime, reverse=True)
-    return sorted_files
-
-def display_png_gallery(pngs, captions=None, cols=4):
-    """Display PNGs in responsive columns."""
-    if not pngs:
-        st.warning("No PNGs found.")
-        return
-    for i in range(0, len(pngs), cols):
-        col_batch = st.columns(min(cols, len(pngs) - i))
-        for j, col in enumerate(col_batch):
-            idx = i + j
-            if idx < len(pngs):
-                png_path = pngs[idx]
-                caption = captions[idx] if captions and idx < len(captions) else os.path.basename(png_path)
-                col.image(png_path, caption=caption, width='stretch')
 #coast_gdf = gpd.read_file("ne_10m_coastline.shp").to_crs('EPSG:4326')  # Ensure CRS is EPSG:4326
 #coast_geojson = coast_gdf.__geo_interface__
 cmap_full = plt.get_cmap('Spectral_r')#nipy_spectral
@@ -78,8 +50,10 @@ colors_rgb = [
     '#A05024',     # Dark brown
     '#F000F0'      # Dark brown
 ]
-cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=7)
+cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=256)
 
+
+# Page configuration
 st.set_page_config(
     page_title="DHW Coral Bleaching Monitor",
     page_icon="🌊",
@@ -87,6 +61,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Custom CSS for better styling
 st.markdown("""
     <style>
     .main {
@@ -98,13 +73,17 @@ st.markdown("""
     .stPlotlyChart {
         background-color: white;
         border-radius: 5px;
-        padding: 3 px;
+        padding: 10px;
     }
-
     </style>
     """, unsafe_allow_html=True)
 
-
+# Title and description
+st.title("🌊 แผนที่อุณหภูมิน้ำทะเล Degree Heating Weeks (DHW) Coral Bleaching Monitor")
+st.markdown("""
+ติดตามอุณหภูมิน้ำทะเลที่ส่งผลต่อการฟอกขาวของปะการัง Monitor sea surface temperature anomalies and coral bleaching risk in Thai waters.
+Data source: GHRSST satellite observations (90-110°E, 0-14.5°N)
+""")
 
 # Sidebar controls
 st.sidebar.header("⚙️ Auto Daily Update")
@@ -114,17 +93,17 @@ now = datetime.now(th_tz)
 target_date = now.date() - timedelta(days=2)
 
 
-MIN_DATE = datetime(1985, 1, 1)
+MIN_DATE = datetime(1981, 1, 1)
 MAX_DATE = target_date
 
 st.sidebar.success(f"📅 **Latest Analysis:** {target_date.strftime('%Y-%m-%d')}")
-st.sidebar.info("✅ CRW SST 5km: 1985-01-01 → present")
+st.sidebar.info("✅ NOAA OISST v2.1: 1981-09-01 → present")
 
 analysis_date = st.sidebar.date_input("🎯 Analysis Center Date",
     value=target_date,
     min_value=MIN_DATE,
     max_value=MAX_DATE,
-    help="Select center date → auto 30-day backward analysis")
+    help="Select center date → auto 12-day backward analysis")
 
 
 process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
@@ -133,78 +112,94 @@ process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 
 # NOAA OISST base URL pattern
 #NOAA_BASE_URL = "https://www.ncei.noaa.gov/thredds/fileServer/OisstBase/NetCDF/V2.1/AVHRR/"
-#NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBase/NetCDF/V2.1/AVHRR/"
-CRW_ERDDAP_BASE = "https://coastwatch.noaa.gov/erddap/griddap/noaacrwsstDaily"
+NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBase/NetCDF/V2.1/AVHRR/"
 dayback=30
 @st.cache_data(ttl=3600)  # Cache for 1 hour
-def download_latest_sst(enddate, days_back=30):
+def download_latest_sst(enddate, days_back=dayback):
+    sstdata = []
+    time_list = []
+    lat_ref = None
+    lon_ref = None    
 
-    thtz = pytz.timezone('Asia/Bangkok')
-    now_date = datetime.now(thtz).date()
+    PRELIM_WINDOW_DAYS = 14 # Relative to NOW (not enddate)
+    now_date = datetime.now(pytz.timezone('Asia/Bangkok')).date()
+    
+    for i in range(days_back):
+        target_date = enddate - timedelta(days=i)
+        yyyymm = target_date.strftime('%Y%m')
+        datestr = target_date.strftime('%Y%m%d')
+        iso_date = target_date.strftime('%Y-%m-%d')
 
-    # CRW usually lags ~2 days
-    latest_available = now_date - timedelta(days=2)
-
-    if enddate > latest_available:
-        enddate = latest_available
-
-    start_date = enddate - timedelta(days=days_back - 1)
-
-    start_time = start_date.strftime('%Y-%m-%dT12:00:00Z')
-    end_time = enddate.strftime('%Y-%m-%dT12:00:00Z')
-
-    url = (
-        f"{CRW_ERDDAP_BASE}.nc?"
-        f"analysed_sst"
-        f"[({start_time}):1:({end_time})]"
-        f"[(0.025):1:(14.075)]"
-        f"[(90.025):1:(110.025)]"
-    )
-
-    #print("Downloading:", url)
-
-    r = requests.get(url, stream=True, timeout=120)
-    r.raise_for_status()
-
-    local_file = "latest_sst.nc"
-
-    with open(local_file, "wb") as f:
-        for chunk in r.iter_content(chunk_size=1024*1024):
-            f.write(chunk)
-
-    #print("Download complete")
-
-    ds = xr.open_dataset(local_file)
-
-    # convert Kelvin → Celsius
-    #ds["analysed_sst"] = ds["analysed_sst"] - 273.15
-
-    # rename to match AVHRR variable naming if needed
-    ds = ds.rename({
-        "latitude": "lat",
-        "longitude": "lon",
-        "analysed_sst": "sst"
-    })
-
-    # reorder dimensions to match your DHW code
-    ds = ds.transpose("lat", "lon", "time")
-    ds = ds.sel(lon=slice(90,110))
-
-    sst_stack = ds["sst"].values
-    lat_ref = ds["lat"].values
-    lon_ref = ds["lon"].values
-    time_list = ds["time"].values
-
+        age_days = (now_date - target_date).days
+        # Preliminary: if target_date is within 14 days of CURRENT now_date
+        if 0 <= age_days <= PRELIM_WINDOW_DAYS:
+        
+            filename = f"oisst-avhrr-v02r01.{datestr}_preliminary.nc"
+        else:
+            filename = f"oisst-avhrr-v02r01.{datestr}.nc"
+        
+        url = (
+            f"{NOAA_NCSS_BASE}{yyyymm}/{filename}?"
+            f"var=sst&north=14.500&west=90.000&east=110.000&south=0.000&"
+            f"horizStride=1&time_start={iso_date}T12:00:00Z&time_end={iso_date}T12:00:00Z&"
+            f"accept=netcdf3"
+        )
+        
+        # Silent download + error handling (as before)
+        try:
+            resp = requests.get(url, timeout=30)
+            if resp.status_code == 200:
+                with Dataset('in-memory', mode='r', memory=resp.content) as nc:
+                    sst_raw = nc.variables['sst'][0, :, :]
+                    sst_raw = np.squeeze(sst_raw)# (lat, lon)
+                    subset_lat = nc.variables['lat'][:]
+                    subset_lon = nc.variables['lon'][:]
+                    
+                    # Scale and mask
+                    
+                    
+                # Keep reference grid from first successful file
+                if lat_ref is None:
+                    lat_ref = subset_lat
+                    lon_ref = subset_lon
+                else:
+                    # Optional: check that all days use same grid
+                    assert np.array_equal(lat_ref, subset_lat)
+                    assert np.array_equal(lon_ref, subset_lon)
+                    
+                # Scale and mask
+                sst_scaled = np.where(sst_raw < -100, np.nan, sst_raw)
+                
+                sstdata.append(sst_scaled)
+               
+            else:
+                
+            # same shape as sst_raw: (nlat, nlon)
+                if lat_ref is not None and lon_ref is not None:
+                    sstdata.append(np.full((len(lat_ref), len(lon_ref)), np.nan))
+                else:
+                    sstdata.append(None)
+        except Exception:
+            if lat_ref is not None and lon_ref is not None:
+                sstdata.append(np.full((len(lat_ref), len(lon_ref)), np.nan))
+            else:
+                sstdata.append(None)
+        time_list.append(target_date)
+    if lat_ref is None or lon_ref is None:
+        raise RuntimeError("No successful downloads; cannot build SST array.")   
+    for idx, v in enumerate(sstdata):
+        if v is None:
+            sstdata[idx] = np.full((len(lat_ref), len(lon_ref)), np.nan)
+    sst_stack = np.stack(sstdata, axis=2)
     return sst_stack, time_list, lat_ref, lon_ref
-
 
 
 # Coordinate data
 @st.cache_data
 def create_coordinates():
     """Create coordinate grid for Thai region"""
-    lon = np.linspace(90.025, 109.975, 400)
-    lat = np.linspace(0.025, 14.075, 282)
+    lon = np.linspace(90.125, 110.125, 81)
+    lat = np.linspace(0.125, 14.625, 59)
     LON, LAT = np.meshgrid(lon, lat)
     return LON, LAT, lon, lat
 
@@ -328,7 +323,7 @@ def plot_dhw_week(lon, lat, dhw_total, title):
     ax.xaxis.set_minor_locator(MultipleLocator(1))
     ax.yaxis.set_minor_locator(MultipleLocator(1))
     ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
-                  bottom=True,top=True,right=True,labelsize=15,grid_color='black',grid_linewidth=0.5)
+                  bottom=True,top=True,right=True,labelsize=10,grid_color='black',grid_linewidth=0.5)
     # Custom legend patches + labels matching your markdown
     legend_elements = [
         mpatches.Patch(color=colors_rgb[0], label='No stress'),
@@ -343,7 +338,7 @@ def plot_dhw_week(lon, lat, dhw_total, title):
     #plt.savefig(filename, dpi=150, bbox_inches='tight')
     return fig
     
-def plot_cartopy_map(lon, lat, dhw_total, title):
+def plot_cartopy_map(lon, lat, dhw_data, title):
 
     lon2d, lat2d = np.meshgrid(lon, lat)
       # sample DHW
@@ -378,24 +373,19 @@ def plot_cartopy_map(lon, lat, dhw_total, title):
     ax.xaxis.set_minor_locator(MultipleLocator(1))
     ax.yaxis.set_minor_locator(MultipleLocator(1))
     ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
-                  bottom=True,top=True,right=True,labelsize=8,grid_color='black',grid_linewidth=0.5)
+                  bottom=True,top=True,right=True,labelsize=6,grid_color='black',grid_linewidth=0.5)
     # Custom legend patches + labels matching your markdown
-    ax.annotate(f"Daily  \n{title[7:17]}",xy=(1, 1), xycoords='axes fraction',fontsize=10,fontweight='bold',
-                xytext=(-25,-10), textcoords='offset points',
-                ha='right', va='top')
     legend_elements = [
         mpatches.Patch(color=colors_rgb[0], label='No stress'),
         mpatches.Patch(color=colors_rgb[1], label='Watch'),
         mpatches.Patch(color=colors_rgb[2], label='Warning'),
         mpatches.Patch(color=colors_rgb[3], label='Alert 1'),
-        mpatches.Patch(color=colors_rgb[4], label='Al 2'),
-        mpatches.Patch(color=colors_rgb[5], label='Al 3'),
-        mpatches.Patch(color=colors_rgb[6], label='Al 4')# Use darkest for 6+
+        mpatches.Patch(color=colors_rgb[4], label='Alert 2')  # Use darkest for 6+
     ]
-    ax.legend(handles=legend_elements,ncol=7,  # Horizontal (5 columns)
+    ax.legend(handles=legend_elements,ncol=5,  # Horizontal (5 columns)
            loc='upper center', 
            bbox_to_anchor=(0.5, -0.05),
-          fontsize=8, frameon=True, fancybox=True, shadow=True)
+          fontsize=6, frameon=True, fancybox=True, shadow=True)
     
     plt.tight_layout()
     
@@ -432,307 +422,268 @@ def create_sst_map_mapbox(lon, lat, sstdata, title):
     ax.xaxis.set_minor_locator(MultipleLocator(1))
     ax.yaxis.set_minor_locator(MultipleLocator(1))
     ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
-                  bottom=True,top=True,right=True,labelsize=8,grid_color='black',grid_linewidth=0.5)
+                  bottom=True,top=True,right=True,labelsize=6,grid_color='black',grid_linewidth=0.5)
     cbar=fig.colorbar(im,ax=ax,orientation='horizontal', shrink=0.8, pad=0.05)
     cbar.set_ticks(np.arange(24,34.1,1))
-    cbar.set_label('°C',fontsize=8)
-    cbar.ax.tick_params(labelsize=8)
-    ax.annotate(f"Sea Surface Temperatures \n{title[7:17]}",xy=(1, 1), xycoords='axes fraction',fontsize=15,fontweight='bold',
-            xytext=(-25,-10), textcoords='offset points',
-            ha='right', va='top')
+    cbar.set_label('°C',fontsize=6)
+    cbar.ax.tick_params(labelsize=6)
     #cbar.mappable.set_clim(23, 35)
     plt.tight_layout()
 
 
     return fig
 
-def update_bleaching_history(date, value):
 
-    os.makedirs("static", exist_ok=True)
-    filepath = "static/bleaching_history.json"
 
-    # โหลด history เดิม
-    if os.path.exists(filepath):
-        with open(filepath, "r") as f:
-            history = json.load(f)
-    else:
-        history = {}
-
-    # บันทึกค่าของวันนี้
-    history[date.strftime("%Y-%m-%d")] = float(value)
-
-    # save กลับ
-    with open(filepath, "w") as f:
-        json.dump(history, f, indent=2)
-
-def get_previous_bleaching(date):
-
-    filepath = "static/bleaching_history.json"
-
-    if not os.path.exists(filepath):
-        return None
-
-    with open(filepath, "r") as f:
-        history = json.load(f)
-
-    yesterday = (date - timedelta(days=1)).strftime("%Y-%m-%d")
-
-    return history.get(yesterday)
-    
 # Main processing
-#if process_button:
-enddate = analysis_date
-thtz = pytz.timezone('Asia/Bangkok')
-datedhw_png = f"static/{enddate.strftime('%Y-%m-%d')}_dhw.png"
-datesst_png = f"static/{enddate.strftime('%Y-%m-%d')}_sst.png"
-#with st.spinner('Processing DHW analysis...'):
-    # Check for pre-generated PNGs (from daily Actions)
+if process_button:
+    with st.spinner('Processing DHW analysis...'):
+        # Use SELECTED date as analysis center
 
-    
+        enddate = analysis_date
+        # Download 48 days BACK from analysis_date
+        TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
+        # Get coordinates
+        LON, LAT, lon, lat = create_coordinates()
 
-if os.path.exists(datedhw_png) and os.path.exists(datesst_png) and os.path.exists('static/dhw_stats.json'):
-    with open("static/dhw_stats.json") as f:
-        stats = json.load(f)
-    dhw_total = xr.open_dataset("static/dhw_total.nc")
-    sst_current = xr.open_dataset("static/sst_current.nc")
-else:
-# Only download if needed
-    try:
-        with st.spinner("Processing DHW analysis..."):
-            baseline = xr.open_dataset('crw_mmm_sst_thailand_1985-2025.nc') # read array
-            MMM = baseline['sst'].sel(lon=slice(90,110),lat=slice(14.1,0))
-            TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
+        # Check for pre-generated PNGs (from daily Actions)
+        datedhw_png = f"static/{enddate.strftime('%Y-%m-%d')}_dhw.png"
+        datesst_png = f"static/{enddate.strftime('%Y-%m-%d')}_sst.png"
         
-            # calculate DHW
-            dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
-            LON, LAT, lon, lat = create_coordinates()
-            sst_current = TSeries[:, :, -1]
+        baseline = xr.open_dataset('mmm_sst_iowp_1981-2020.nc') # read array
+        MMM = baseline['sst'].sel(lon=slice(90,110.3),lat=slice(0,14.7)) # Add noise if desired
 
-# Use SELECTED date as analysis center
-
-
-# Download 48 days BACK from analysis_date
-#TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
-# Get coordinates
-
-
-
-
-
-
-# Calculate DHW
-#dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
-#dhw_weeks = xr.DataArray(dhw_weeks, dims=('week', 'lat', 'lon'))
-#sst_weeks = xr.DataArray(sst_weeks, dims=('week', 'lat', 'lon'))
-# Current SST
-
-
-# Success message
-#st.success("✅ Data processed successfully!")
-
-
-
-# Display statistics
-
+        # Calculate DHW
+        dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
+        #dhw_weeks = xr.DataArray(dhw_weeks, dims=('week', 'lat', 'lon'))
+        #sst_weeks = xr.DataArray(sst_weeks, dims=('week', 'lat', 'lon'))
+        # Current SST
+        sst_current = TSeries[:, :, -1]
+        
+        # Success message
+        st.success("✅ Data processed successfully!")
+        
+        # Display statistics
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            if enddate == datetime.now(thtz).date() - timedelta(days=2):
-                st.metric("Max DHW", f"{stats['max_dhw']} weeks")
-            else:
-                st.metric("Max DHW", f"{(dhw_total.max().values)} weeks")
+            st.metric("Max DHW", f"{(dhw_total.max().values)} weeks")
         with col2:
-            if enddate == datetime.now(thtz).date() - timedelta(days=2):
-                st.metric("AVG SST", f"{stats['avg_sst']} °C")       
-            else:
-                st.metric("Avg SST", f"{float(np.nanmean(sst_current)):.2f} °C")
+            st.metric("Avg SST", f"{float(np.nanmean(sst_current)):.2f} °C")
         with col3:
-            if enddate == datetime.now(thtz).date() - timedelta(days=2):
-                alert_area = stats['alert_area'] 
-            else:
-                alert_area = xr.where(dhw_total>=4,1,0).sum() / dhw_total.size * 100
-                st.metric("Alert Area", f"{alert_area:.1f}%")
+            alert_area = xr.where(dhw_total>=4,1,0).sum() / dhw_total.size * 100
+            st.metric("Alert Area", f"{alert_area:.1f}%")
         with col4:
-            if enddate == datetime.now(thtz).date() - timedelta(days=2):
-                bleaching_area = stats['bleaching_area']
-            else:
-                bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
-            previous_bleaching = get_previous_bleaching(enddate)
-            if previous_bleaching is not None:
-                delta_bleaching = bleaching_area - previous_bleaching
-            else:
-                delta_bleaching = 0
-            st.metric("Bleaching Risk", f"{bleaching_area:.1f}%", delta=f"{delta_bleaching:.1f}%", delta_color="inverse")
-    except Exception as e:
-        st.error(f"Live analysis failed (no sst.nc?): {str(e)}")
-        st.session_state['live_failed'] = True  
-# Tabs for different views
-tab1, tab2, tab3 = st.tabs(["📊 Accumulated DHW", "🗓️ Weekly Hotspots", "🌡️ Current SST"])
-
-with tab1:
-    st.subheader(f"Degree Heating Weeks - {enddate.strftime('%Y-%m-%d')}")
-    col_left, col_right = st.columns([80, 20])
-
-
-    # NEW LAYOUT: Portrait map LEFT + distribution/stats RIGHT
-
-    
-    with col_left:
-        dhw_png = get_static_pngs("static/*_dhw.png")  # Matches %Y-%m-%d_dhw.png
-        display_png_gallery(dhw_png)
-        # Live fallback if processed
-        if 'dhw_total' in locals() and not st.session_state.get('error_shown', False):
-        #if os.path.exists(datedhw_png):
-            #st.success(f"✅ Using cached DHW PNG for {enddate.strftime('%Y-%m-%d')}")
-            st.image(datedhw_png, caption="", width="stretch")
-        else:
-            #st.info("⚠️ No cached PNG found. Computing live...")
-        # Portrait DHW map (tall)
-            fig_dhw = st.pyplot(plot_cartopy_map(
-                lon, lat, dhw_total,
-                f"static/{enddate}_dhw.png"
-            ))
-        #st.plotly_chart(fig_dhw, width='stretch')
-                    
-    with col_right:
-        # Upper right: DHW Distribution
-        st.markdown("**📊 DHW Distribution**")
-        dhw_flat = dhw_total.values.flatten()   
-        dhw_counts = pd.Series(dhw_flat).value_counts().sort_index().reindex(range(7), fill_value=0)
+            bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
+            st.metric("Bleaching Risk", f"{bleaching_area:.1f}%", delta=f"{bleaching_area:.1f}%", delta_color="inverse")
         
-        fig_dist = go.Figure(data=go.Bar(
-            x=dhw_counts.index,
-            y=dhw_counts.values,
-            marker_color=['#4270C2','#D6D6D6','#EBDEC4','#E3CCD9','#C98C59','#A65959','#8C4D1A']
-        ))
-        fig_dist.update_layout(
-            height=350,
-            margin=dict(l=20, r=20, t=40, b=20),
-            title="Distribution by Level"
-        )
-        st.plotly_chart(fig_dist, width='stretch')
+        # Tabs for different views
+        tab1, tab2, tab3 = st.tabs(["📊 Accumulated DHW", "🗓️ Weekly Hotspots", "🌡️ Current SST"])
         
-        # Lower right: Risk Summary
-        st.markdown("**⚠️ Risk Summary**")
-        total_pixels = dhw_total.size
-        risk_data = {
-            'Alert Level': ['Safe (0)', 'Watch (1-2)', 'Alert (3-4)', 'Bleaching (≥5)'],
-            'Pixels': [
-                int(np.sum(dhw_total == 0)),
-                int(np.sum((dhw_total >= 1) & (dhw_total <= 2))),
-                int(np.sum((dhw_total >= 3) & (dhw_total <= 4))),
-                int(np.sum(dhw_total >= 5))
-            ],
-            '% Area': [
-                f"{np.sum(dhw_total == 0)/total_pixels*100:.1f}%",
-                f"{np.sum((dhw_total >= 1) & (dhw_total <= 2))/total_pixels*100:.1f}%",
-                f"{np.sum((dhw_total >= 3) & (dhw_total <= 4))/total_pixels*100:.1f}%",
-                f"{np.sum(dhw_total >= 5)/total_pixels*100:.1f}%"
-            ]
-        }
-        risk_df = pd.DataFrame(risk_data)
-        st.dataframe(risk_df, width='stretch', hide_index=True)
+        with tab1:
+            st.subheader(f"Degree Heating Weeks - {enddate.strftime('%Y-%m-%d')}")
+       
 
-with tab2:
-    st.subheader("Weekly Hotspot Analysis")
+            # NEW LAYOUT: Portrait map LEFT + distribution/stats RIGHT
+            col_left, col_right = st.columns([60, 40])
+            
+            with col_left:
+                if os.path.exists(datedhw_png):
+                    #st.success(f"✅ Using cached DHW PNG for {enddate.strftime('%Y-%m-%d')}")
+                    st.image(datedhw_png, caption="Pre-generated DHW Map", use_column_width=True)
+                else:
+                    #st.info("⚠️ No cached PNG found. Computing live...")
+                # Portrait DHW map (tall)
+                    fig_dhw = st.pyplot(plot_cartopy_map(
+                        lon, lat, dhw_total,
+                        f"static/{enddate}_dhw.png"
+                    ))
+                #st.plotly_chart(fig_dhw, width='stretch')
+                            
+            with col_right:
+                # Upper right: DHW Distribution
+                st.markdown("**📊 DHW Distribution**")
+                dhw_flat = dhw_total.values.flatten()   
+                dhw_counts = pd.Series(dhw_flat).value_counts().sort_index()
+                
+                fig_dist = go.Figure(data=go.Bar(
+                    x=dhw_counts.index,
+                    y=dhw_counts.values,
+                    marker_color=['#4270C2','#D6D6D6','#EBDEC4','#E3CCD9','#C98C59','#A65959','#8C4D1A']
+                ))
+                fig_dist.update_layout(
+                    height=350,
+                    margin=dict(l=20, r=20, t=40, b=20),
+                    title="Distribution by Level"
+                )
+                st.plotly_chart(fig_dist, width='stretch')
+                
+                # Lower right: Risk Summary
+                st.markdown("**⚠️ Risk Summary**")
+                total_pixels = dhw_total.size
+                risk_data = {
+                    'Alert Level': ['Safe (0)', 'Watch (1-2)', 'Alert (3-4)', 'Bleaching (≥5)'],
+                    'Pixels': [
+                        int(np.sum(dhw_total == 0)),
+                        int(np.sum((dhw_total >= 1) & (dhw_total <= 2))),
+                        int(np.sum((dhw_total >= 3) & (dhw_total <= 4))),
+                        int(np.sum(dhw_total >= 5))
+                    ],
+                    '% Area': [
+                        f"{np.sum(dhw_total == 0)/total_pixels*100:.1f}%",
+                        f"{np.sum((dhw_total >= 1) & (dhw_total <= 2))/total_pixels*100:.1f}%",
+                        f"{np.sum((dhw_total >= 3) & (dhw_total <= 4))/total_pixels*100:.1f}%",
+                        f"{np.sum(dhw_total >= 5)/total_pixels*100:.1f}%"
+                    ]
+                }
+                risk_df = pd.DataFrame(risk_data)
+                st.dataframe(risk_df, width='stretch', hide_index=True)
+       
+        with tab2:
+            st.subheader("Weekly Hotspot Analysis")
+            
+            date_labels = []
+            datestr = enddate.strftime('%Y-%m-%d')
 
-    if 'dhw_total' in locals() and not st.session_state.get('error_shown', False):
-    
-        week_pngs = get_static_pngs("static/*_week_*.png")
-        display_png_gallery(week_pngs, cols=6)  # More cols for weeks
-    else:
-        date_labels = []
-        datestr = enddate.strftime('%Y-%m-%d')
-    
-    
-        for week in range(6):
-            end_day = enddate - timedelta(days=week*5)
-            start_day = end_day - timedelta(days=4)
-            date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
-        static_paths = [f"static/{datestr}_week_{i+1:02d}.png" for i in range(6)]
+
+            for week in range(6):
+                end_day = enddate - timedelta(days=week*5)
+                start_day = end_day - timedelta(days=4)
+                date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
+            static_paths = [f"static/{datestr}_week_{i+1:02d}.png" for i in range(6)]
+            
+            
+
+            for row in range(2):
+                cols = st.columns(3)
+                for col_idx in range(3):
+                    week_idx = row * 3 + col_idx
         
+                    with cols[col_idx]:
         
-    
-        for row in range(2):
-            cols = st.columns(3)
-            for col_idx in range(3):
-                week_idx = row * 3 + col_idx
-    
-                with cols[col_idx]:
-    
-                    # กรณีมีไฟล์ PNG
-                    if week_idx < len(static_paths) and os.path.exists(static_paths[week_idx]):
-                        st.image(
-                            static_paths[week_idx],
-                            caption="",#date_labels[week_idx],
-                            width="stretch"
-                        )
-                        
-                    # กรณีไม่มีไฟล์ → plot สด
-                    elif week_idx < len(dhw_weeks):
-                        fig = plot_dhw_week(
-                            lon,
-                            lat,
-                            dhw_weeks[week_idx],
-                            date_labels[week_idx]
-                        )
-                        st.pyplot(fig)
-                        plt.close(fig)
-                        
-    
-                    else:
-                        st.warning("⚠ No data available")
-
+                        # กรณีมีไฟล์ PNG
+                        if week_idx < len(static_paths) and os.path.exists(static_paths[week_idx]):
+                            st.image(
+                                static_paths[week_idx],
+                                caption="",#date_labels[week_idx],
+                                use_column_width=True
+                            )
+                            
+                        # กรณีไม่มีไฟล์ → plot สด
+                        elif week_idx < len(dhw_weeks):
+                            fig = plot_dhw_week(
+                                lon,
+                                lat,
+                                dhw_weeks[week_idx],
+                                date_labels[week_idx]
+                            )
+                            st.pyplot(fig)
+                            plt.close(fig)
+                            
         
-with tab3:
-    st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
-    col_left, col_right = st.columns([80, 20])
-    with col_left:
-        if 'dhw_total' in locals() and not st.session_state.get('error_shown', False):
-            sst_png = get_static_pngs("static/*_sst.png")  # Matches %Y-%m-%d_sst.png
-            display_png_gallery(sst_png)
-        #if os.path.exists(datesst_png):
-            #st.success(f"✅ Using cached SST PNG for {enddate.strftime('%Y-%m-%d')}")
-            st.image(datesst_png, caption="", width="stretch")
-        else:
-            #st.info("⚠️ No cached PNG found. Computing live...")
-        # SST map
-            fig_sst = st.pyplot(create_sst_map_mapbox(lon, lat, sst_current,
-                                    f"static/{enddate}_sst.png"))
-        #fig_sst.update_layout(height=800, margin=dict(l=50,r=20, t=50, b=50))
-        #st.plotly_chart(fig_sst, width='stretch')
-    with col_right:    
-    # Temperature statistics and distribution
-        st.markdown("**SST Statistics**")
-        sst_stats = {
-            'Metric': ['Mean', 'Median', 'Min', 'Max', 'Std Dev'],
-            'Value (°C)': [
-                f"{np.nanmean(sst_current):.2f}",
-                f"{np.nanmedian(sst_current):.2f}",
-                f"{np.nanmin(sst_current):.2f}",
-                f"{np.nanmax(sst_current):.2f}",
-                f"{np.nanstd(sst_current):.2f}"
-            ]
-        }
-        st.dataframe(pd.DataFrame(sst_stats), width='stretch', hide_index=True)
+                        else:
+                            st.warning("⚠ No data available")
+
+                
+        with tab3:
+            st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
+            col_left, col_right = st.columns([60,40])
+            with col_left:
+                if os.path.exists(datesst_png):
+                    st.success(f"✅ Using cached SST PNG for {enddate.strftime('%Y-%m-%d')}")
+                    st.image(datesst_png, caption="Pre-generated SST Map", use_column_width=True)
+                else:
+                    #st.info("⚠️ No cached PNG found. Computing live...")
+                # SST map
+                    fig_sst = st.pyplot(create_sst_map_mapbox(lon, lat, sst_current,
+                                            f"static/{enddate}_sst.png"))
+                #fig_sst.update_layout(height=800, margin=dict(l=50,r=20, t=50, b=50))
+                #st.plotly_chart(fig_sst, width='stretch')
+            with col_right:    
+            # Temperature statistics and distribution
+                st.markdown("**SST Statistics**")
+                sst_stats = {
+                    'Metric': ['Mean', 'Median', 'Min', 'Max', 'Std Dev'],
+                    'Value (°C)': [
+                        f"{np.nanmean(sst_current):.2f}",
+                        f"{np.nanmedian(sst_current):.2f}",
+                        f"{np.nanmin(sst_current):.2f}",
+                        f"{np.nanmax(sst_current):.2f}",
+                        f"{np.nanstd(sst_current):.2f}"
+                    ]
+                }
+                st.dataframe(pd.DataFrame(sst_stats), width='stretch', hide_index=True)
+            
+            
+                # Temperature distribution
+                fig_hist = go.Figure(data=go.Histogram(
+                    x=sst_current.flatten(),
+                    nbinsx=30,
+                    marker_color='rgb(55, 83, 109)'
+                ))
+                fig_hist.update_layout(
+                    title="SST Distribution",
+                    xaxis_title='Temperature (°C)',
+                    yaxis_title='Frequency',
+                    height=300
+                )
+                st.plotly_chart(fig_hist, width='stretch')
+
+else:
+    # Landing page
+    st.info("👈 Click 'Generate DHW Analysis' in the sidebar to begin")
     
+    # Instructions
+    with st.expander("📖 How to Use This Dashboard"):
+        st.markdown("""
+        ### Quick Start
+        1. Select your analysis date in the sidebar
+        2. Click **"Generate DHW Analysis"** button
+        3. Explore the three tabs:
+           - **Accumulated DHW**: See 6-week cumulative heat stress
+           - **Weekly Hotspots**: Week-by-week analysis
+           - **Current SST**: Temperature field and statistics
+        
+        ### Understanding DHW
+        **Degree Heating Weeks (DHW)** measures accumulated thermal stress on coral reefs:
+        - Each week where SST exceeds the climatological maximum (MMM + 1°C) adds 1 DHW
+        - Accumulated over 6 weeks (30 days)
+        - Critical thresholds:
+          - **0-2 weeks**: Low risk
+          - **3-4 weeks**: Bleaching Alert
+          - **5-6+ weeks**: Severe bleaching expected
+        
+        ### Data Source
+        - **Region**: Thai waters (90-110°E, 0-14.5°N)
+        - **Resolution**: ~0.25° (~25km)
+        - **Demo Mode**: Currently showing simulated data for demonstration
+        
+        ### For Production Use
+        Contact the developer to integrate your actual GHRSST NetCDF files.
+        """)
     
-        # Temperature distribution
-        fig_hist = go.Figure(data=go.Histogram(
-            x=sst_current.flatten(),
-            nbinsx=30,
-            marker_color='rgb(55, 83, 109)'
-        ))
-        fig_hist.update_layout(
-            title="SST Distribution",
-            xaxis_title='Temperature (°C)',
-            yaxis_title='Frequency',
-            height=300
-        )
-        st.plotly_chart(fig_hist, width='stretch')
+    # Sample visualization
+    with st.expander("🔬 About Coral Bleaching"):
+        st.markdown("""
+        ### What is Coral Bleaching?
+        Coral bleaching occurs when water is too warm, causing corals to expel the symbiotic algae 
+        (zooxanthellae) living in their tissues, turning them white.
+        
+        ### Why DHW Matters
+        - **Early Warning**: DHW provides advance notice of bleaching risk
+        - **Spatial Coverage**: Identifies regional hotspots
+        - **Management Tool**: Helps reef managers plan interventions
+        
+        ### Temperature Thresholds
+        - **MMM (Maximum Monthly Mean)**: Warmest month average
+        - **MMM + 1°C**: Bleaching threshold
+        - **Sustained exposure**: Multiple weeks above threshold causes severe damage
+        """)
 
-        # Tabs still show static PNGs above
-            # Skip to tabs or show message - don't crash
-       # continue  # Or handle gracefully
-# Flag for tabs        
-
-
+# Footer
+st.markdown("---")
+st.markdown("""
+<div style='text-align: center; color: gray;'>
+    <small>DHW Coral Bleaching Monitor | GHRSST Satellite Data | Built with Streamlit & Plotly</small><br>
+    <small>🌊 For coral reef conservation and marine science 🐠</small>
+</div>
+""", unsafe_allow_html=True)
