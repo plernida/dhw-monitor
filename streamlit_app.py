@@ -517,13 +517,13 @@ with st.spinner('Processing DHW analysis...'):
         if enddate == datetime.now(thtz).date() - timedelta(days=2):
             alert_area = stats['alert_area'] 
         else:
-            alert_area = xr.where(dhw_total>=4,1,0).sum() / dhw_total.size * 100
-            st.metric("Alert Area", f"{alert_area:.1f}%")
+            alert_area = (dhw_total>=4).sum() / dhw_total.size * 100
+        st.metric("Alert Area", f"{alert_area:.1f}%")
     with col4:
         if enddate == datetime.now(thtz).date() - timedelta(days=2):
             bleaching_area = stats['bleaching_area']
         else:
-            bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
+            bleaching_area = (dhw_total >= 5).sum() / dhw_total.size * 100
         previous_bleaching = get_previous_bleaching(enddate)
         if previous_bleaching is not None:
             delta_bleaching = bleaching_area - previous_bleaching
