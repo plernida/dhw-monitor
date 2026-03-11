@@ -39,7 +39,7 @@ plt.rcParams['font.family'] = 'Kanit'
 #coast_geojson = coast_gdf.__geo_interface__
 cmap_full = plt.get_cmap('Spectral_r')#nipy_spectral
 slice_start, slice_end = 0, 0.9
-colors = cmap_full(np.linspace(slice_start, slice_end, 256))
+colors = cmap_full(np.linspace(slice_start, slice_end, 7))
 spectral_slice = LinearSegmentedColormap.from_list('spectral_slice', colors)#'nipy_yellow_red
 colors_rgb = [
     '#C8FAFA',    # Blue
@@ -92,17 +92,17 @@ now = datetime.now(th_tz)
 target_date = now.date() - timedelta(days=2)
 
 
-MIN_DATE = datetime(1981, 1, 1)
+MIN_DATE = datetime(1985, 4, 1)
 MAX_DATE = target_date
 
 st.sidebar.success(f"📅 **Latest Analysis:** {target_date.strftime('%Y-%m-%d')}")
-st.sidebar.info("✅ NOAA OISST v2.1: 1981-09-01 → present")
+st.sidebar.info("✅ CRW SST 5km: 1985-01-01 → present")
 
 analysis_date = st.sidebar.date_input("🎯 Analysis Center Date",
     value=target_date,
     min_value=MIN_DATE,
     max_value=MAX_DATE,
-    help="Select center date → auto 12-day backward analysis")
+    help="Select center date → auto 30-day backward analysis")
 
 
 process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
@@ -465,22 +465,22 @@ with st.spinner('Processing DHW analysis...'):
     datesst_png = f"static/{enddate.strftime('%Y-%m-%d')}_sst.png"
     
 
-    #if os.path.exists(datedhw_png) and os.path.exists(datesst_png):
-    #    with open("static/dhw_stats.json") as f:
-    #        stats = json.load(f)
-        #dhw_total = xr.open_dataset("static/dhw_total.nc")
-        #sst_current = xr.open_dataset("static/sst_current.nc")
-    #else:
+    if enddate.strftime('%Y-%m-%d')==datetime.now(thtz).strftime('%Y-%m-%d'):
+        with open("static/dhw_stats.json") as f:
+            stats = json.load(f)
+        dhw_total = xr.open_dataset("static/dhw_total.nc")
+        sst_current = xr.open_dataset("static/sst_current.nc")
+    else:
     # Only download if needed
         
-    baseline = xr.open_dataset('crw_mmm_sst_thailand_1985-2025.nc') # read array
-    MMM = baseline['sst'].sel(lon=slice(90,110),lat=slice(14.1,0))
-    TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
-
-    # calculate DHW
-    dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
-    LON, LAT, lon, lat = create_coordinates()
-    sst_current = TSeries[:, :, -1]
+        baseline = xr.open_dataset('crw_mmm_sst_thailand_1985-2025.nc') # read array
+        MMM = baseline['sst'].sel(lon=slice(90,110),lat=slice(14.1,0))
+        TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
+    
+        # calculate DHW
+        dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
+        LON, LAT, lon, lat = create_coordinates()
+        sst_current = TSeries[:, :, -1]
         
     # Use SELECTED date as analysis center
 
