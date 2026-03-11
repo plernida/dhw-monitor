@@ -485,7 +485,7 @@ if os.path.exists(datedhw_png) and os.path.exists(datesst_png) and os.path.exist
 else:
 # Only download if needed
     try:
-        with st.spinnter("Processing DHW analysis..."):
+        with st.spinner("Processing DHW analysis..."):
             baseline = xr.open_dataset('crw_mmm_sst_thailand_1985-2025.nc') # read array
             MMM = baseline['sst'].sel(lon=slice(90,110),lat=slice(14.1,0))
             TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
