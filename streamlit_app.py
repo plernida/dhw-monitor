@@ -620,7 +620,3 @@ with st.spinner('Processing DHW analysis...'):
 
 
    
-    <small>DHW Coral Bleaching Monitor | GHRSST Satellite Data | Built with Streamlit & Plotly</small><br>
-    <small>🌊 For coral reef conservation and marine science 🐠</small>
-</div>
-""", unsafe_allow_html=True)
