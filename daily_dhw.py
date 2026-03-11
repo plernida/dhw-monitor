@@ -91,7 +91,7 @@ def download_latest_sst(enddate, days_back=30):
     ds = ds.rename({
         "latitude": "lat",
         "longitude": "lon",
-        "analysed_sst": "sst"
+        "CRW_SST": "sst"
     })
 
     # reorder dimensions to match your DHW code
