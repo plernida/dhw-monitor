@@ -38,11 +38,10 @@ colors_rgb = [
     '#A05024',     # Dark brown
     '#F000F0'      # Dark brown
 ]
-
 # Create custom colormap (N=256 for smooth gradient)
-cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=256)
+cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=7)
 # Your NOAA config
-CRW_ERDDAP_BASE = "https://coastwatch.noaa.gov/erddap/griddap/noaacrwsstDaily"
+CRW_ERDDAP_BASE = "https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW"
 baseline = xr.open_dataset('crw_mmm_sst_thailand_1985-2025.nc') # read array
 MMM = baseline['sst'].sel(lon=slice(90,110),lat=slice(14.1,0))
 
@@ -64,7 +63,7 @@ def download_latest_sst(enddate, days_back=30):
 
     url = (
         f"{CRW_ERDDAP_BASE}.nc?"
-        f"analysed_sst"
+        f"CRW_SST"
         f"[({start_time}):1:({end_time})]"
         f"[(0.025):1:(14.075)]"
         f"[(90.025):1:(110.025)]"
