@@ -505,7 +505,7 @@ else:
         else:
             st.warning("No static PNGs found in static/. Please generate some via GitHub Actions.")
         # Skip to tabs or show message - don't crash
-    continue  # Or handle gracefully
+   # continue  # Or handle gracefully
     
 # Use SELECTED date as analysis center
 
