@@ -39,6 +39,16 @@ if os.path.exists(font_path):
     fm.fontManager.addfont(font_path)
     plt.rcParams['font.family'] = ['Kanit','DejaVu Sans','Arial']
 
+@st.cache_data(ttl=300)  # Cache for 5 min
+def get_latest_static_png():
+    """Find the most recent PNG in static/ directory."""
+    pattern = "static/*.png"
+    png_files = glob.glob(pattern)
+    if not png_files:
+        return None
+    # Sort by modification time, newest first
+    latest_png = max(png_files, key=os.path.getmtime)
+    return latest_png
 #coast_gdf = gpd.read_file("ne_10m_coastline.shp").to_crs('EPSG:4326')  # Ensure CRS is EPSG:4326
 #coast_geojson = coast_gdf.__geo_interface__
 cmap_full = plt.get_cmap('Spectral_r')#nipy_spectral
@@ -459,235 +469,249 @@ def get_previous_bleaching(date):
 #if process_button:
 enddate = analysis_date
 thtz = pytz.timezone('Asia/Bangkok')
-
-with st.spinner('Processing DHW analysis...'):
+datedhw_png = f"static/{enddate.strftime('%Y-%m-%d')}_dhw.png"
+datesst_png = f"static/{enddate.strftime('%Y-%m-%d')}_sst.png"
+#with st.spinner('Processing DHW analysis...'):
     # Check for pre-generated PNGs (from daily Actions)
-    datedhw_png = f"static/{enddate.strftime('%Y-%m-%d')}_dhw.png"
-    datesst_png = f"static/{enddate.strftime('%Y-%m-%d')}_sst.png"
+
     
 
-    if os.path.exists(datedhw_png) and os.path.exists(datesst_png):
-        with open("static/dhw_stats.json") as f:
-            stats = json.load(f)
-        dhw_total = xr.open_dataset("static/dhw_total.nc")
-        sst_current = xr.open_dataset("static/sst_current.nc")
+if os.path.exists(datedhw_png) and os.path.exists(datesst_png) and os.path.exists('static/dhw_stats.json'):
+    with open("static/dhw_stats.json") as f:
+        stats = json.load(f)
+    dhw_total = xr.open_dataset("static/dhw_total.nc")
+    sst_current = xr.open_dataset("static/sst_current.nc")
+else:
+# Only download if needed
+    try:
+        with st.spinnter("Processing DHW analysis..."):
+            baseline = xr.open_dataset('crw_mmm_sst_thailand_1985-2025.nc') # read array
+            MMM = baseline['sst'].sel(lon=slice(90,110),lat=slice(14.1,0))
+            TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
+        
+            # calculate DHW
+            dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
+            LON, LAT, lon, lat = create_coordinates()
+            sst_current = TSeries[:, :, -1]
+    except Exception as e:
+        st.error(f"Live analysis failed (likely no sst.nc): {str(e)}")
+        latest_png = get_latest_static_png()
+        if latest_png:
+            st.info(f"Showing latest static map: {os.path.basename(latest_png)}")
+            st.image(latest_png, caption="Latest available DHW/SST map", use_column_width=True)
+            # Optionally load approximate stats from filename
+            date_str = os.path.basename(latest_png)[:10]  # e.g., '2026-03-09'
+            # Mock stats or load if you save JSON with same date
+        else:
+            st.warning("No static PNGs found in static/. Please generate some via GitHub Actions.")
+        # Skip to tabs or show message - don't crash
+        continue  # Or handle gracefully
+    
+# Use SELECTED date as analysis center
+
+
+# Download 48 days BACK from analysis_date
+#TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
+# Get coordinates
+
+
+
+
+
+
+# Calculate DHW
+#dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
+#dhw_weeks = xr.DataArray(dhw_weeks, dims=('week', 'lat', 'lon'))
+#sst_weeks = xr.DataArray(sst_weeks, dims=('week', 'lat', 'lon'))
+# Current SST
+
+
+# Success message
+#st.success("✅ Data processed successfully!")
+
+
+
+# Display statistics
+
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    if enddate == datetime.now(thtz).date() - timedelta(days=2):
+        st.metric("Max DHW", f"{stats['max_dhw']} weeks")
     else:
-    # Only download if needed
-        
-        baseline = xr.open_dataset('crw_mmm_sst_thailand_1985-2025.nc') # read array
-        MMM = baseline['sst'].sel(lon=slice(90,110),lat=slice(14.1,0))
-        TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
-    
-        # calculate DHW
-        dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
-        LON, LAT, lon, lat = create_coordinates()
-        sst_current = TSeries[:, :, -1]
-        
-    # Use SELECTED date as analysis center
+        st.metric("Max DHW", f"{(dhw_total.max().values)} weeks")
+with col2:
+    if enddate == datetime.now(thtz).date() - timedelta(days=2):
+        st.metric("AVG SST", f"{stats['avg_sst']} °C")       
+    else:
+        st.metric("Avg SST", f"{float(np.nanmean(sst_current)):.2f} °C")
+with col3:
+    if enddate == datetime.now(thtz).date() - timedelta(days=2):
+        alert_area = stats['alert_area'] 
+    else:
+        alert_area = xr.where(dhw_total>=4,1,0).sum() / dhw_total.size * 100
+        st.metric("Alert Area", f"{alert_area:.1f}%")
+with col4:
+    if enddate == datetime.now(thtz).date() - timedelta(days=2):
+        bleaching_area = stats['bleaching_area']
+    else:
+        bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
+    previous_bleaching = get_previous_bleaching(enddate)
+    if previous_bleaching is not None:
+        delta_bleaching = bleaching_area - previous_bleaching
+    else:
+        delta_bleaching = 0
+    st.metric("Bleaching Risk", f"{bleaching_area:.1f}%", delta=f"{delta_bleaching:.1f}%", delta_color="inverse")
 
-    
-    # Download 48 days BACK from analysis_date
-   #TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
-    # Get coordinates
-    
+# Tabs for different views
+tab1, tab2, tab3 = st.tabs(["📊 Accumulated DHW", "🗓️ Weekly Hotspots", "🌡️ Current SST"])
+
+with tab1:
+    st.subheader(f"Degree Heating Weeks - {enddate.strftime('%Y-%m-%d')}")
 
 
+    # NEW LAYOUT: Portrait map LEFT + distribution/stats RIGHT
+    col_left, col_right = st.columns([80, 20])
     
-
-
-    # Calculate DHW
-    #dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
-    #dhw_weeks = xr.DataArray(dhw_weeks, dims=('week', 'lat', 'lon'))
-    #sst_weeks = xr.DataArray(sst_weeks, dims=('week', 'lat', 'lon'))
-    # Current SST
-    
-    
-    # Success message
-    #st.success("✅ Data processed successfully!")
-
-    
-   
-    # Display statistics
-
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        if enddate == datetime.now(thtz).date() - timedelta(days=2):
-            st.metric("Max DHW", f"{stats['max_dhw']} weeks")
+    with col_left:
+        if os.path.exists(datedhw_png):
+            #st.success(f"✅ Using cached DHW PNG for {enddate.strftime('%Y-%m-%d')}")
+            st.image(datedhw_png, caption="", width="stretch")
         else:
-            st.metric("Max DHW", f"{(dhw_total.max().values)} weeks")
-    with col2:
-        if enddate == datetime.now(thtz).date() - timedelta(days=2):
-            st.metric("AVG SST", f"{stats['avg_sst']} °C")       
-        else:
-            st.metric("Avg SST", f"{float(np.nanmean(sst_current)):.2f} °C")
-    with col3:
-        if enddate == datetime.now(thtz).date() - timedelta(days=2):
-            alert_area = stats['alert_area'] 
-        else:
-            alert_area = xr.where(dhw_total>=4,1,0).sum() / dhw_total.size * 100
-            st.metric("Alert Area", f"{alert_area:.1f}%")
-    with col4:
-        if enddate == datetime.now(thtz).date() - timedelta(days=2):
-            bleaching_area = stats['bleaching_area']
-        else:
-            bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
-        previous_bleaching = get_previous_bleaching(enddate)
-        if previous_bleaching is not None:
-            delta_bleaching = bleaching_area - previous_bleaching
-        else:
-            delta_bleaching = 0
-        st.metric("Bleaching Risk", f"{bleaching_area:.1f}%", delta=f"{delta_bleaching:.1f}%", delta_color="inverse")
-    
-    # Tabs for different views
-    tab1, tab2, tab3 = st.tabs(["📊 Accumulated DHW", "🗓️ Weekly Hotspots", "🌡️ Current SST"])
-    
-    with tab1:
-        st.subheader(f"Degree Heating Weeks - {enddate.strftime('%Y-%m-%d')}")
-   
-
-        # NEW LAYOUT: Portrait map LEFT + distribution/stats RIGHT
-        col_left, col_right = st.columns([80, 20])
-        
-        with col_left:
-            if os.path.exists(datedhw_png):
-                #st.success(f"✅ Using cached DHW PNG for {enddate.strftime('%Y-%m-%d')}")
-                st.image(datedhw_png, caption="", width="stretch")
-            else:
-                #st.info("⚠️ No cached PNG found. Computing live...")
-            # Portrait DHW map (tall)
-                fig_dhw = st.pyplot(plot_cartopy_map(
-                    lon, lat, dhw_total,
-                    f"static/{enddate}_dhw.png"
-                ))
-            #st.plotly_chart(fig_dhw, width='stretch')
-                        
-        with col_right:
-            # Upper right: DHW Distribution
-            st.markdown("**📊 DHW Distribution**")
-            dhw_flat = dhw_total.values.flatten()   
-            dhw_counts = pd.Series(dhw_flat).value_counts().sort_index().reindex(range(7), fill_value=0)
-            
-            fig_dist = go.Figure(data=go.Bar(
-                x=dhw_counts.index,
-                y=dhw_counts.values,
-                marker_color=['#4270C2','#D6D6D6','#EBDEC4','#E3CCD9','#C98C59','#A65959','#8C4D1A']
+            #st.info("⚠️ No cached PNG found. Computing live...")
+        # Portrait DHW map (tall)
+            fig_dhw = st.pyplot(plot_cartopy_map(
+                lon, lat, dhw_total,
+                f"static/{enddate}_dhw.png"
             ))
-            fig_dist.update_layout(
-                height=350,
-                margin=dict(l=20, r=20, t=40, b=20),
-                title="Distribution by Level"
-            )
-            st.plotly_chart(fig_dist, width='stretch')
-            
-            # Lower right: Risk Summary
-            st.markdown("**⚠️ Risk Summary**")
-            total_pixels = dhw_total.size
-            risk_data = {
-                'Alert Level': ['Safe (0)', 'Watch (1-2)', 'Alert (3-4)', 'Bleaching (≥5)'],
-                'Pixels': [
-                    int(np.sum(dhw_total == 0)),
-                    int(np.sum((dhw_total >= 1) & (dhw_total <= 2))),
-                    int(np.sum((dhw_total >= 3) & (dhw_total <= 4))),
-                    int(np.sum(dhw_total >= 5))
-                ],
-                '% Area': [
-                    f"{np.sum(dhw_total == 0)/total_pixels*100:.1f}%",
-                    f"{np.sum((dhw_total >= 1) & (dhw_total <= 2))/total_pixels*100:.1f}%",
-                    f"{np.sum((dhw_total >= 3) & (dhw_total <= 4))/total_pixels*100:.1f}%",
-                    f"{np.sum(dhw_total >= 5)/total_pixels*100:.1f}%"
-                ]
-            }
-            risk_df = pd.DataFrame(risk_data)
-            st.dataframe(risk_df, width='stretch', hide_index=True)
-   
-    with tab2:
-        st.subheader("Weekly Hotspot Analysis")
+        #st.plotly_chart(fig_dhw, width='stretch')
+                    
+    with col_right:
+        # Upper right: DHW Distribution
+        st.markdown("**📊 DHW Distribution**")
+        dhw_flat = dhw_total.values.flatten()   
+        dhw_counts = pd.Series(dhw_flat).value_counts().sort_index().reindex(range(7), fill_value=0)
         
-        date_labels = []
-        datestr = enddate.strftime('%Y-%m-%d')
-
-
-        for week in range(6):
-            end_day = enddate - timedelta(days=week*5)
-            start_day = end_day - timedelta(days=4)
-            date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
-        static_paths = [f"static/{datestr}_week_{i+1:02d}.png" for i in range(6)]
+        fig_dist = go.Figure(data=go.Bar(
+            x=dhw_counts.index,
+            y=dhw_counts.values,
+            marker_color=['#4270C2','#D6D6D6','#EBDEC4','#E3CCD9','#C98C59','#A65959','#8C4D1A']
+        ))
+        fig_dist.update_layout(
+            height=350,
+            margin=dict(l=20, r=20, t=40, b=20),
+            title="Distribution by Level"
+        )
+        st.plotly_chart(fig_dist, width='stretch')
         
-        
+        # Lower right: Risk Summary
+        st.markdown("**⚠️ Risk Summary**")
+        total_pixels = dhw_total.size
+        risk_data = {
+            'Alert Level': ['Safe (0)', 'Watch (1-2)', 'Alert (3-4)', 'Bleaching (≥5)'],
+            'Pixels': [
+                int(np.sum(dhw_total == 0)),
+                int(np.sum((dhw_total >= 1) & (dhw_total <= 2))),
+                int(np.sum((dhw_total >= 3) & (dhw_total <= 4))),
+                int(np.sum(dhw_total >= 5))
+            ],
+            '% Area': [
+                f"{np.sum(dhw_total == 0)/total_pixels*100:.1f}%",
+                f"{np.sum((dhw_total >= 1) & (dhw_total <= 2))/total_pixels*100:.1f}%",
+                f"{np.sum((dhw_total >= 3) & (dhw_total <= 4))/total_pixels*100:.1f}%",
+                f"{np.sum(dhw_total >= 5)/total_pixels*100:.1f}%"
+            ]
+        }
+        risk_df = pd.DataFrame(risk_data)
+        st.dataframe(risk_df, width='stretch', hide_index=True)
 
-        for row in range(2):
-            cols = st.columns(3)
-            for col_idx in range(3):
-                week_idx = row * 3 + col_idx
+with tab2:
+    st.subheader("Weekly Hotspot Analysis")
     
-                with cols[col_idx]:
-    
-                    # กรณีมีไฟล์ PNG
-                    if week_idx < len(static_paths) and os.path.exists(static_paths[week_idx]):
-                        st.image(
-                            static_paths[week_idx],
-                            caption="",#date_labels[week_idx],
-                            width="stretch"
-                        )
-                        
-                    # กรณีไม่มีไฟล์ → plot สด
-                    elif week_idx < len(dhw_weeks):
-                        fig = plot_dhw_week(
-                            lon,
-                            lat,
-                            dhw_weeks[week_idx],
-                            date_labels[week_idx]
-                        )
-                        st.pyplot(fig)
-                        plt.close(fig)
-                        
-    
-                    else:
-                        st.warning("⚠ No data available")
+    date_labels = []
+    datestr = enddate.strftime('%Y-%m-%d')
 
-            
-    with tab3:
-        st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
-        col_left, col_right = st.columns([80, 20])
-        with col_left:
-            if os.path.exists(datesst_png):
-                #st.success(f"✅ Using cached SST PNG for {enddate.strftime('%Y-%m-%d')}")
-                st.image(datesst_png, caption="", width="stretch")
-            else:
-                #st.info("⚠️ No cached PNG found. Computing live...")
-            # SST map
-                fig_sst = st.pyplot(create_sst_map_mapbox(lon, lat, sst_current,
-                                        f"static/{enddate}_sst.png"))
-            #fig_sst.update_layout(height=800, margin=dict(l=50,r=20, t=50, b=50))
-            #st.plotly_chart(fig_sst, width='stretch')
-        with col_right:    
-        # Temperature statistics and distribution
-            st.markdown("**SST Statistics**")
-            sst_stats = {
-                'Metric': ['Mean', 'Median', 'Min', 'Max', 'Std Dev'],
-                'Value (°C)': [
-                    f"{np.nanmean(sst_current):.2f}",
-                    f"{np.nanmedian(sst_current):.2f}",
-                    f"{np.nanmin(sst_current):.2f}",
-                    f"{np.nanmax(sst_current):.2f}",
-                    f"{np.nanstd(sst_current):.2f}"
-                ]
-            }
-            st.dataframe(pd.DataFrame(sst_stats), width='stretch', hide_index=True)
+
+    for week in range(6):
+        end_day = enddate - timedelta(days=week*5)
+        start_day = end_day - timedelta(days=4)
+        date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
+    static_paths = [f"static/{datestr}_week_{i+1:02d}.png" for i in range(6)]
+    
+    
+
+    for row in range(2):
+        cols = st.columns(3)
+        for col_idx in range(3):
+            week_idx = row * 3 + col_idx
+
+            with cols[col_idx]:
+
+                # กรณีมีไฟล์ PNG
+                if week_idx < len(static_paths) and os.path.exists(static_paths[week_idx]):
+                    st.image(
+                        static_paths[week_idx],
+                        caption="",#date_labels[week_idx],
+                        width="stretch"
+                    )
+                    
+                # กรณีไม่มีไฟล์ → plot สด
+                elif week_idx < len(dhw_weeks):
+                    fig = plot_dhw_week(
+                        lon,
+                        lat,
+                        dhw_weeks[week_idx],
+                        date_labels[week_idx]
+                    )
+                    st.pyplot(fig)
+                    plt.close(fig)
+                    
+
+                else:
+                    st.warning("⚠ No data available")
+
         
-        
-            # Temperature distribution
-            fig_hist = go.Figure(data=go.Histogram(
-                x=sst_current.flatten(),
-                nbinsx=30,
-                marker_color='rgb(55, 83, 109)'
-            ))
-            fig_hist.update_layout(
-                title="SST Distribution",
-                xaxis_title='Temperature (°C)',
-                yaxis_title='Frequency',
-                height=300
-            )
-            st.plotly_chart(fig_hist, width='stretch')
+with tab3:
+    st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
+    col_left, col_right = st.columns([80, 20])
+    with col_left:
+        if os.path.exists(datesst_png):
+            #st.success(f"✅ Using cached SST PNG for {enddate.strftime('%Y-%m-%d')}")
+            st.image(datesst_png, caption="", width="stretch")
+        else:
+            #st.info("⚠️ No cached PNG found. Computing live...")
+        # SST map
+            fig_sst = st.pyplot(create_sst_map_mapbox(lon, lat, sst_current,
+                                    f"static/{enddate}_sst.png"))
+        #fig_sst.update_layout(height=800, margin=dict(l=50,r=20, t=50, b=50))
+        #st.plotly_chart(fig_sst, width='stretch')
+    with col_right:    
+    # Temperature statistics and distribution
+        st.markdown("**SST Statistics**")
+        sst_stats = {
+            'Metric': ['Mean', 'Median', 'Min', 'Max', 'Std Dev'],
+            'Value (°C)': [
+                f"{np.nanmean(sst_current):.2f}",
+                f"{np.nanmedian(sst_current):.2f}",
+                f"{np.nanmin(sst_current):.2f}",
+                f"{np.nanmax(sst_current):.2f}",
+                f"{np.nanstd(sst_current):.2f}"
+            ]
+        }
+        st.dataframe(pd.DataFrame(sst_stats), width='stretch', hide_index=True)
+    
+    
+        # Temperature distribution
+        fig_hist = go.Figure(data=go.Histogram(
+            x=sst_current.flatten(),
+            nbinsx=30,
+            marker_color='rgb(55, 83, 109)'
+        ))
+        fig_hist.update_layout(
+            title="SST Distribution",
+            xaxis_title='Temperature (°C)',
+            yaxis_title='Frequency',
+            height=300
+        )
+        st.plotly_chart(fig_hist, width='stretch')
 
 
