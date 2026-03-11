@@ -294,7 +294,7 @@ try:
     
     dhw_weeks, dhw_total, sst_weeks = calculate_dhw(sst_stack, MMM)
     print("DHW calculated")
-    bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
+    bleaching_area = (dhw_total >= 5).sum() / dhw_total.size * 100
     update_bleaching_history(today, bleaching_area)
     
     sst_current = sst_stack[:, :, -1]
@@ -311,7 +311,7 @@ try:
     
     stats = {
         'date': today.strftime('%Y-%m-%d'),
-        'max_dhw': float(dhw_total.max()),
+        'max_dhw': int(dhw_total.max()),
         'avg_sst': round(float(np.nanmean(sst_current)), 2),
         'alert_area': round(float((dhw_total >= 4).sum() / dhw_total.size * 100), 1),
         'bleaching_area': round(float((dhw_total >= 5).sum() / dhw_total.size * 100), 2)
