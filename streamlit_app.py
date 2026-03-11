@@ -534,37 +534,37 @@ else:
 
 # Display statistics
 
-col1, col2, col3, col4 = st.columns(4)
-with col1:
-    if enddate == datetime.now(thtz).date() - timedelta(days=2):
-        st.metric("Max DHW", f"{stats['max_dhw']} weeks")
-    else:
-        st.metric("Max DHW", f"{(dhw_total.max().values)} weeks")
-with col2:
-    if enddate == datetime.now(thtz).date() - timedelta(days=2):
-        st.metric("AVG SST", f"{stats['avg_sst']} °C")       
-    else:
-        st.metric("Avg SST", f"{float(np.nanmean(sst_current)):.2f} °C")
-with col3:
-    if enddate == datetime.now(thtz).date() - timedelta(days=2):
-        alert_area = stats['alert_area'] 
-    else:
-        alert_area = xr.where(dhw_total>=4,1,0).sum() / dhw_total.size * 100
-        st.metric("Alert Area", f"{alert_area:.1f}%")
-with col4:
-    if enddate == datetime.now(thtz).date() - timedelta(days=2):
-        bleaching_area = stats['bleaching_area']
-    else:
-        bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
-    previous_bleaching = get_previous_bleaching(enddate)
-    if previous_bleaching is not None:
-        delta_bleaching = bleaching_area - previous_bleaching
-    else:
-        delta_bleaching = 0
-    st.metric("Bleaching Risk", f"{bleaching_area:.1f}%", delta=f"{delta_bleaching:.1f}%", delta_color="inverse")
-except Exception as e:
-    st.error(f"Live analysis failed (no sst.nc?): {str(e)}")
-    st.session_state['live_failed'] = True  
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            if enddate == datetime.now(thtz).date() - timedelta(days=2):
+                st.metric("Max DHW", f"{stats['max_dhw']} weeks")
+            else:
+                st.metric("Max DHW", f"{(dhw_total.max().values)} weeks")
+        with col2:
+            if enddate == datetime.now(thtz).date() - timedelta(days=2):
+                st.metric("AVG SST", f"{stats['avg_sst']} °C")       
+            else:
+                st.metric("Avg SST", f"{float(np.nanmean(sst_current)):.2f} °C")
+        with col3:
+            if enddate == datetime.now(thtz).date() - timedelta(days=2):
+                alert_area = stats['alert_area'] 
+            else:
+                alert_area = xr.where(dhw_total>=4,1,0).sum() / dhw_total.size * 100
+                st.metric("Alert Area", f"{alert_area:.1f}%")
+        with col4:
+            if enddate == datetime.now(thtz).date() - timedelta(days=2):
+                bleaching_area = stats['bleaching_area']
+            else:
+                bleaching_area = xr.where(dhw_total >= 5, 1, 0).sum() / dhw_total.size * 100
+            previous_bleaching = get_previous_bleaching(enddate)
+            if previous_bleaching is not None:
+                delta_bleaching = bleaching_area - previous_bleaching
+            else:
+                delta_bleaching = 0
+            st.metric("Bleaching Risk", f"{bleaching_area:.1f}%", delta=f"{delta_bleaching:.1f}%", delta_color="inverse")
+    except Exception as e:
+        st.error(f"Live analysis failed (no sst.nc?): {str(e)}")
+        st.session_state['live_failed'] = True  
 # Tabs for different views
 tab1, tab2, tab3 = st.tabs(["📊 Accumulated DHW", "🗓️ Weekly Hotspots", "🌡️ Current SST"])
 
