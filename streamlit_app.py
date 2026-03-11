@@ -463,24 +463,18 @@ with st.spinner('Processing DHW analysis...'):
     # Check for pre-generated PNGs (from daily Actions)
     datedhw_png = f"static/{enddate.strftime('%Y-%m-%d')}_dhw.png"
     datesst_png = f"static/{enddate.strftime('%Y-%m-%d')}_sst.png"
-    
 
-    if enddate.strftime('%Y-%m-%d')==datetime.now(thtz).strftime('%Y-%m-%d'):
-        with open("static/dhw_stats.json") as f:
-            stats = json.load(f)
-        dhw_total = xr.open_dataset("static/dhw_total.nc")
-        sst_current = xr.open_dataset("static/sst_current.nc")
-    else:
-    # Only download if needed
-        
-        baseline = xr.open_dataset('crw_mmm_sst_thailand_1985-2025.nc') # read array
-        MMM = baseline['sst'].sel(lon=slice(90,110),lat=slice(14.1,0))
-        TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
-    
-        # calculate DHW
-        dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
-        LON, LAT, lon, lat = create_coordinates()
-        sst_current = TSeries[:, :, -1]
+# Only download if needed
+    with open("static/dhw_stats.json") as f:
+        stats = json.load(f)
+    baseline = xr.open_dataset('crw_mmm_sst_thailand_1985-2025.nc') # read array
+    MMM = baseline['sst'].sel(lon=slice(90,110),lat=slice(14.1,0))
+    TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
+
+    # calculate DHW
+    dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
+    LON, LAT, lon, lat = create_coordinates()
+    sst_current = TSeries[:, :, -1]
         
     # Use SELECTED date as analysis center
 
