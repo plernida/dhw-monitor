@@ -111,94 +111,75 @@ process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 
 # NOAA OISST base URL pattern
 #NOAA_BASE_URL = "https://www.ncei.noaa.gov/thredds/fileServer/OisstBase/NetCDF/V2.1/AVHRR/"
-NOAA_NCSS_BASE = "https://www.ncei.noaa.gov/thredds/ncss/grid/OisstBase/NetCDF/V2.1/AVHRR/"
+CRW_ERDDAP_BASE = "https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW"
 dayback=30
 @st.cache_data(ttl=3600)  # Cache for 1 hour
-def download_latest_sst(enddate, days_back=dayback):
-    sstdata = []
-    time_list = []
-    lat_ref = None
-    lon_ref = None    
+def download_latest_sst(enddate, days_back=30):
 
-    PRELIM_WINDOW_DAYS = 14 # Relative to NOW (not enddate)
-    now_date = datetime.now(pytz.timezone('Asia/Bangkok')).date()
-    
-    for i in range(days_back):
-        target_date = enddate - timedelta(days=i)
-        yyyymm = target_date.strftime('%Y%m')
-        datestr = target_date.strftime('%Y%m%d')
-        iso_date = target_date.strftime('%Y-%m-%d')
+    thtz = pytz.timezone('Asia/Bangkok')
+    now_date = datetime.now(thtz).date()
 
-        age_days = (now_date - target_date).days
-        # Preliminary: if target_date is within 14 days of CURRENT now_date
-        if 0 <= age_days <= PRELIM_WINDOW_DAYS:
-        
-            filename = f"oisst-avhrr-v02r01.{datestr}_preliminary.nc"
-        else:
-            filename = f"oisst-avhrr-v02r01.{datestr}.nc"
-        
-        url = (
-            f"{NOAA_NCSS_BASE}{yyyymm}/{filename}?"
-            f"var=sst&north=14.500&west=90.000&east=110.000&south=0.000&"
-            f"horizStride=1&time_start={iso_date}T12:00:00Z&time_end={iso_date}T12:00:00Z&"
-            f"accept=netcdf3"
-        )
-        
-        # Silent download + error handling (as before)
-        try:
-            resp = requests.get(url, timeout=30)
-            if resp.status_code == 200:
-                with Dataset('in-memory', mode='r', memory=resp.content) as nc:
-                    sst_raw = nc.variables['sst'][0, :, :]
-                    sst_raw = np.squeeze(sst_raw)# (lat, lon)
-                    subset_lat = nc.variables['lat'][:]
-                    subset_lon = nc.variables['lon'][:]
-                    
-                    # Scale and mask
-                    
-                    
-                # Keep reference grid from first successful file
-                if lat_ref is None:
-                    lat_ref = subset_lat
-                    lon_ref = subset_lon
-                else:
-                    # Optional: check that all days use same grid
-                    assert np.array_equal(lat_ref, subset_lat)
-                    assert np.array_equal(lon_ref, subset_lon)
-                    
-                # Scale and mask
-                sst_scaled = np.where(sst_raw < -100, np.nan, sst_raw)
-                
-                sstdata.append(sst_scaled)
-               
-            else:
-                
-            # same shape as sst_raw: (nlat, nlon)
-                if lat_ref is not None and lon_ref is not None:
-                    sstdata.append(np.full((len(lat_ref), len(lon_ref)), np.nan))
-                else:
-                    sstdata.append(None)
-        except Exception:
-            if lat_ref is not None and lon_ref is not None:
-                sstdata.append(np.full((len(lat_ref), len(lon_ref)), np.nan))
-            else:
-                sstdata.append(None)
-        time_list.append(target_date)
-    if lat_ref is None or lon_ref is None:
-        raise RuntimeError("No successful downloads; cannot build SST array.")   
-    for idx, v in enumerate(sstdata):
-        if v is None:
-            sstdata[idx] = np.full((len(lat_ref), len(lon_ref)), np.nan)
-    sst_stack = np.stack(sstdata, axis=2)
+    # CRW usually lags ~2 days
+    latest_available = now_date - timedelta(days=2)
+
+    if enddate > latest_available:
+        enddate = latest_available
+
+    start_date = enddate - timedelta(days=days_back - 1)
+
+    start_time = start_date.strftime('%Y-%m-%dT12:00:00Z')
+    end_time = enddate.strftime('%Y-%m-%dT12:00:00Z')
+
+    url = (
+        f"{CRW_ERDDAP_BASE}.nc?"
+        f"analysed_sst"
+        f"[({start_time}):1:({end_time})]"
+        f"[(0.025):1:(14.075)]"
+        f"[(90.025):1:(110.025)]"
+    )
+
+    #print("Downloading:", url)
+
+    r = requests.get(url, stream=True, timeout=120)
+    r.raise_for_status()
+
+    local_file = "latest_sst.nc"
+
+    with open(local_file, "wb") as f:
+        for chunk in r.iter_content(chunk_size=1024*1024):
+            f.write(chunk)
+
+    #print("Download complete")
+
+    ds = xr.open_dataset(local_file)
+
+    # convert Kelvin → Celsius
+    #ds["analysed_sst"] = ds["analysed_sst"] - 273.15
+
+    # rename to match AVHRR variable naming if needed
+    ds = ds.rename({
+        "latitude": "lat",
+        "longitude": "lon",
+        "analysed_sst": "sst"
+    })
+
+    # reorder dimensions to match your DHW code
+    ds = ds.transpose("lat", "lon", "time")
+    ds = ds.sel(lon=slice(90,110))
+
+    sst_stack = ds["sst"].values
+    lat_ref = ds["lat"].values
+    lon_ref = ds["lon"].values
+    time_list = ds["time"].values
+
     return sst_stack, time_list, lat_ref, lon_ref
-
 
 # Coordinate data
 @st.cache_data
 def create_coordinates():
     """Create coordinate grid for Thai region"""
-    lon = np.linspace(90.125, 110.125, 81)
-    lat = np.linspace(0.125, 14.625, 59)
+    lon = np.linspace(90.025, 109.975, 400)
+    lat = np.linspace(0.025, 14.075, 282)
     LON, LAT = np.meshgrid(lon, lat)
     return LON, LAT, lon, lat
 
