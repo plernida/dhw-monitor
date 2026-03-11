@@ -687,7 +687,7 @@ with st.spinner('Processing DHW analysis...'):
                 yaxis_title='Frequency',
                 height=300
             )
-            st.plotly_chart(fig_hist, width='stretch')'stretch')
+            st.plotly_chart(fig_hist, width='stretch')
 
 
    
