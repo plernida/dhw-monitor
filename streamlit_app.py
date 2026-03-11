@@ -40,16 +40,29 @@ if os.path.exists(font_path):
     fm.fontManager.addfont(font_path)
     plt.rcParams['font.family'] = ['Kanit','DejaVu Sans','Arial']
 
-@st.cache_data(ttl=300)  # Cache for 5 min
-def get_latest_static_png():
-    """Find the most recent PNG in static/ directory."""
-    pattern = "static/*.png"
-    png_files = glob.glob(pattern)
-    if not png_files:
-        return None
-    # Sort by modification time, newest first
-    latest_png = max(png_files, key=os.path.getmtime)
-    return latest_png
+@st.cache_data(ttl=600)
+def get_static_pngs(pattern):
+    """Get sorted PNGs matching pattern (newest first)."""
+    files = glob.glob(pattern)
+    if not files:
+        return []
+    # Sort by mod time, newest first
+    sorted_files = sorted(files, key=os.path.getmtime, reverse=True)
+    return sorted_files
+
+def display_png_gallery(pngs, captions=None, cols=4):
+    """Display PNGs in responsive columns."""
+    if not pngs:
+        st.warning("No PNGs found.")
+        return
+    for i in range(0, len(pngs), cols):
+        col_batch = st.columns(min(cols, len(pngs) - i))
+        for j, col in enumerate(col_batch):
+            idx = i + j
+            if idx < len(pngs):
+                png_path = pngs[idx]
+                caption = captions[idx] if captions and idx < len(captions) else os.path.basename(png_path)
+                col.image(png_path, caption=caption, width='stretch')
 #coast_gdf = gpd.read_file("ne_10m_coastline.shp").to_crs('EPSG:4326')  # Ensure CRS is EPSG:4326
 #coast_geojson = coast_gdf.__geo_interface__
 cmap_full = plt.get_cmap('Spectral_r')#nipy_spectral
@@ -477,7 +490,7 @@ datesst_png = f"static/{enddate.strftime('%Y-%m-%d')}_sst.png"
 
     
 
-if os.path.exists(datedhw_png) and os.path.exists(datesst_png) and os.path.exists('static/dhw_stats.json'):
+if os.path.exists(date_dhw_png) and os.path.exists(date_sst_png) and os.path.exists('static/dhw_stats.json'):
     with open("static/dhw_stats.json") as f:
         stats = json.load(f)
     dhw_total = xr.open_dataset("static/dhw_total.nc")
@@ -494,20 +507,7 @@ else:
             dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
             LON, LAT, lon, lat = create_coordinates()
             sst_current = TSeries[:, :, -1]
-    except Exception as e:
-        st.error(f"Live analysis failed (likely no sst.nc): {str(e)}")
-        latest_png = get_latest_static_png()
-        if latest_png:
-            st.info(f"Showing latest static map: {os.path.basename(latest_png)}")
-            st.image(latest_png, caption="Latest available DHW/SST map", use_column_width=True)
-            # Optionally load approximate stats from filename
-            date_str = os.path.basename(latest_png)[:10]  # e.g., '2026-03-09'
-            # Mock stats or load if you save JSON with same date
-        else:
-            st.warning("No static PNGs found in static/. Please generate some via GitHub Actions.")
-        # Skip to tabs or show message - don't crash
-   # continue  # Or handle gracefully
-    
+
 # Use SELECTED date as analysis center
 
 
@@ -568,13 +568,18 @@ tab1, tab2, tab3 = st.tabs(["📊 Accumulated DHW", "🗓️ Weekly Hotspots", "
 
 with tab1:
     st.subheader(f"Degree Heating Weeks - {enddate.strftime('%Y-%m-%d')}")
+    col_left, col_right = st.columns([80, 20])
 
 
     # NEW LAYOUT: Portrait map LEFT + distribution/stats RIGHT
-    col_left, col_right = st.columns([80, 20])
+
     
     with col_left:
-        if os.path.exists(datedhw_png):
+        dhw_png = get_static_pngs("static/*_dhw.png")  # Matches %Y-%m-%d_dhw.png
+        display_png_gallery(dhw_pngs)
+        # Live fallback if processed
+        if 'dhw_total' in locals() and not st.session_state.get('error_shown', False):
+        #if os.path.exists(datedhw_png):
             #st.success(f"✅ Using cached DHW PNG for {enddate.strftime('%Y-%m-%d')}")
             st.image(datedhw_png, caption="", width="stretch")
         else:
@@ -627,55 +632,63 @@ with tab1:
 
 with tab2:
     st.subheader("Weekly Hotspot Analysis")
+
+    if 'dhw_total' in locals() and not st.session_state.get('error_shown', False):
     
-    date_labels = []
-    datestr = enddate.strftime('%Y-%m-%d')
-
-
-    for week in range(6):
-        end_day = enddate - timedelta(days=week*5)
-        start_day = end_day - timedelta(days=4)
-        date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
-    static_paths = [f"static/{datestr}_week_{i+1:02d}.png" for i in range(6)]
+        week_pngs = get_static_pngs("static/*_week_*.png")
+        display_png_gallery(week_pngs, cols=6)  # More cols for weeks
+    else:
+        date_labels = []
+        datestr = enddate.strftime('%Y-%m-%d')
     
     
-
-    for row in range(2):
-        cols = st.columns(3)
-        for col_idx in range(3):
-            week_idx = row * 3 + col_idx
-
-            with cols[col_idx]:
-
-                # กรณีมีไฟล์ PNG
-                if week_idx < len(static_paths) and os.path.exists(static_paths[week_idx]):
-                    st.image(
-                        static_paths[week_idx],
-                        caption="",#date_labels[week_idx],
-                        width="stretch"
-                    )
-                    
-                # กรณีไม่มีไฟล์ → plot สด
-                elif week_idx < len(dhw_weeks):
-                    fig = plot_dhw_week(
-                        lon,
-                        lat,
-                        dhw_weeks[week_idx],
-                        date_labels[week_idx]
-                    )
-                    st.pyplot(fig)
-                    plt.close(fig)
-                    
-
-                else:
-                    st.warning("⚠ No data available")
+        for week in range(6):
+            end_day = enddate - timedelta(days=week*5)
+            start_day = end_day - timedelta(days=4)
+            date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
+        static_paths = [f"static/{datestr}_week_{i+1:02d}.png" for i in range(6)]
+        
+        
+    
+        for row in range(2):
+            cols = st.columns(3)
+            for col_idx in range(3):
+                week_idx = row * 3 + col_idx
+    
+                with cols[col_idx]:
+    
+                    # กรณีมีไฟล์ PNG
+                    if week_idx < len(static_paths) and os.path.exists(static_paths[week_idx]):
+                        st.image(
+                            static_paths[week_idx],
+                            caption="",#date_labels[week_idx],
+                            width="stretch"
+                        )
+                        
+                    # กรณีไม่มีไฟล์ → plot สด
+                    elif week_idx < len(dhw_weeks):
+                        fig = plot_dhw_week(
+                            lon,
+                            lat,
+                            dhw_weeks[week_idx],
+                            date_labels[week_idx]
+                        )
+                        st.pyplot(fig)
+                        plt.close(fig)
+                        
+    
+                    else:
+                        st.warning("⚠ No data available")
 
         
 with tab3:
     st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
     col_left, col_right = st.columns([80, 20])
     with col_left:
-        if os.path.exists(datesst_png):
+        if 'dhw_total' in locals() and not st.session_state.get('error_shown', False):
+            sst_png = get_static_pngs("static/*_sst.png")  # Matches %Y-%m-%d_sst.png
+            display_png_gallery(sst_pngs)
+        #if os.path.exists(datesst_png):
             #st.success(f"✅ Using cached SST PNG for {enddate.strftime('%Y-%m-%d')}")
             st.image(datesst_png, caption="", width="stretch")
         else:
@@ -714,5 +727,13 @@ with tab3:
             height=300
         )
         st.plotly_chart(fig_hist, width='stretch')
+
+    except Exception as e:
+        st.error(f"Live analysis failed: {str(e)}")
+        st.session_state.error_shown = True  # Skip live plots in tabs
+        # Tabs still show static PNGs above
+            # Skip to tabs or show message - don't crash
+       # continue  # Or handle gracefully
+        
 
 
