@@ -484,7 +484,7 @@ if process_button:
        
 
             # NEW LAYOUT: Portrait map LEFT + distribution/stats RIGHT
-            col_left, col_right = st.columns([60, 40])
+            col_left, col_right = st.columns([80, 20])
             
             with col_left:
                 if os.path.exists(datedhw_png):
@@ -596,7 +596,7 @@ if process_button:
                 
         with tab3:
             st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
-            col_left, col_right = st.columns([60,40])
+            col_left, col_right = st.columns([80,20])
             with col_left:
                 if os.path.exists(datesst_png):
                     st.success(f"✅ Using cached SST PNG for {enddate.strftime('%Y-%m-%d')}")
