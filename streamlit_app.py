@@ -578,7 +578,7 @@ with tab1:
     
     with col_left:
         dhw_png = get_static_pngs("static/*_dhw.png")  # Matches %Y-%m-%d_dhw.png
-        display_png_gallery(dhw_pngs)
+        display_png_gallery(dhw_png)
         # Live fallback if processed
         if 'dhw_total' in locals() and not st.session_state.get('error_shown', False):
         #if os.path.exists(datedhw_png):
@@ -689,7 +689,7 @@ with tab3:
     with col_left:
         if 'dhw_total' in locals() and not st.session_state.get('error_shown', False):
             sst_png = get_static_pngs("static/*_sst.png")  # Matches %Y-%m-%d_sst.png
-            display_png_gallery(sst_pngs)
+            display_png_gallery(sst_png)
         #if os.path.exists(datesst_png):
             #st.success(f"✅ Using cached SST PNG for {enddate.strftime('%Y-%m-%d')}")
             st.image(datesst_png, caption="", width="stretch")
