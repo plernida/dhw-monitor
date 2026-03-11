@@ -132,7 +132,7 @@ def download_latest_sst(enddate, days_back=30):
 
     url = (
         f"{CRW_ERDDAP_BASE}.nc?"
-        f"analysed_sst"
+        f"CRW_SST"
         f"[({start_time}):1:({end_time})]"
         f"[(0.025):1:(14.075)]"
         f"[(90.025):1:(110.025)]"
