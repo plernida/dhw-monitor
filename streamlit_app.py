@@ -562,7 +562,9 @@ with col4:
     else:
         delta_bleaching = 0
     st.metric("Bleaching Risk", f"{bleaching_area:.1f}%", delta=f"{delta_bleaching:.1f}%", delta_color="inverse")
-
+except Exception as e:
+    st.error(f"Live analysis failed (no sst.nc?): {str(e)}")
+    st.session_state['live_failed'] = True  
 # Tabs for different views
 tab1, tab2, tab3 = st.tabs(["📊 Accumulated DHW", "🗓️ Weekly Hotspots", "🌡️ Current SST"])
 
@@ -734,6 +736,6 @@ except Exception as e:
         # Tabs still show static PNGs above
             # Skip to tabs or show message - don't crash
        # continue  # Or handle gracefully
-        
+# Flag for tabs        
 
 
