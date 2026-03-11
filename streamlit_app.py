@@ -502,14 +502,24 @@ if process_button:
             with col_right:
                 # Upper right: DHW Distribution
                 st.markdown("**📊 DHW Distribution**")
-                dhw_flat = dhw_total.values.flatten()   
-                dhw_counts = pd.Series(dhw_flat).value_counts().sort_index()
+                dhw_flat = dhw_total.values.flatten()
+                
+                dhw_counts = (
+                    pd.Series(dhw_flat)
+                    .value_counts()
+                    .sort_index()
+                    .reindex(range(7), fill_value=0)
+                )
                 
                 fig_dist = go.Figure(data=go.Bar(
                     x=dhw_counts.index,
                     y=dhw_counts.values,
-                    marker_color=['#4270C2','#D6D6D6','#EBDEC4','#E3CCD9','#C98C59','#A65959','#8C4D1A']
+                    marker_color=[
+                        '#4270C2','#D6D6D6','#EBDEC4',
+                        '#E3CCD9','#C98C59','#A65959','#8C4D1A'
+                    ]
                 ))
+                
                 fig_dist.update_layout(
                     height=350,
                     margin=dict(l=20, r=20, t=40, b=20),
