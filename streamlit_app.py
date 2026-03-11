@@ -730,9 +730,6 @@ with tab3:
         )
         st.plotly_chart(fig_hist, width='stretch')
 
-except Exception as e:
-    st.error(f"Live analysis failed: {str(e)}")
-    st.session_state.error_shown = True  # Skip live plots in tabs
         # Tabs still show static PNGs above
             # Skip to tabs or show message - don't crash
        # continue  # Or handle gracefully
