@@ -490,7 +490,7 @@ datesst_png = f"static/{enddate.strftime('%Y-%m-%d')}_sst.png"
 
     
 
-if os.path.exists(date_dhw_png) and os.path.exists(date_sst_png) and os.path.exists('static/dhw_stats.json'):
+if os.path.exists(datedhw_png) and os.path.exists(datesst_png) and os.path.exists('static/dhw_stats.json'):
     with open("static/dhw_stats.json") as f:
         stats = json.load(f)
     dhw_total = xr.open_dataset("static/dhw_total.nc")
