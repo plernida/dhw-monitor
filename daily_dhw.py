@@ -276,11 +276,11 @@ def update_bleaching_history(date, value):
         history = {}
 
     # บันทึกค่าของวันนี้
-    history[date.strftime("%Y-%m-%d")] = float(value)
+        history[date.strftime("%Y-%m-%d")] = float(value)
 
     # save กลับ
-    with open(filepath, "w") as f:
-        json.dump(history, f, indent=2)
+        with open(filepath, "w") as f:
+            json.dump(history, f, indent=2)
 
 
 
@@ -307,8 +307,7 @@ try:
         if os.path.exists(nc_path):
             os.remove(nc_path)
 
-    dhw_total
-    sst_current
+
     dhw_total.to_netcdf('static/dhw_total.nc')
     sst_current.to_netcdf('static/sst_current.nc')
     print("NetCDF files saved")
