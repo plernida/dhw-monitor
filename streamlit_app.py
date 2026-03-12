@@ -671,7 +671,7 @@ with st.spinner('Processing DHW analysis...'):
         
             # Temperature distribution
             fig_hist = go.Figure(data=go.Histogram(
-                x=sst_current.flatten(),
+                x=sst_current.values.flatten(),
                 nbinsx=30,
                 marker_color='rgb(55, 83, 109)'
             ))
