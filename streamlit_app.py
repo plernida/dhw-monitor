@@ -111,7 +111,7 @@ process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
 
 # NOAA OISST base URL pattern
 #NOAA_BASE_URL = "https://www.ncei.noaa.gov/thredds/fileServer/OisstBase/NetCDF/V2.1/AVHRR/"
-CRW_ERDDAP_BASE = "https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW"
+CRW_ERDDAP_BASE = "https://pae-paha.pacioos.hawaii.edu/erddap/griddap/dhw_5km"
 dayback=30
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 def download_latest_sst(enddate, days_back=30):
