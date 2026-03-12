@@ -1,7 +1,7 @@
 name: Daily DHW PNGs
 on:
   schedule:
-    - cron: '0 3 * * *'  # 7AM BKK daily
+    - cron: '0 1 * * *'  # 7AM BKK daily
   workflow_dispatch:  # Manual trigger
 
 jobs:
