@@ -164,13 +164,13 @@ def download_latest_sst(enddate, days_back=30):
     })
 
     # reorder dimensions to match your DHW code
-    ds = ds.transpose("lon", "lat", "time")
+    ds = ds.transpose("lat", "lon", "time")
     ds = ds.sel(lon=slice(90,110))
 
-    sst_stack = ds["sst"].values
-    lat_ref = ds["lat"].values
-    lon_ref = ds["lon"].values
-    time_list = ds["time"].values
+    sst_stack = ds["sst"]
+    lat_ref = ds["lat"]
+    lon_ref = ds["lon"]
+    time_list = ds["time"]
 
     return sst_stack, time_list, lat_ref, lon_ref
 
