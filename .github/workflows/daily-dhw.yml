@@ -19,7 +19,7 @@ jobs:
     - run: pip install -r requirements.txt
     - name: Clean static (force fresh files)
       run: |
-        rm -f static/*.nc static/*.json static/*.png
+        rm -f static/*.png
         mkdir -p static
     - run: python daily_dhw.py
     
