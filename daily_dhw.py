@@ -41,7 +41,7 @@ colors_rgb = [
 # Create custom colormap (N=256 for smooth gradient)
 cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=7)
 # Your NOAA config
-CRW_ERDDAP_BASE = "https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW"
+CRW_ERDDAP_BASE = "https://pae-paha.pacioos.hawaii.edu/erddap/griddap/dhw_5km"
 baseline = xr.open_dataset('crw_mmm_sst_thailand_1985-2025.nc') # read array
 MMM = baseline['sst'].sel(lon=slice(90,110),lat=slice(14.1,0))
 
