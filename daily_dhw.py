@@ -93,7 +93,7 @@ def download_latest_sst(enddate, days_back=30):
         "longitude": "lon",
         "CRW_SST": "sst"
     })
-
+    ds=ds.sortby("lat")
     # reorder dimensions to match your DHW code
     ds = ds.transpose("lat", "lon", "time")
     ds = ds.sel(lon=slice(90,110))
