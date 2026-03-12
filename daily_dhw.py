@@ -51,7 +51,7 @@ def download_latest_sst(enddate, days_back=30):
     now_date = datetime.now(thtz).date()
 
     # CRW usually lags ~2 days
-    latest_available = now_date - timedelta(days=3)
+    latest_available = now_date - timedelta(days=2)
 
     if enddate > latest_available:
         enddate = latest_available
