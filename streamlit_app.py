@@ -503,18 +503,8 @@ def get_previous_bleaching(date):
 def load_coastline_geojson(geojson_path="thailand_mapshaper.geojson"):
     gdf = gpd.read_file(geojson_path).to_crs("EPSG:4326")
     return gdf    
-Great — .geojson is easier. You can skip shapefile handling and load the GeoJSON directly, then convert its geometries into Plotly line coordinates and draw them on top of your contour. GeoPandas can read GeoJSON directly with read_file, and Plotly line overlays commonly use lon/lat arrays with None separators between segments.
 
-Since your SST figure is a Cartesian go.Contour, the coastline should be added as go.Scatter(x=..., y=..., mode="lines"), not with update_geos(...).
 
-Use this code
-Add these helpers near the top of your app:
-
-python
-import geopandas as gpd
-import plotly.graph_objects as go
-import streamlit as st
-import numpy as np
 
 @st.cache_data
 def load_coastline_geojson(path="coastline.geojson"):
