@@ -420,7 +420,73 @@ def create_sst_map_mapbox(lon, lat, sstdata, title):
 
 
     return fig
-
+def create_sst_map(lon, lat, sst_data, title):
+    """Create Plotly contour map for SST data"""
+    fig = go.Figure(data=go.Contour(
+        z=sst_data,
+        x=lon,
+        y=lat,
+        colorscale='jet',
+        contours=dict(
+            start=28,
+            end=32,
+            size=0.5,
+        ),
+        colorbar=dict(
+            title='SST (°C)',
+            tickmode='linear',
+            tick0=28,
+            dtick=0.5
+        ),
+        hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>SST: %{z:.2f}°C<extra></extra>'
+    ))
+    
+    # Add land
+    #gulf_lon = [99.5, 101, 102, 102.5, 102, 100.5, 99.5, 99.5]
+    #gulf_lat = [6, 6.5, 8, 10, 12, 13.5, 12, 6]
+    
+    """fig.add_trace(go.Scatter(
+        x=gulf_lon, y=gulf_lat,
+        fill='toself',
+        fillcolor='rgba(180, 180, 180, 0.8)',
+        line=dict(color='rgba(100, 100, 100, 1)', width=1),
+        hoverinfo='skip',
+        showlegend=False
+    ))"""
+    fig.update_geos(
+        showland=True,
+        landcolor="lightgray",
+        showocean=True,
+        oceancolor="lightblue",
+        showcoastlines=True,
+        coastlinecolor="gray",
+        resolution=50,
+        lataxis_range=[0, 14.5],
+        lonaxis_range=[90, 110],
+        projection_type="mercator"
+    )
+    """fig.update_layout(
+        title=dict(text=title, x=0.5, xanchor='center'),
+        xaxis_title='Longitude (°E)',
+        yaxis_title='Latitude (°N)',
+        height=600,
+        hovermode='closest',
+        plot_bgcolor='rgba(240,245,250,1)',
+        xaxis=dict(range=[90, 110]),
+        yaxis=dict(range=[0, 14.5])
+    )"""
+    fig.update_layout(
+        title=dict(text=title, x=0.5, xanchor="center"),
+        height=500,
+        geo=dict(  # Ensures geo subplot
+            showframe=False,
+            showgrid=True,
+            gridwidth=1,
+            gridcolor="lightgray"
+        )
+        # Remove: xaxis_range, yaxis_range, plotbgcolor
+        )
+    return fig
 def update_bleaching_history(date, value):
 
     os.makedirs("static", exist_ok=True)
@@ -649,8 +715,11 @@ with st.spinner('Processing DHW analysis...'):
             else:
                 #st.info("⚠️ No cached PNG found. Computing live...")
             # SST map
-                fig_sst = st.pyplot(create_sst_map_mapbox(lon, lat, sst_current,
-                                        f"static/{enddate}_sst.png"))
+                #fig_sst = st.pyplot(create_sst_map(lon, lat, sst_current,
+                #                        f"static/{enddate}_sst.png"))
+                fig_sst = create_sst_map(lon, lat, sst_current,
+                                    "Current Sea Surface Temperature")
+                st.plotly_chart(fig_sst, use_container_width=True)
             #fig_sst.update_layout(height=800, margin=dict(l=50,r=20, t=50, b=50))
             #st.plotly_chart(fig_sst, width='stretch')
         with col_right:    
