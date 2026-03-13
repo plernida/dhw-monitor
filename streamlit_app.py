@@ -465,7 +465,7 @@ def create_sst_map(lon, lat, sst_data, title):
         lonaxis_range=[90, 110],
         projection_type="mercator"
     )
-    """fig.update_layout(
+    fig.update_layout(
         title=dict(text=title, x=0.5, xanchor='center'),
         xaxis_title='Longitude (°E)',
         yaxis_title='Latitude (°N)',
@@ -474,7 +474,8 @@ def create_sst_map(lon, lat, sst_data, title):
         plot_bgcolor='rgba(240,245,250,1)',
         xaxis=dict(range=[90, 110]),
         yaxis=dict(range=[0, 14.5])
-    )"""
+    )
+    """
     fig.update_layout(
         title=dict(text=title, x=0.5, xanchor="center"),
         height=500,
@@ -485,7 +486,7 @@ def create_sst_map(lon, lat, sst_data, title):
             gridcolor="lightgray"
         )
         # Remove: xaxis_range, yaxis_range, plotbgcolor
-        )
+        )"""
     return fig
 def update_bleaching_history(date, value):
 
