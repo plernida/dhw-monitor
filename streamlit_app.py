@@ -441,18 +441,17 @@ def create_sst_map(lon, lat, sst_data, title):
         hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>SST: %{z:.2f}°C<extra></extra>'
     ))
     
-    fig.update_geos(
-        showland=True,
-        landcolor="lightgray",
-        showocean=True,
-        oceancolor="lightblue",
-        showcoastlines=True,
-        coastlinecolor="gray",
-        resolution=50,
-        lataxis_range=[0, 14.5],
-        lonaxis_range=[90, 110],
-        projection_type="mercator"
-    )
+    if coast_gdf is not None:
+        coast_x, coast_y = gdf_to_plotly_lines(coast_gdf)
+
+        fig.add_trace(go.Scatter(
+            x=coast_x,
+            y=coast_y,
+            mode='lines',
+            line=dict(color='gray', width=1),
+            hoverinfo='skip',
+            showlegend=False
+        ))
     fig.update_layout(
         title=dict(text=title, x=0.5, xanchor='center'),
         xaxis_title='Longitude (°E)',
@@ -499,7 +498,59 @@ def get_previous_bleaching(date):
     yesterday = (date - timedelta(days=1)).strftime("%Y-%m-%d")
 
     return history.get(yesterday)
-    
+
+@st.cache_data
+def load_coastline_geojson(geojson_path="thailand_mapshaper.geojson"):
+    gdf = gpd.read_file(geojson_path).to_crs("EPSG:4326")
+    return gdf    
+Great — .geojson is easier. You can skip shapefile handling and load the GeoJSON directly, then convert its geometries into Plotly line coordinates and draw them on top of your contour. GeoPandas can read GeoJSON directly with read_file, and Plotly line overlays commonly use lon/lat arrays with None separators between segments.
+
+Since your SST figure is a Cartesian go.Contour, the coastline should be added as go.Scatter(x=..., y=..., mode="lines"), not with update_geos(...).
+
+Use this code
+Add these helpers near the top of your app:
+
+python
+import geopandas as gpd
+import plotly.graph_objects as go
+import streamlit as st
+import numpy as np
+
+@st.cache_data
+def load_coastline_geojson(path="coastline.geojson"):
+    gdf = gpd.read_file(path).to_crs("EPSG:4326")
+    return gdf
+
+def gdf_to_plotly_lines(gdf):
+    xs, ys = [], []
+
+    for geom in gdf.geometry:
+        if geom is None:
+            continue
+
+        if geom.geom_type == "LineString":
+            x, y = geom.xy
+            xs.extend(list(x) + [None])
+            ys.extend(list(y) + [None])
+
+        elif geom.geom_type == "MultiLineString":
+            for part in geom.geoms:
+                x, y = part.xy
+                xs.extend(list(x) + [None])
+                ys.extend(list(y) + [None])
+
+        elif geom.geom_type == "Polygon":
+            x, y = geom.exterior.xy
+            xs.extend(list(x) + [None])
+            ys.extend(list(y) + [None])
+
+        elif geom.geom_type == "MultiPolygon":
+            for part in geom.geoms:
+                x, y = part.exterior.xy
+                xs.extend(list(x) + [None])
+                ys.extend(list(y) + [None])
+
+    return xs, ys
 # Main processing
 #if process_button:
 enddate = analysis_date
@@ -687,6 +738,7 @@ with st.spinner('Processing DHW analysis...'):
             
     with tab3:
         st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
+        coast_gdf = load_coastline_geojson("thailand_mapshaper.geojson")
         col_left, col_right = st.columns([80, 20])
         with col_left:
             if os.path.exists(datesst_png):
@@ -697,9 +749,14 @@ with st.spinner('Processing DHW analysis...'):
             # SST map
                 #fig_sst = st.pyplot(create_sst_map(lon, lat, sst_current,
                 #                        f"static/{enddate}_sst.png"))
-                fig_sst = create_sst_map(lon, lat, sst_current,
-                                    "Current Sea Surface Temperature")
-                st.plotly_chart(fig_sst, use_container_width=True)
+                fig_sst = create_sst_map(
+                    lon=lon,
+                    lat=lat,
+                    sst_data=sst_current.values if hasattr(sst_current, "values") else sst_current,
+                    title="Current Sea Surface Temperature",
+                    coast_gdf=coast_gdf
+                )
+                st.plotly_chart(fig_sst, width='stretch')
             #fig_sst.update_layout(height=800, margin=dict(l=50,r=20, t=50, b=50))
             #st.plotly_chart(fig_sst, width='stretch')
         with col_right:    
