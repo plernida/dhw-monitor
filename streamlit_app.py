@@ -441,18 +441,6 @@ def create_sst_map(lon, lat, sst_data, title):
         hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>SST: %{z:.2f}°C<extra></extra>'
     ))
     
-    # Add land
-    #gulf_lon = [99.5, 101, 102, 102.5, 102, 100.5, 99.5, 99.5]
-    #gulf_lat = [6, 6.5, 8, 10, 12, 13.5, 12, 6]
-    
-    """fig.add_trace(go.Scatter(
-        x=gulf_lon, y=gulf_lat,
-        fill='toself',
-        fillcolor='rgba(180, 180, 180, 0.8)',
-        line=dict(color='rgba(100, 100, 100, 1)', width=1),
-        hoverinfo='skip',
-        showlegend=False
-    ))"""
     fig.update_geos(
         showland=True,
         landcolor="lightgray",
@@ -470,24 +458,13 @@ def create_sst_map(lon, lat, sst_data, title):
         xaxis_title='Longitude (°E)',
         yaxis_title='Latitude (°N)',
         height=800,
-        widght=600,
         hovermode='closest',
         plot_bgcolor='rgba(240,245,250,1)',
         xaxis=dict(range=[90, 110]),
-        yaxis=dict(range=[0, 14.5])
+        yaxis=dict(range=[0, 14.5],scaleanchor='x', scaleratio=1)
+        
     )
-    """
-    fig.update_layout(
-        title=dict(text=title, x=0.5, xanchor="center"),
-        height=500,
-        geo=dict(  # Ensures geo subplot
-            showframe=False,
-            showgrid=True,
-            gridwidth=1,
-            gridcolor="lightgray"
-        )
-        # Remove: xaxis_range, yaxis_range, plotbgcolor
-        )"""
+
     return fig
 def update_bleaching_history(date, value):
 
