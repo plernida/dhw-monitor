@@ -728,7 +728,7 @@ with st.spinner('Processing DHW analysis...'):
             
     with tab3:
         st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
-        coast_gdf = load_coastline_geojson("thailand_mapshaper.geojson")
+        coast_gdf = load_coastline_geojson("geoBoundariesCGAZ_ADM0_resized.geojson")
         col_left, col_right = st.columns([80, 20])
         with col_left:
             if os.path.exists(datesst_png):
