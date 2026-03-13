@@ -457,11 +457,12 @@ def create_sst_map(lon, lat, sst_data, title):
         title=dict(text=title, x=0.5, xanchor='center'),
         xaxis_title='Longitude (°E)',
         yaxis_title='Latitude (°N)',
+        margin=dict(l=40, r=20, t=60, b=40),
         height=800,
         hovermode='closest',
         plot_bgcolor='rgba(240,245,250,1)',
-        xaxis=dict(range=[90, 110]),
-        yaxis=dict(range=[0, 14.5],scaleanchor='x', scaleratio=1)
+        xaxis=dict(range=[90, 110], constrain='domain'),
+        yaxis=dict(range=[0, 14.5], constrain='domain')
         
     )
 
