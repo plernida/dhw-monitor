@@ -739,7 +739,7 @@ with st.spinner('Processing DHW analysis...'):
                     lat=lat,
                     sst_data=sst_current.values if hasattr(sst_current, "values") else sst_current,
                     title="Current Sea Surface Temperature",
-                    coast_gdf=coast_gdf
+                    
                 ))
                 st.plotly_chart(fig_sst, width='stretch')
             #fig_sst.update_layout(height=800, margin=dict(l=50,r=20, t=50, b=50))
