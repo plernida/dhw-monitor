@@ -499,11 +499,6 @@ def get_previous_bleaching(date):
 
     return history.get(yesterday)
 
-@st.cache_data
-def load_coastline_geojson(geojson_path="thailand_mapshaper.geojson"):
-    gdf = gpd.read_file(geojson_path).to_crs("EPSG:4326")
-    return gdf    
-
 
 
 @st.cache_data
