@@ -734,13 +734,13 @@ with st.spinner('Processing DHW analysis...'):
             # SST map
                 #fig_sst = st.pyplot(create_sst_map(lon, lat, sst_current,
                 #                        f"static/{enddate}_sst.png"))
-                fig_sst = st.pyplot(create_sst_map(
+                fig_sst = create_sst_map(
                     lon=lon,
                     lat=lat,
                     sst_data=sst_current.values if hasattr(sst_current, "values") else sst_current,
                     title="Current Sea Surface Temperature",
                     
-                ))
+                )
                 st.plotly_chart(fig_sst, width='stretch')
             #fig_sst.update_layout(height=800, margin=dict(l=50,r=20, t=50, b=50))
             #st.plotly_chart(fig_sst, width='stretch')
