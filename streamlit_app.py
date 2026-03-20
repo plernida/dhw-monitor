@@ -448,7 +448,9 @@ def create_sst_map(lon, lat, sst_data, title):
             x=coast_x,
             y=coast_y,
             mode='lines',
-            line=dict(color='gray', width=1),
+            fill='toself',
+            fillcolor='rgba(150,150,150,1)', 
+            line=dict(color='gray', width=2),
             hoverinfo='skip',
             showlegend=False
         ))
