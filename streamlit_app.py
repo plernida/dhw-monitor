@@ -600,6 +600,7 @@ def gdf_to_plotly_lines(gdf):
                 ys.extend(list(y) + [None])
 
     return xs, ys
+coast_gdf = load_coastline_geojson("geoBoundariesCGAZ_ADM0_resized.geojson")
 # Main processing
 #if process_button:
 enddate = analysis_date
