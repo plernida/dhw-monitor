@@ -434,7 +434,7 @@ def create_sst_map(lon, lat, sst_data, title):
         y=lat,
         colorscale=plotly_colorscale,
         zmin=24,
-        zmax=34
+        zmax=34,
         contours=dict(
             start=24,
             end=34,
