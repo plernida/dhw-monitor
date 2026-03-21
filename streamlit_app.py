@@ -435,14 +435,12 @@ def create_sst_map(lon, lat, sst_data, title):
         colorscale=plotly_colorscale,
         zmin=24,
         zmax=34,
-        contours_coloring="fill",
-        line_width=1,
         contours=dict(
-            start=30.5,
-            end=30.5,
+            start=24,
+            end=34,
             size=0.5,
-            showlines=True,
-            labelfont=dict(size=12,color="black"),
+            showlines=False,
+            #labelfont=dict(size=12,color="black"),
         ),
         colorbar=dict(
             title='SST (°C)',
