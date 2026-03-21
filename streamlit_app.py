@@ -472,8 +472,8 @@ def create_sst_map(lon, lat, sst_data, title):
         height=800,
         hovermode='closest',
         plot_bgcolor='rgba(240,245,250,1)',
-        xaxis=dict(range=[90, 110], constrain='domain'),
-        yaxis=dict(range=[0, 14.5], constrain='domain')
+        xaxis=dict(range=[91, 109], constrain='domain'),
+        yaxis=dict(range=[1, 14], constrain='domain')
         
     )
 
