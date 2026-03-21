@@ -59,6 +59,7 @@ def mpl_to_plotly(cmap, n=256):
         colors.append([i / (n - 1), f'rgb({int(r*255)},{int(g*255)},{int(b*255)})'])
     return colors
 plotly_colorscale = mpl_to_plotly(spectral_slice, n=21)
+cmap_colorscale = mpl_to_plotly(cmap, n=6)
 # Page configuration
 st.set_page_config(
     page_title="DHW Coral Bleaching Monitor",
@@ -220,7 +221,7 @@ def calculate_dhw(TSeries, MMM, threshold=1.0):
 # Create custom colormap (N=256 for smooth gradient)
 #cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=256)
 
-def create_dhw_map(lon, lat, dhw_data, title, levels):
+def create_dhw_map_old(lon, lat, dhw_data, title, levels):
     """Create Plotly contour map for DHW data"""
     if levels == 2:  # Binary (0/1)
         colorscale = [[0, 'white'], [1, 'rgb(102, 204, 204)']]
@@ -381,7 +382,58 @@ def plot_cartopy_map(lon, lat, dhw_total, title):
     plt.tight_layout()
     
     return fig    
+def create_dhw_map(lon, lat, dhw_total, title):
+    """Create Plotly contour map for SST data"""
+    fig = go.Figure(data=go.Contour(
+        z=dhw_total,
+        x=lon,
+        y=lat,
+        colorscale=cmap_colorscale,
+        zmin=0,
+        zmax=6,
+        contours=dict(
+            start=0,
+            end=6,
+            size=0.5,
+            showlines=True,
+            #labelfont=dict(size=12,color="black"),
+        ),
+        colorbar=dict(
+            title='DHW (°C Day)',
+            tickmode='linear',
+            tick0=1,
+            dtick=0.5
+        ),
+        hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>SST: %{z:.2f}°C<extra></extra>'
+    ))
+    
+    if coast_gdf is not None:
+        coast_x, coast_y = gdf_to_plotly_lines(coast_gdf)
 
+        fig.add_trace(go.Scatter(
+            x=coast_x,
+            y=coast_y,
+            mode='lines',
+            fill='toself',
+            fillcolor='rgba(150,150,150,1)', 
+            line=dict(color='gray', width=2),
+            hoverinfo='skip',
+            showlegend=False
+        ))
+    fig.update_layout(
+        title=dict(text=title, x=0.5, xanchor='center'),
+        xaxis_title='Longitude (°E)',
+        yaxis_title='Latitude (°N)',
+        margin=dict(l=40, r=20, t=60, b=40),
+        height=800,
+        hovermode='closest',
+        plot_bgcolor='rgba(240,245,250,1)',
+        xaxis=dict(range=[91, 109], constrain='domain'),
+        yaxis=dict(range=[1, 14], constrain='domain')
+        
+    )
+
+    return fig
 def create_sst_map_mapbox(lon, lat, sstdata, title):
     lon2d, lat2d = np.meshgrid(lon, lat)    
     fig = plt.figure(figsize=(8, 6))
@@ -642,10 +694,18 @@ with st.spinner('Processing DHW analysis...'):
             else:
                 #st.info("⚠️ No cached PNG found. Computing live...")
             # Portrait DHW map (tall)
-                fig_dhw = st.pyplot(plot_cartopy_map(
-                    lon, lat, dhw_total,
-                    f"static/{enddate}_dhw.png"
-                ))
+                #fig_dhw = st.pyplot(plot_cartopy_map(
+                #    lon, lat, dhw_total,
+                #    f"static/{enddate}_dhw.png"
+                #))
+                fig_dhw = create_dhw_map(
+                    lon=lon,
+                    lat=lat,
+                    dhw_total=dhw_total.values if hasattr(sst_current, "values") else dhw_total,
+                    title="Degree Heating Days",
+                    
+                )
+                st.plotly_chart(fig_dhw, width='stretch')                
             #st.plotly_chart(fig_dhw, width='stretch')
                         
         with col_right:
