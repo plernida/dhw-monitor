@@ -50,7 +50,7 @@ colors_rgb = [
     '#A05024',     # Dark brown
     '#F000F0'      # Dark brown
 ]
-cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=8)
+cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=7)
 def mpl_to_plotly(cmap, n=256):
     """Convert a Matplotlib colormap to a Plotly colorscale"""
     colors = []
@@ -395,10 +395,10 @@ def create_dhw_map(lon, lat, dhw_total, title):
         y=lat,
         colorscale=cmap_colorscale,
         zmin=0,
-        zmax=6,
+        zmax=7,
         contours=dict(
             start=0,
-            end=7,
+            end=8,
             size=1,
             showlines=True,
             #labelfont=dict(size=12,color="black"),
