@@ -396,6 +396,7 @@ def create_dhw_map(lon, lat, dhw_total, title):
         colorscale=cmap_colorscale,
         zmin=0,
         zmax=7,
+        contours_coloring="fill",
         contours=dict(
             start=0,
             end=7,
