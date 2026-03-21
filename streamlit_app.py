@@ -59,23 +59,12 @@ def mpl_to_plotly(cmap, n=256):
         colors.append([i / (n - 1), f'rgb({int(r*255)},{int(g*255)},{int(b*255)})'])
     return colors
 plotly_colorscale = mpl_to_plotly(spectral_slice, n=21)
-def create_stepped_colorscale(colors, n_levels=7):
-    """Map colors to exact contour bands (0-1,1-2,...,6-7)"""
-    scale = []
-    for i, color in enumerate(colors):
-        # Start and end of each 1-unit band
-        low = i * 1.0 / n_levels  
-        high = (i + 1) * 1.0 / n_levels
-        scale.append([low, color])
-        scale.append([high, color])  # Flat step
-    return scale
-cmap_colorscale = create_stepped_colorscale(colors_rgb)
-#n = len(colors_rgb)
-#cmap_colorscale = []
-#for i, c in enumerate(colors_rgb):
-#    # position from 0 to 1
-#    pos = i / (n - 1)
-#    cmap_colorscale.append([pos, c])
+n = len(colors_rgb)
+cmap_colorscale = []
+for i, c in enumerate(colors_rgb):
+    # position from 0 to 1
+    pos = i / (n - 1)
+    cmap_colorscale.append([pos, c])
 # Page configuration
 st.set_page_config(
     page_title="DHW Coral Bleaching Monitor",
@@ -409,7 +398,7 @@ def create_dhw_map(lon, lat, dhw_total, title):
         zmax=7,
         contours_coloring="fill",
         contours=dict(
-            start=0,
+            start=1,
             end=7,
             size=1,
             showlines=True,
