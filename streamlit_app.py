@@ -60,11 +60,11 @@ def mpl_to_plotly(cmap, n=256):
     return colors
 plotly_colorscale = mpl_to_plotly(spectral_slice, n=21)
 n = len(colors_rgb)
-plotly_colorscale = []
+cmap_colorscale = []
 for i, c in enumerate(colors_rgb):
     # position from 0 to 1
     pos = i / (n - 1)
-    plotly_colorscale.append([pos, c])
+    cmap_colorscale.append([pos, c])
 # Page configuration
 st.set_page_config(
     page_title="DHW Coral Bleaching Monitor",
