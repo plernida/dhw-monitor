@@ -51,8 +51,14 @@ colors_rgb = [
     '#F000F0'      # Dark brown
 ]
 cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=256)
-
-
+def mpl_to_plotly(cmap, n=256):
+    """Convert a Matplotlib colormap to a Plotly colorscale"""
+    colors = []
+    for i in range(n):
+        r, g, b, _ = cmap(i / (n - 1))
+        colors.append([i / (n - 1), f'rgb({int(r*255)},{int(g*255)},{int(b*255)})'])
+    return colors
+plotly_colorscale = mpl_to_plotly(spectral_slice, n=21)
 # Page configuration
 st.set_page_config(
     page_title="DHW Coral Bleaching Monitor",
@@ -426,16 +432,18 @@ def create_sst_map(lon, lat, sst_data, title):
         z=sst_data,
         x=lon,
         y=lat,
-        colorscale='jet',
+        colorscale=plotly_colorscale,
+        zmin=24,
+        zmax=34
         contours=dict(
-            start=28,
-            end=32,
+            start=24,
+            end=34,
             size=0.5,
         ),
         colorbar=dict(
             title='SST (°C)',
             tickmode='linear',
-            tick0=28,
+            tick0=24,
             dtick=0.5
         ),
         hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>SST: %{z:.2f}°C<extra></extra>'
