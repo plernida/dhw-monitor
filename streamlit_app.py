@@ -50,7 +50,7 @@ colors_rgb = [
     '#A05024',     # Dark brown
     '#F000F0'      # Dark brown
 ]
-cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=256)
+cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=7)
 def mpl_to_plotly(cmap, n=256):
     """Convert a Matplotlib colormap to a Plotly colorscale"""
     colors = []
@@ -404,7 +404,7 @@ def create_dhw_map(lon, lat, dhw_total, title):
             tick0=1,
             dtick=0.5
         ),
-        hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>SST: %{z:.2f}°C<extra></extra>'
+        hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>DHW: %{z:.2f}°C Days<extra></extra>'
     ))
     
     if coast_gdf is not None:
@@ -702,7 +702,7 @@ with st.spinner('Processing DHW analysis...'):
                 fig_dhw = create_dhw_map(
                     lon=lon,
                     lat=lat,
-                    dhw_total=dhw_total.values if hasattr(sst_current, "values") else dhw_total,
+                    dhw_total=dhw_total.values if hasattr(dhw_total, "values") else dhw_total,
                     title="Degree Heating Days",
                     
                 )
