@@ -59,7 +59,12 @@ def mpl_to_plotly(cmap, n=256):
         colors.append([i / (n - 1), f'rgb({int(r*255)},{int(g*255)},{int(b*255)})'])
     return colors
 plotly_colorscale = mpl_to_plotly(spectral_slice, n=21)
-cmap_colorscale = mpl_to_plotly(cmap, n=7)
+n = len(colors_rgb)
+plotly_colorscale = []
+for i, c in enumerate(colors_rgb):
+    # position from 0 to 1
+    pos = i / (n - 1)
+    plotly_colorscale.append([pos, c])
 # Page configuration
 st.set_page_config(
     page_title="DHW Coral Bleaching Monitor",
@@ -395,6 +400,7 @@ def create_dhw_map(lon, lat, dhw_total, title):
             start=0,
             end=6,
             size=1,
+            size=(6-0)/7,
             showlines=True,
             #labelfont=dict(size=12,color="black"),
         ),
