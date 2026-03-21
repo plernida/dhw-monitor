@@ -398,7 +398,7 @@ def create_dhw_map(lon, lat, dhw_total, title):
         zmax=7,
         contours=dict(
             start=0,
-            end=8,
+            end=7,
             size=1,
             showlines=True,
             #labelfont=dict(size=12,color="black"),
