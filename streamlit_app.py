@@ -59,7 +59,7 @@ def mpl_to_plotly(cmap, n=256):
         colors.append([i / (n - 1), f'rgb({int(r*255)},{int(g*255)},{int(b*255)})'])
     return colors
 plotly_colorscale = mpl_to_plotly(spectral_slice, n=21)
-cmap_colorscale = mpl_to_plotly(cmap, n=6)
+cmap_colorscale = mpl_to_plotly(cmap, n=7)
 # Page configuration
 st.set_page_config(
     page_title="DHW Coral Bleaching Monitor",
@@ -394,7 +394,7 @@ def create_dhw_map(lon, lat, dhw_total, title):
         contours=dict(
             start=0,
             end=6,
-            size=0.5,
+            size=1,
             showlines=True,
             #labelfont=dict(size=12,color="black"),
         ),
@@ -402,7 +402,7 @@ def create_dhw_map(lon, lat, dhw_total, title):
             title='DHW (°C Day)',
             tickmode='linear',
             tick0=1,
-            dtick=0.5
+            dtick=1
         ),
         hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>DHW: %{z:.2f}°C Days<extra></extra>'
     ))
