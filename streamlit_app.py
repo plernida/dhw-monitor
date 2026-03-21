@@ -50,7 +50,7 @@ colors_rgb = [
     '#A05024',     # Dark brown
     '#F000F0'      # Dark brown
 ]
-cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=7)
+cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=6)
 def mpl_to_plotly(cmap, n=256):
     """Convert a Matplotlib colormap to a Plotly colorscale"""
     colors = []
