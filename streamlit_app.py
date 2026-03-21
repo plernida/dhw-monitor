@@ -401,7 +401,7 @@ def create_dhw_map(lon, lat, dhw_total, title):
         colorbar=dict(
             title='DHW (°C Day)',
             tickmode='linear',
-            tick0=1,
+            tick0=0,
             dtick=1
         ),
         hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>DHW: %{z:.2f}°C Days<extra></extra>'
