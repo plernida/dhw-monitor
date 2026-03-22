@@ -65,6 +65,7 @@ for i, c in enumerate(colors_rgb):
     # position from 0 to 1
     pos = i / (n - 1)
     cmap_colorscale.append([pos, c])
+print("cmap=", cmap_colorscale)
 # Page configuration
 st.set_page_config(
     page_title="DHW Coral Bleaching Monitor",
@@ -108,7 +109,7 @@ MIN_DATE = datetime(1985, 4, 1)
 MAX_DATE = target_date
 
 st.sidebar.success(f"📅 **Latest Analysis:** {target_date.strftime('%Y-%m-%d')}")
-st.sidebar.info("✅ CRW SST 5km: 1985-01-01 → present")
+st.sidebar.info(f"✅ CRW SST 5km: 1985-04-01 → {target_date.strftime('%Y-%m-%d')}")
 
 analysis_date = st.sidebar.date_input("🎯 Analysis Center Date",
     value=target_date,
