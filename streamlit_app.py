@@ -65,7 +65,7 @@ for i, c in enumerate(colors_rgb):
     # position from 0 to 1
     pos = i / (n - 1)
     cmap_colorscale.append([pos, c])
-print("cmap=", cmap_colorscale)
+"""{cmap_colorscale}"""
 # Page configuration
 st.set_page_config(
     page_title="DHW Coral Bleaching Monitor",
