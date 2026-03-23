@@ -396,11 +396,11 @@ def create_dhw_map(lon, lat, dhw_total, title):
         y=lat,
         colorscale=cmap_colorscale,
         zmin=0,
-        zmax=6,
+        zmax=7,
         contours_coloring="fill",
         contours=dict(
             start=0,
-            end=7,
+            end=6,
             size=1,
             showlines=True,
             #labelfont=dict(size=12,color="black"),
