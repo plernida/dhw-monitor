@@ -400,7 +400,7 @@ def create_dhw_map(lon, lat, dhw_total, title):
         contours_coloring="fill",
         contours=dict(
             start=0,
-            end=7,
+            end=6,
             size=1,
             showlines=True,
             #labelfont=dict(size=12,color="black"),
