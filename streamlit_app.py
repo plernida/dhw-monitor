@@ -50,7 +50,7 @@ colors_rgb = [
     '#A05024',     # Dark brown
     '#F000F0'      # Dark brown
 ]
-cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=6)
+cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=8)
 def mpl_to_plotly(cmap, n=256):
     """Convert a Matplotlib colormap to a Plotly colorscale"""
     colors = []
@@ -65,7 +65,7 @@ for i, c in enumerate(colors_rgb):
     # position from 0 to 1
     pos = i / (n - 1)
     cmap_colorscale.append([pos, c])
-"""{cmap_colorscale}"""
+
 # Page configuration
 st.set_page_config(
     page_title="DHW Coral Bleaching Monitor",
