@@ -410,7 +410,7 @@ def create_dhw_map(lon, lat, dhw_total, title):
         zmax=7,
         #contours_coloring="fill",
         contours=dict(
-            start=0,
+            start=1,
             end=7,
             size=1,
             showlines=False,
@@ -418,7 +418,6 @@ def create_dhw_map(lon, lat, dhw_total, title):
         ),
         colorbar=dict(
             title='DHW (°C Day)',
-            
             tick0=1,
             dtick=1
         ),
