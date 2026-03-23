@@ -413,7 +413,7 @@ def create_dhw_map(lon, lat, dhw_total, title):
             start=0,
             end=7,
             size=1,
-            showlines=None,
+            showlines=False,
             #labelfont=dict(size=12,color="black"),
         ),
         colorbar=dict(
