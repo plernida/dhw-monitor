@@ -805,15 +805,12 @@ with st.spinner('Processing DHW analysis...'):
                         #)
                         #st.pyplot(fig)
                         #plt.close(fig)
-                        for row in range(2):
-                            cols = st.columns(3)
-                            for col_idx in range(3):
-                                week_idx = row * 3 + col_idx
-                                with cols[col_idx]:
-                                    fig = create_dhw_map(lon, lat, dhw_weeks[week_idx],
-                                                       date_labels[week_idx])
-                                    fig.update_layout(height=350)
-                                    st.plotly_chart(fig, weight='stretch')
+
+                        with cols[col_idx]:
+                            fig = create_dhw_map(lon, lat, dhw_weeks[week_idx],
+                                               date_labels[week_idx])
+                            fig.update_layout(height=350)
+                            st.plotly_chart(fig, weight='stretch')
 
                         
     
