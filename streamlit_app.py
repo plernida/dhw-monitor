@@ -797,14 +797,24 @@ with st.spinner('Processing DHW analysis...'):
                         
                     # กรณีไม่มีไฟล์ → plot สด
                     elif week_idx < len(dhw_weeks):
-                        fig = plot_dhw_week(
-                            lon,
-                            lat,
-                            dhw_weeks[week_idx],
-                            date_labels[week_idx]
-                        )
-                        st.pyplot(fig)
-                        plt.close(fig)
+                        #fig = plot_dhw_week(
+                        #    lon,
+                        #    lat,
+                        #    dhw_weeks[week_idx],
+                        #    date_labels[week_idx]
+                        #)
+                        #st.pyplot(fig)
+                        #plt.close(fig)
+                        for row in range(2):
+                            cols = st.columns(3)
+                            for col_idx in range(3):
+                                week_idx = row * 3 + col_idx
+                                with cols[col_idx]:
+                                    fig = create_dhw_map(lon, lat, dhw_weeks[week_idx],
+                                                       date_labels[week_idx], 2)
+                                    fig.update_layout(height=350)
+                                    st.plotly_chart(fig, use_container_width=True)
+
                         
     
                     else:
