@@ -77,6 +77,7 @@ def create_stepped_colorscale(colors, n_levels=7):
     return scale
 
 cmap_colorscale = create_stepped_colorscale(colors_rgb)
+cmap_week = create_stepped_colorscale(colors_rgb[:2], n_levels=2)
 # Page configuration
 st.set_page_config(
     page_title="DHW Coral Bleaching Monitor",
@@ -458,7 +459,7 @@ def create_dhw_weeks(lon, lat, dhw_total, title):
         z=dhw_total,
         x=lon,
         y=lat,
-        colorscale=cmap_colorscale,
+        colorscale=cmap_week,
         zmin=0,
         zmax=2,
         #contours_coloring="fill",
