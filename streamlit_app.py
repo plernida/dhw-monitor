@@ -813,7 +813,7 @@ with st.spinner('Processing DHW analysis...'):
                                     fig = create_dhw_map(lon, lat, dhw_weeks[week_idx],
                                                        date_labels[week_idx])
                                     fig.update_layout(height=350)
-                                    st.plotly_chart(fig, use_container_width=True)
+                                    st.plotly_chart(fig, weight='stretch')
 
                         
     
