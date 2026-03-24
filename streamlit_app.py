@@ -450,6 +450,60 @@ def create_dhw_map(lon, lat, dhw_total, title):
         
     )
 
+    
+    return fig
+def create_dhw_weeks(lon, lat, dhw_total, title):
+    """Create Plotly contour map for SST data"""
+    fig = go.Figure(data=go.Contour(
+        z=dhw_total,
+        x=lon,
+        y=lat,
+        colorscale=cmap_colorscale,
+        zmin=0,
+        zmax=1,
+        #contours_coloring="fill",
+        contours=dict(
+            start= 0,
+            end=1,
+            size=1,
+            showlines=False,
+            #labelfont=dict(size=12,color="black"),
+        ),
+        colorbar=dict(
+            title='DHW (°C Day)',
+            tick0=0,
+            dtick=1
+        ),
+        hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>DHW: %{z:.2f}°C Days<extra></extra>'
+    ))
+    
+    if coast_gdf is not None:
+        coast_x, coast_y = gdf_to_plotly_lines(coast_gdf)
+
+        fig.add_trace(go.Scatter(
+            x=coast_x,
+            y=coast_y,
+            mode='lines',
+            fill='toself',
+            fillcolor='rgba(150,150,150,1)', 
+            line=dict(color='gray', width=2),
+            hoverinfo='skip',
+            showlegend=False
+        ))
+    fig.update_layout(
+        title=dict(text=title, x=0.5, xanchor='center'),
+        xaxis_title='Longitude (°E)',
+        yaxis_title='Latitude (°N)',
+        margin=dict(l=40, r=20, t=60, b=40),
+        height=800,
+        hovermode='closest',
+        plot_bgcolor='rgba(240,245,250,1)',
+        xaxis=dict(range=[91, 109], constrain='domain'),
+        yaxis=dict(range=[1, 14], constrain='domain')
+        
+    )
+
+    
     return fig
 def create_sst_map_mapbox(lon, lat, sstdata, title):
     lon2d, lat2d = np.meshgrid(lon, lat)    
@@ -807,9 +861,9 @@ with st.spinner('Processing DHW analysis...'):
                         #plt.close(fig)
 
                         with cols[col_idx]:
-                            fig = create_dhw_map(lon, lat, dhw_weeks[week_idx],
+                            fig = create_dhw_weeks(lon, lat, dhw_weeks[week_idx],
                                                date_labels[week_idx])
-                            fig.update_layout(height=350)
+                            fig.update_layout(height=350
                             st.plotly_chart(fig, weight='stretch')
 
                         
