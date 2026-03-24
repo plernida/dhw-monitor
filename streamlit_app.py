@@ -460,11 +460,11 @@ def create_dhw_weeks(lon, lat, dhw_total, title):
         y=lat,
         colorscale=cmap_colorscale,
         zmin=0,
-        zmax=1,
+        zmax=2,
         #contours_coloring="fill",
         contours=dict(
             start= 0,
-            end=1,
+            end=2,
             size=1,
             showlines=False,
             #labelfont=dict(size=12,color="black"),
