@@ -7,6 +7,7 @@ Interactive online interface for Degree Heating Weeks monitoring
 import streamlit as st
 import numpy as np
 import xarray as xr
+from scipy.interpolate import griddata
 import plotly.graph_objects as go
 from scipy import ndimage
 import matplotlib.pyplot as plt
