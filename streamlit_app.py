@@ -731,7 +731,7 @@ with st.spinner('Processing DHW analysis...'):
     sst_30days_data = TSeries.transpose('time', 'lat', 'lon').values
     
     # calculate DHW
-    dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
+    dhw_weeks, dhw_total, sst_weeks = calculate_dhw(sst_30days_data, MMM)
     LON, LAT, lon, lat = create_coordinates()
     sst_current = TSeries[:, :, -1]
     
