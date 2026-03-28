@@ -431,20 +431,18 @@ def create_dhw_map(lon, lat, dhw_total, title):
         ),
         hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>DHW: %{z:.2f}°C Days<extra></extra>'
     ))
-    # Add coastal stations after contour
-    fig.add_trace(go.Scattergeo(
-        lat=thai_stations['lat'],
-        lon=thai_stations['lon'],
+    # FIXED: Use go.Scatter (cartesian) instead of Scattergeo
+    fig.add_trace(go.Scatter(
+        x=thai_stations['lon'],  # Note: lon first for x
+        y=thai_stations['lat'],  # lat for y
         mode='markers+text',
         marker=dict(size=10, color='red', symbol='circle', line=dict(width=2, color='darkred')),
         text=thai_stations['name'],
         textposition='top center',
         textfont=dict(size=10, color='black'),
-        hovertemplate='<b>%{text}</b><br>Lat: %{lat:.2f}<br>Lon: %{lon:.2f}<extra></extra>',
+        hovertemplate='<b>%{text}</b><br>Lat: %{y:.2f}<br>Lon: %{x:.2f}<extra></extra>',
         name='Stations'
-    ))
-    
-    
+    ))    
     if coast_gdf is not None:
         coast_x, coast_y = gdf_to_plotly_lines(coast_gdf)
 
