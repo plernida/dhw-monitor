@@ -422,7 +422,7 @@ def get_station_sst_history(LON, LAT, sst_30days, stations, days_back=30):
             station_ssts.append(sst_val if not np.isnan(sst_val) else 28.0)  # Fallback
         histories[name] = {'dates': dates, 'sst': station_ssts}
     return
-historiesstation_histories = get_station_sst_history(lon, lat, sst_30days_data, thai_stations)
+
 def create_dhw_map(lon, lat, dhw_total, title):
     """Create Plotly contour map for SST data"""
     fig = go.Figure(data=go.Contour(
@@ -728,7 +728,8 @@ with st.spinner('Processing DHW analysis...'):
     baseline = xr.open_dataset('crw_mmm_sst_thailand_1985-2025.nc') # read array
     MMM = baseline['sst'].sel(lon=slice(90,110),lat=slice(14.1,0))
     TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
-
+    historiesstation_histories = get_station_sst_history(lon, lat, sst_30days_data, thai_stations)
+    
     # calculate DHW
     dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
     LON, LAT, lon, lat = create_coordinates()
