@@ -728,7 +728,7 @@ with st.spinner('Processing DHW analysis...'):
     baseline = xr.open_dataset('crw_mmm_sst_thailand_1985-2025.nc') # read array
     MMM = baseline['sst'].sel(lon=slice(90,110),lat=slice(14.1,0))
     TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
-    
+    sst_30days_data = TSeries.transpose('time', 'lat', 'lon').values
     
     # calculate DHW
     dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
