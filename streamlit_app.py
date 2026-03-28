@@ -728,15 +728,15 @@ with st.spinner('Processing DHW analysis...'):
     baseline = xr.open_dataset('crw_mmm_sst_thailand_1985-2025.nc') # read array
     MMM = baseline['sst'].sel(lon=slice(90,110),lat=slice(14.1,0))
     TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
-    historiesstation_histories = get_station_sst_history(lon, lat, sst_30days_data, thai_stations)
+    
     
     # calculate DHW
     dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
     LON, LAT, lon, lat = create_coordinates()
     sst_current = TSeries[:, :, -1]
-        
+    historiesstation_histories = get_station_sst_history(lon, lat, sst_30days_data, thai_stations)
+    
     # Use SELECTED date as analysis center
-
     
     # Download 48 days BACK from analysis_date
    #TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
