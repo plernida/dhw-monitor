@@ -731,11 +731,11 @@ with st.spinner('Processing DHW analysis...'):
     sst_30days_data = TSeries.transpose('time', 'lat', 'lon').values
     
     # calculate DHW
-    dhw_weeks, dhw_total, sst_weeks = calculate_dhw(sst_30days_data, MMM)
+    dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
     LON, LAT, lon, lat = create_coordinates()
     sst_current = TSeries[:, :, -1]
     
-    station_histories = get_station_sst_history(lon, lat, TSeries, thai_stations)
+    station_histories = get_station_sst_history(lon, lat, sst_30days_data, thai_stations)
     
     # Use SELECTED date as analysis center
     
