@@ -422,7 +422,7 @@ def get_station_sst_history(LON, LAT, sst_30days, stations, days_back=30):
             station_ssts.append(sst_val if not np.isnan(sst_val) else 28.0)  # Fallback
         histories[name] = {'dates': dates, 'sst': station_ssts}
     return histories
-    
+station_histories = get_station_sst_history(LON, LAT, sst_30days_data, thai_stations)
 def create_dhw_map(lon, lat, dhw_total, title):
     """Create Plotly contour map for SST data"""
     fig = go.Figure(data=go.Contour(
