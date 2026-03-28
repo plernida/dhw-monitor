@@ -399,7 +399,14 @@ def plot_cartopy_map(lon, lat, dhw_total, title):
     
     plt.tight_layout()
     
-    return fig    
+    return fig  
+
+thai_stations = {
+    'name': ['Koh Sichang', 'Rayong', 'Ko Samet', 'Pattaya', 'Prachuap', 'Chumphon', 'Surat Thani', 'Koh Samui', 'Songkhla', 'Pattani'],
+    'lat': [13.15, 12.68, 12.57, 12.93, 11.81, 10.49, 9.38, 9.54, 7.20, 6.88],
+    'lon': [100.80, 101.28, 101.47, 100.59, 99.97, 99.22, 99.32, 100.50, 100.60, 101.20]
+}
+
 def create_dhw_map(lon, lat, dhw_total, title):
     """Create Plotly contour map for SST data"""
     fig = go.Figure(data=go.Contour(
@@ -424,6 +431,19 @@ def create_dhw_map(lon, lat, dhw_total, title):
         ),
         hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>DHW: %{z:.2f}°C Days<extra></extra>'
     ))
+    # Add coastal stations after contour
+    fig.add_trace(go.Scattergeo(
+        lat=thai_stations['lat'],
+        lon=thai_stations['lon'],
+        mode='markers+text',
+        marker=dict(size=10, color='red', symbol='circle', line=dict(width=2, color='darkred')),
+        text=thai_stations['name'],
+        textposition='top center',
+        textfont=dict(size=10, color='black'),
+        hovertemplate='<b>%{text}</b><br>Lat: %{lat:.2f}<br>Lon: %{lon:.2f}<extra></extra>',
+        name='Stations'
+    ))
+    
     
     if coast_gdf is not None:
         coast_x, coast_y = gdf_to_plotly_lines(coast_gdf)
