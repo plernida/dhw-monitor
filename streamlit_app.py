@@ -408,6 +408,21 @@ thai_stations = {
     'lon': [100.80, 101.28, 101.47, 100.59, 99.97, 99.22, 99.32, 100.50, 100.60, 101.20]
 }
 
+def get_station_sst_history(LON, LAT, sst_30days, stations, days_back=30):
+    """Extract 30-day SST lines for each station via interpolation."""
+    histories = {}
+    dates = [datetime.now() - timedelta(d) for d in range(days_back)][::-1]  # Recent 30 days
+    for i, name in enumerate(stations['name']):
+        lon, lat = stations['lon'][i], stations['lat'][i]
+        station_ssts = []
+        for t in range(len(sst_30days)):
+            sst_flat = sst_30days[t].flatten()
+            lon_flat, lat_flat = LON.flatten(), LAT.flatten()
+            sst_val = griddata((lon_flat, lat_flat), sst_flat, (lon, lat), method='linear')
+            station_ssts.append(sst_val if not np.isnan(sst_val) else 28.0)  # Fallback
+        histories[name] = {'dates': dates, 'sst': station_ssts}
+    return histories
+    
 def create_dhw_map(lon, lat, dhw_total, title):
     """Create Plotly contour map for SST data"""
     fig = go.Figure(data=go.Contour(
@@ -432,12 +447,17 @@ def create_dhw_map(lon, lat, dhw_total, title):
         ),
         hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>DHW: %{z:.2f}°C Days<extra></extra>'
     ))
-    # FIXED: Use go.Scatter (cartesian) instead of Scattergeo
+    hover_lines = []
+    for i, name in enumerate(thai_stations['name']):
+        hist = station_histories[name]['sst']
+        path_data = "M0,50 " + " ".join([f"L{10*j/30},{50 - (hist[j]-25)*5}" for j in range(30)]) + " L100,50 Z"
+        svg_line = f'<svg width="100" height="50"><path d="{path_data}" stroke="blue" fill="none" stroke-width="2"/></svg>'
+        hover_lines.append(f"<b>{name}</b>: {hist[-1]:.1f}°C<br>{svg_line}")    # FIXED: Use go.Scatter (cartesian) instead of Scattergeo
     fig.add_trace(go.Scatter(
         x=thai_stations['lon'],  # Note: lon first for x
         y=thai_stations['lat'],  # lat for y
         mode='markers+text',
-        marker=dict(size=10, color='red', symbol='circle', line=dict(width=2, color='darkred')),
+        marker=dict(size=10, color='white', symbol='circle', line=dict(width=2, color='darkred')),
         text=thai_stations['name'],
         textposition='top center',
         textfont=dict(size=10, color='black'),
