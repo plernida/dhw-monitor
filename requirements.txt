@@ -12,4 +12,4 @@ pyproj
 geos
 proj
 xarray
-streamlit-plotly-events
+streamlit-plotly-events>=0.0.6
