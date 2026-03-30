@@ -5,6 +5,7 @@ Interactive online interface for Degree Heating Weeks monitoring
 """
 
 import streamlit as st
+from streamlit_plotly_events import plotly_events
 import numpy as np
 import xarray as xr
 from scipy.interpolate import griddata
@@ -814,7 +815,44 @@ with st.spinner('Processing DHW analysis...'):
                     title="Degree Heating Days",
                     
                 )
-                st.plotly_chart(fig_dhw, width='stretch')                
+                #st.plotly_chart(fig_dhw, width='stretch') 
+                selected_points = plotly_events(fig_dhw,
+                    click_event=True,
+                    hover_event=False
+                )
+                if selected_points:
+                    point = selected_points[0]
+                    clicked_lon = point["x"]
+                    clicked_lat = point["y"]
+                
+                    # find nearest station
+                    distances = (
+                        (np.array(thai_stations['lon']) - clicked_lon)**2 +
+                        (np.array(thai_stations['lat']) - clicked_lat)**2
+                    )
+                
+                    idx = np.argmin(distances)
+                    station_name = thai_stations['name'][idx]
+                st.subheader(f"📈 SST History — {station_name}")
+
+                sst_series = station_histories[station_name]["sst"]
+            
+                fig_ts = go.Figure()
+            
+                fig_ts.add_trace(go.Scatter(
+                    y=sst_series,
+                    mode='lines+markers',
+                    name=station_name
+                ))
+            
+                fig_ts.update_layout(
+                    height=300,
+                    xaxis_title="Days (last 30)",
+                    yaxis_title="SST (°C)",
+                    margin=dict(l=20, r=20, t=40, b=20)
+                )
+            
+                st.plotly_chart(fig_ts, width='stretch')
             #st.plotly_chart(fig_dhw, width='stretch')
                         
         with col_right:
