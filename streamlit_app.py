@@ -852,7 +852,7 @@ with st.spinner('Processing DHW analysis...'):
                         margin=dict(l=20, r=20, t=40, b=20)
                     )
                 
-                st.plotly_chart(fig_ts, width='stretch')
+            st.plotly_chart(fig_ts, width='stretch')
             #st.plotly_chart(fig_dhw, width='stretch')
                         
         with col_right:
