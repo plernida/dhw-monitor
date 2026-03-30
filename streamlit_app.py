@@ -408,20 +408,23 @@ thai_stations = {
     'lon': [100.80, 101.28, 101.47, 100.59, 99.97, 99.22, 99.32, 100.50, 100.60, 101.20]
 }
 
-def get_station_sst_history(LON, LAT, sst_30days, stations, days_back=30):
-    """Extract 30-day SST lines for each station via interpolation."""
+def get_station_sst_history(lon_array, lat_array, sst_30days, stations):
+    """Fast extraction using nearest grid point (NO interpolation)"""
     histories = {}
-    dates = [datetime.now() - timedelta(d) for d in range(days_back)][::-1]  # Recent 30 days
+
+    # Precompute nearest indices ONCE
+    lon_idx = np.searchsorted(lon_array, stations['lon'])
+    lat_idx = np.searchsorted(lat_array, stations['lat'])
+
+    lon_idx = np.clip(lon_idx, 0, len(lon_array)-1)
+    lat_idx = np.clip(lat_idx, 0, len(lat_array)-1)
+
     for i, name in enumerate(stations['name']):
-        lon, lat = stations['lon'][i], stations['lat'][i]
-        station_ssts = []
-        for t in range(len(sst_30days)):
-            sst_flat = sst_30days[t].flatten()
-            lon_flat, lat_flat = LON.flatten(), LAT.flatten()
-            sst_val = griddata((lon_flat, lat_flat), sst_flat, (lon, lat), method='linear')
-            station_ssts.append(sst_val if not np.isnan(sst_val) else 28.0)  # Fallback
-        histories[name] = {'dates': dates, 'sst': station_ssts}
-    return
+        histories[name] = {
+            "sst": sst_30days[:, lat_idx[i], lon_idx[i]]
+        }
+
+    return histories
 
 def create_dhw_map(lon, lat, dhw_total, title):
     """Create Plotly contour map for SST data"""
@@ -447,21 +450,19 @@ def create_dhw_map(lon, lat, dhw_total, title):
         ),
         hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>DHW: %{z:.2f}°C Days<extra></extra>'
     ))
-    fig.add_trace(go.Scatter(
+    fig.add_trace(go.Scattergl(
             x=thai_stations['lon'],  # Note: lon first for x
             y=thai_stations['lat'],  # lat for y
-            mode='markers+text',
+            mode='markers',
             marker=dict(size=10, color='red', symbol='circle', line=dict(width=2, color='darkred')),
-            text=thai_stations['name'],
-            textposition='top center',
-            textfont=dict(size=10, color='black'),
-            hovertemplate='<b>%{text}</b><br>Lat: %{y:.2f}<br>Lon: %{x:.2f}<extra></extra>',
+            hovertemplate='<b>%{customdata}</b><br>Lat: %{y:.2f}<br>Lon: %{x:.2f}<extra></extra>',
+            customdata=thai_stations['name'],
             name='Stations'
     )) 
     if coast_gdf is not None:
         coast_x, coast_y = gdf_to_plotly_lines(coast_gdf)
 
-        fig.add_trace(go.Scatter(
+        fig.add_trace(go.Scattergl(
             x=coast_x,
             y=coast_y,
             mode='lines',
@@ -729,7 +730,7 @@ with st.spinner('Processing DHW analysis...'):
     LON, LAT, lon, lat = create_coordinates()
     sst_current = TSeries[:, :, -1]
     
-    station_histories = get_station_sst_history(LON, LAT, sst_30days_data, thai_stations)
+    station_histories = get_station_sst_history(lon, lat, sst_30days_data, thai_stations)
     
     # Use SELECTED date as analysis center
     
@@ -910,7 +911,6 @@ with st.spinner('Processing DHW analysis...'):
             
     with tab3:
         st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
-        coast_gdf = load_coastline_geojson("geoBoundariesCGAZ_ADM0_resized.geojson")
         col_left, col_right = st.columns([80, 20])
         with col_left:
             if os.path.exists(datesst_png):
