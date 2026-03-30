@@ -447,23 +447,17 @@ def create_dhw_map(lon, lat, dhw_total, title):
         ),
         hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>DHW: %{z:.2f}°C Days<extra></extra>'
     ))
-    hover_lines = []
-    for i, name in enumerate(thai_stations['name']):
-        hist = station_histories[name]['sst']
-        path_data = "M0,50 " + " ".join([f"L{10*j/30},{50 - (hist[j]-25)*5}" for j in range(30)]) + " L100,50 Z"
-        svg_line = f'<svg width="100" height="50"><path d="{path_data}" stroke="blue" fill="none" stroke-width="2"/></svg>'
-        hover_lines.append(f"<b>{name}</b>: {hist[-1]:.1f}°C<br>{svg_line}")    # FIXED: Use go.Scatter (cartesian) instead of Scattergeo
     fig.add_trace(go.Scatter(
-        x=thai_stations['lon'],  # Note: lon first for x
-        y=thai_stations['lat'],  # lat for y
-        mode='markers+text',
-        marker=dict(size=10, color='white', symbol='circle', line=dict(width=2, color='darkred')),
-        text=thai_stations['name'],
-        textposition='top center',
-        textfont=dict(size=10, color='black'),
-        hovertemplate='<b>%{text}</b><br>Lat: %{y:.2f}<br>Lon: %{x:.2f}<extra></extra>',
-        name='Stations'
-    ))    
+            x=thai_stations['lon'],  # Note: lon first for x
+            y=thai_stations['lat'],  # lat for y
+            mode='markers+text',
+            marker=dict(size=10, color='red', symbol='circle', line=dict(width=2, color='darkred')),
+            text=thai_stations['name'],
+            textposition='top center',
+            textfont=dict(size=10, color='black'),
+            hovertemplate='<b>%{text}</b><br>Lat: %{y:.2f}<br>Lon: %{x:.2f}<extra></extra>',
+            name='Stations'
+    )) 
     if coast_gdf is not None:
         coast_x, coast_y = gdf_to_plotly_lines(coast_gdf)
 
