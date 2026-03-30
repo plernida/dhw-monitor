@@ -837,20 +837,20 @@ with st.spinner('Processing DHW analysis...'):
 
                     sst_series = station_histories[station_name]["sst"]
                 
-                    fig_ts = go.Figure()
-                
-                    fig_ts.add_trace(go.Scatter(
-                        y=sst_series,
-                        mode='lines+markers',
-                        name=station_name
-                    ))
-                
-                    fig_ts.update_layout(
-                        height=300,
-                        xaxis_title="Days (last 30)",
-                        yaxis_title="SST (°C)",
-                        margin=dict(l=20, r=20, t=40, b=20)
-                    )
+            fig_ts = go.Figure()
+        
+            fig_ts.add_trace(go.Scatter(
+                y=sst_series,
+                mode='lines+markers',
+                name=station_name
+            ))
+        
+            fig_ts.update_layout(
+                height=300,
+                xaxis_title="Days (last 30)",
+                yaxis_title="SST (°C)",
+                margin=dict(l=20, r=20, t=40, b=20)
+            )
                 
             st.plotly_chart(fig_ts, width='stretch')
             #st.plotly_chart(fig_dhw, width='stretch')
