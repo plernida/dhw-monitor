@@ -853,7 +853,7 @@ with st.spinner('Processing DHW analysis...'):
                 #     )
                 
                 #     st.plotly_chart(fig_ts, width='stretch')
-            st.plotly_chart(fig_dhw, width='stretch')
+                st.plotly_chart(fig_dhw, width='stretch')
                         
         with col_right:
             # Upper right: DHW Distribution
