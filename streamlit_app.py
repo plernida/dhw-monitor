@@ -460,15 +460,15 @@ def create_dhw_map(lon, lat, dhw_total, title):
     #         customdata=thai_stations['name'],
     #         name='Stations'
     # )) 
-    fig.add_trace(go.Scattergl(
-        x=thai_stations['lon'],  # Note: lon first for x
-        y=thai_stations['lat'],  # lat for y
-        mode='markers',
-        marker=dict(size=10, color='red', symbol='circle', line=dict(width=2, color='darkred')),
-        hovertemplate='<b>%{customdata}</b><br>Lat: %{y:.2f}<br>Lon: %{x:.2f}<extra></extra>',
-        customdata=thai_stations['name'],
-        name='Stations'
-    )) 
+    # fig.add_trace(go.Scattergl(
+    #     x=thai_stations['lon'],  # Note: lon first for x
+    #     y=thai_stations['lat'],  # lat for y
+    #     mode='markers',
+    #     marker=dict(size=10, color='red', symbol='circle', line=dict(width=2, color='darkred')),
+    #     hovertemplate='<b>%{customdata}</b><br>Lat: %{y:.2f}<br>Lon: %{x:.2f}<extra></extra>',
+    #     customdata=thai_stations['name'],
+    #     name='Stations'
+    # )) 
     if coast_gdf is not None:
         coast_x, coast_y = gdf_to_plotly_lines(coast_gdf)
 
@@ -825,8 +825,8 @@ with st.spinner('Processing DHW analysis...'):
                     
                 )
                 ####st.plotly_chart(fig_dhw, width='stretch') 
-                clicked = st.plotly_chart(fig_dhw, width='stretch')
-                station_name = st.selectbox("Select station", thai_stations['name'])
+                # clicked = st.plotly_chart(fig_dhw, width='stretch')
+                # station_name = st.selectbox("Select station", thai_stations['name'])
                 # if selected_points:
                 #     point = selected_points[0]
                 #     clicked_lon = point["x"]
