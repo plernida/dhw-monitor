@@ -90,7 +90,7 @@ cmap_week = [
     [0.499, '#C8FAFA'],
     [0.5, '#FFF000'],   # 1
     [1.0, '#FFF000']
-]2)
+]
 # Page configuration
 st.set_page_config(
     page_title="DHW Coral Bleaching Monitor",
