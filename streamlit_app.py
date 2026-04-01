@@ -52,6 +52,12 @@ colors_rgb = [
     '#A05024',     # Dark brown
     '#F000F0'      # Dark brown
 ]
+colorscale = [
+    [0.0, '#C8FAFA'],   # 0
+    [0.499, '#C8FAFA'],
+    [0.5, '#FFF000'],   # 1
+    [1.0, '#FFF000']
+] 
 cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=7)
 def mpl_to_plotly(cmap, n=256):
     """Convert a Matplotlib colormap to a Plotly colorscale"""
@@ -79,7 +85,12 @@ def create_stepped_colorscale(colors, n_levels=7):
     return scale
 
 cmap_colorscale = create_stepped_colorscale(colors_rgb)
-cmap_week = create_stepped_colorscale(colors_rgb[:2], n_levels=2)
+cmap_week = [
+    [0.0, '#C8FAFA'],   # 0
+    [0.499, '#C8FAFA'],
+    [0.5, '#FFF000'],   # 1
+    [1.0, '#FFF000']
+]2)
 # Page configuration
 st.set_page_config(
     page_title="DHW Coral Bleaching Monitor",
@@ -505,7 +516,7 @@ def create_dhw_weeks(lon, lat, dhw_total, title):
         y=lat,
         colorscale=cmap_week,
         zmin=0,
-        zmax=2,
+        zmax=1,
         #contours_coloring="fill",
         contours=dict(
             start= 0,
