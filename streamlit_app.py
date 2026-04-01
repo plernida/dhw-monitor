@@ -5,7 +5,7 @@ Interactive online interface for Degree Heating Weeks monitoring
 """
 
 import streamlit as st
-from streamlit_plotly_events import plotly_events
+#from streamlit_plotly_events import plotly_events
 import numpy as np
 import xarray as xr
 from scipy.interpolate import griddata
@@ -408,7 +408,7 @@ thai_stations = {
     'lat': [13.15, 12.68, 12.57, 12.93, 11.81, 10.49, 9.38, 9.54, 7.20, 6.88],
     'lon': [100.80, 101.28, 101.47, 100.59, 99.97, 99.22, 99.32, 100.50, 100.60, 101.20]
 }
-
+@st.cache_data
 def get_station_sst_history(lon_array, lat_array, sst_30days, stations):
     """Fast extraction using nearest grid point (NO interpolation)"""
     histories = {}
@@ -460,6 +460,15 @@ def create_dhw_map(lon, lat, dhw_total, title):
     #         customdata=thai_stations['name'],
     #         name='Stations'
     # )) 
+    fig.add_trace(go.Scattergl(
+        x=thai_stations['lon'],  # Note: lon first for x
+        y=thai_stations['lat'],  # lat for y
+        mode='markers',
+        marker=dict(size=10, color='red', symbol='circle', line=dict(width=2, color='darkred')),
+        hovertemplate='<b>%{customdata}</b><br>Lat: %{y:.2f}<br>Lon: %{x:.2f}<extra></extra>',
+        customdata=thai_stations['name'],
+        name='Stations'
+    )) 
     if coast_gdf is not None:
         coast_x, coast_y = gdf_to_plotly_lines(coast_gdf)
 
@@ -516,7 +525,7 @@ def create_dhw_weeks(lon, lat, dhw_total, title):
     if coast_gdf is not None:
         coast_x, coast_y = gdf_to_plotly_lines(coast_gdf)
 
-        fig.add_trace(go.Scatter(
+        fig.add_trace(go.Scattergl(
             x=coast_x,
             y=coast_y,
             mode='lines',
@@ -613,7 +622,7 @@ def create_sst_map(lon, lat, sst_data, title):
     if coast_gdf is not None:
         coast_x, coast_y = gdf_to_plotly_lines(coast_gdf)
 
-        fig.add_trace(go.Scatter(
+        fig.add_trace(go.Scattergl(
             x=coast_x,
             y=coast_y,
             mode='lines',
@@ -816,10 +825,8 @@ with st.spinner('Processing DHW analysis...'):
                     
                 )
                 ####st.plotly_chart(fig_dhw, width='stretch') 
-                # selected_points = plotly_events(fig_dhw,
-                #     click_event=True,
-                #     hover_event=False
-                # )
+                clicked = st.plotly_chart(fig_dhw, width='stretch')
+                station_name = st.selectbox("Select station", thai_stations['name'])
                 # if selected_points:
                 #     point = selected_points[0]
                 #     clicked_lon = point["x"]
