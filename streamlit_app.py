@@ -472,7 +472,7 @@ def create_dhw_map(lon, lat, dhw_total, title):
     if coast_gdf is not None:
         coast_x, coast_y = gdf_to_plotly_lines(coast_gdf)
 
-        fig.add_trace(go.Scattergl(
+        fig.add_trace(go.Scatter(
             x=coast_x,
             y=coast_y,
             mode='lines',
@@ -525,7 +525,7 @@ def create_dhw_weeks(lon, lat, dhw_total, title):
     if coast_gdf is not None:
         coast_x, coast_y = gdf_to_plotly_lines(coast_gdf)
 
-        fig.add_trace(go.Scattergl(
+        fig.add_trace(go.Scatter(
             x=coast_x,
             y=coast_y,
             mode='lines',
@@ -622,7 +622,7 @@ def create_sst_map(lon, lat, sst_data, title):
     if coast_gdf is not None:
         coast_x, coast_y = gdf_to_plotly_lines(coast_gdf)
 
-        fig.add_trace(go.Scattergl(
+        fig.add_trace(go.Scatter(
             x=coast_x,
             y=coast_y,
             mode='lines',
