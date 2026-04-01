@@ -79,7 +79,7 @@ def create_stepped_colorscale(colors, n_levels=7):
     return scale
 
 cmap_colorscale = create_stepped_colorscale(colors_rgb)
-cmap_week = create_stepped_colorscale(colors_rgb[:2], n_levels=2)
+cmap_week = create_stepped_colorscale(colors_rgb[:3], n_levels=3)
 # Page configuration
 st.set_page_config(
     page_title="DHW Coral Bleaching Monitor",
