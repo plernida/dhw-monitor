@@ -1,7 +1,7 @@
 {
-  "date": "2026-08-02",
+  "date": "2026-08-05",
   "max_dhw": 6,
-  "avg_sst": 29.74,
-  "alert_area": 0.2,
-  "bleaching_area": 0.2
+  "avg_sst": 29.68,
+  "alert_area": 0.3,
+  "bleaching_area": 0.15
 }
