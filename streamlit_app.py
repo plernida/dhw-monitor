@@ -1,174 +1,172 @@
 """
-DHW Dashboard - Streamlit Web App
-
-SST is downloaded from CRW ERDDAP every time the Streamlit script reruns.
-The MMM file is used only as the climatological baseline.
-
-IMPORTANT:
-- calculate_dhw() is kept unchanged from the original application.
-- No pre-generated SST/DHW PNG or static DHW statistics are used for analysis.
+DHW Dashboard - Streamlit Web App (Simplified - No External Files Required)
+Deploy to Streamlit Community Cloud via GitHub
+Interactive online interface for Degree Heating Weeks monitoring
 """
 
-import os
-import warnings
-from datetime import datetime, timedelta
-
-import geopandas as gpd
-import matplotlib.colors as mcolors
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import plotly.graph_objects as go
-import pytz
-import requests
 import streamlit as st
+#from streamlit_plotly_events import plotly_events
+import numpy as np
 import xarray as xr
+from scipy.interpolate import griddata
+import plotly.graph_objects as go
+from scipy import ndimage
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+import matplotlib.patches as mpatches
+import pandas as pd
+import geopandas as gpd
+from datetime import datetime, timedelta
+import requests
+from netCDF4 import Dataset
+import tempfile
+import os
+import json
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+import cartopy.mpl.ticker as cticker
+from matplotlib.ticker import MultipleLocator
 from matplotlib.colors import LinearSegmentedColormap
+import matplotlib.font_manager as fm
+from matplotlib.colors import ListedColormap
+from io import BytesIO
+import pytz
+from datetime import timedelta
+import warnings
+warnings.filterwarnings('ignore')
 
-warnings.filterwarnings("ignore")
+plt.rcParams['font.family'] = 'Kanit'
 
-# -----------------------------------------------------------------------------
+#coast_gdf = gpd.read_file("ne_10m_coastline.shp").to_crs('EPSG:4326')  # Ensure CRS is EPSG:4326
+#coast_geojson = coast_gdf.__geo_interface__
+cmap_full = plt.get_cmap('Spectral_r')#nipy_spectral
+slice_start, slice_end = 0, 0.9
+colors = cmap_full(np.linspace(slice_start, slice_end, 256))
+spectral_slice = LinearSegmentedColormap.from_list('spectral_slice', colors)#'nipy_yellow_red
+colors_rgb = [
+    '#C8FAFA',    # Blue
+    '#FFF000',   # Gray
+    '#FAAA0A',   # Beige
+    '#F00000',   # Pink
+    '#960000',    # Brown
+    '#A05024',     # Dark brown
+    '#F000F0'      # Dark brown
+]
+colorscale = [
+    [0.0, '#C8FAFA'],   # 0
+    [0.499, '#C8FAFA'],
+    [0.5, '#FFF000'],   # 1
+    [1.0, '#FFF000']
+] 
+cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=7)
+def mpl_to_plotly(cmap, n=256):
+    """Convert a Matplotlib colormap to a Plotly colorscale"""
+    colors = []
+    for i in range(n):
+        r, g, b, _ = cmap(i / (n - 1))
+        colors.append([i / (n - 1), f'rgb({int(r*255)},{int(g*255)},{int(b*255)})'])
+    return colors
+plotly_colorscale = mpl_to_plotly(spectral_slice, n=21)
+#n = len(colors_rgb)
+#cmap_colorscale = []
+#for i, c in enumerate(colors_rgb):
+#    # position from 0 to 1
+#    pos = i / (n - 1)
+#    cmap_colorscale.append([pos, c])
+def create_stepped_colorscale(colors, n_levels=7):
+    """Map colors to exact contour bands (0-1,1-2,...,6-7)"""
+    scale = []
+    for i, color in enumerate(colors):
+        # Start and end of each 1-unit band
+        low = i * 1.0 / n_levels  
+        high = (i + 1) * 1.0 / n_levels
+        scale.append([low, color])
+        scale.append([high, color])  # Flat step
+    return scale
+
+cmap_colorscale = create_stepped_colorscale(colors_rgb)
+cmap_week = [
+    [0.0, '#C8FAFA'],   # 0
+    [0.499, '#C8FAFA'],
+    [0.5, '#FFF000'],   # 1
+    [1.0, '#FFF000']
+]
 # Page configuration
-# -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="DHW Coral Bleaching Monitor",
     page_icon="🌊",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="expanded"
 )
 
-st.markdown(
-    """
+# Custom CSS for better styling
+st.markdown("""
     <style>
-    .main { padding: 0rem 1rem; }
-    h1 { color: #1f77b4; }
+    .main {
+        padding: 0rem 1rem;
+    }
+    h1 {
+        color: #1f77b4;
+    }
     .stPlotlyChart {
         background-color: white;
         border-radius: 5px;
         padding: 10px;
     }
     </style>
-    """,
-    unsafe_allow_html=True,
-)
+    """, unsafe_allow_html=True)
 
-# -----------------------------------------------------------------------------
-# Configuration
-# -----------------------------------------------------------------------------
-CRW_ERDDAP_BASE = "https://pae-paha.pacioos.hawaii.edu/erddap/griddap/dhw_5km"
-MMM_FILE = "crw_mmm_sst_thailand_1985-2025.nc"
-COASTLINE_FILE = "geoBoundariesCGAZ_ADM0_resized.geojson"
+# st.title("🌊 แผนที่อุณหภูมิน้ำทะเล Degree Heating Weeks (DHW) Coral Bleaching Monitor")
+# st.markdown("""
+# ติดตามอุณหภูมิน้ำทะเลที่ส่งผลต่อการฟอกขาวของปะการัง Monitor sea surface temperature anomalies and coral bleaching risk in Thai waters.
+# Data source: GHRSST satellite observations (90-110°E, 0-14.5°N)
+# """)
 
-LON_MIN, LON_MAX = 90.025, 110.025
-LAT_MIN, LAT_MAX = 0.025, 14.075
-DAYS_BACK = 30
-
-# -----------------------------------------------------------------------------
-# Colors
-# -----------------------------------------------------------------------------
-cmap_full = plt.get_cmap("Spectral_r")
-colors = cmap_full(np.linspace(0, 0.9, 256))
-spectral_slice = LinearSegmentedColormap.from_list(
-    "spectral_slice", colors
-)
-
-colors_rgb = [
-    "#C8FAFA",
-    "#FFF000",
-    "#FAAA0A",
-    "#F00000",
-    "#960000",
-    "#A05024",
-    "#F000F0",
-]
-
-cmap_week = [
-    [0.0, "#C8FAFA"],
-    [0.499, "#C8FAFA"],
-    [0.5, "#FFF000"],
-    [1.0, "#FFF000"],
-]
-
-
-def mpl_to_plotly(cmap, n=256):
-    """Convert a Matplotlib colormap to a Plotly colorscale."""
-    result = []
-    for i in range(n):
-        r, g, b, _ = cmap(i / (n - 1))
-        result.append(
-            [
-                i / (n - 1),
-                f"rgb({int(r * 255)},{int(g * 255)},{int(b * 255)})",
-            ]
-        )
-    return result
-
-
-plotly_colorscale = mpl_to_plotly(spectral_slice, n=21)
-
-
-def create_stepped_colorscale(color_list, n_levels=7):
-    """Create flat Plotly color bands for DHW levels."""
-    scale = []
-    for i, color in enumerate(color_list):
-        low = i / n_levels
-        high = (i + 1) / n_levels
-        scale.append([low, color])
-        scale.append([high, color])
-    return scale
-
-
-cmap_colorscale = create_stepped_colorscale(colors_rgb)
-
-# -----------------------------------------------------------------------------
-# Sidebar
-# -----------------------------------------------------------------------------
-th_tz = pytz.timezone("Asia/Bangkok")
+# Sidebar controls
+st.sidebar.header("⚙️ Auto Daily Update")
+# Auto current date
+th_tz = pytz.timezone('Asia/Bangkok')
 now = datetime.now(th_tz)
 target_date = now.date() - timedelta(days=2)
 
-MIN_DATE = datetime(1985, 4, 1).date()
+
+MIN_DATE = datetime(1985, 4, 1)
 MAX_DATE = target_date
 
-st.sidebar.header("⚙️ Auto Daily Update")
-st.sidebar.success(
-    f"📅 **Latest Analysis:** {target_date.strftime('%Y-%m-%d')}"
-)
-st.sidebar.info(
-    f"✅ CRW SST 5km: 1985-04-01 → {target_date.strftime('%Y-%m-%d')}"
-)
+st.sidebar.success(f"📅 **Latest Analysis:** {target_date.strftime('%Y-%m-%d')}")
+st.sidebar.info(f"✅ CRW SST 5km: 1985-04-01 → {target_date.strftime('%Y-%m-%d')}")
 
-analysis_date = st.sidebar.date_input(
-    "🎯 Analysis Center Date",
+analysis_date = st.sidebar.date_input("🎯 Analysis Center Date",
     value=target_date,
     min_value=MIN_DATE,
     max_value=MAX_DATE,
-    help="Select center date → download 30 days of CRW SST online",
-)
+    help="Select center date → auto 30-day backward analysis")
 
-st.sidebar.caption(
-    "SST is downloaded online from CRW ERDDAP on every Streamlit rerun."
-)
 
-# -----------------------------------------------------------------------------
-# Online SST download
-# -----------------------------------------------------------------------------
+process_button = st.sidebar.button("🔄 Generate DHW Analysis", type="primary")
+
+
+
+# NOAA OISST base URL pattern
+#NOAA_BASE_URL = "https://www.ncei.noaa.gov/thredds/fileServer/OisstBase/NetCDF/V2.1/AVHRR/"
+CRW_ERDDAP_BASE = "https://pae-paha.pacioos.hawaii.edu/erddap/griddap/dhw_5km"
+dayback=30
+@st.cache_data(ttl=3600)  # Cache for 1 hour
 def download_latest_sst(enddate, days_back=30):
-    """
-    Download CRW SST directly from ERDDAP.
 
-    There is intentionally NO @st.cache_data here.
-    Therefore every Streamlit rerun performs a new online request.
-    """
-    latest_available = datetime.now(th_tz).date() - timedelta(days=2)
+    thtz = pytz.timezone('Asia/Bangkok')
+    now_date = datetime.now(thtz).date()
+
+    # CRW usually lags ~2 days
+    latest_available = now_date - timedelta(days=2)
 
     if enddate > latest_available:
         enddate = latest_available
 
     start_date = enddate - timedelta(days=days_back - 1)
 
-    start_time = start_date.strftime("%Y-%m-%dT12:00:00Z")
-    end_time = enddate.strftime("%Y-%m-%dT12:00:00Z")
+    start_time = start_date.strftime('%Y-%m-%dT12:00:00Z')
+    end_time = enddate.strftime('%Y-%m-%dT12:00:00Z')
 
     url = (
         f"{CRW_ERDDAP_BASE}.nc?"
@@ -178,52 +176,34 @@ def download_latest_sst(enddate, days_back=30):
         f"[(90.025):1:(110.025)]"
     )
 
-    st.write(f"**SST source:** CRW ERDDAP | {start_date} → {enddate}")
+    #print("Downloading:", url)
 
-    try:
-        response = requests.get(url, timeout=120)
-        response.raise_for_status()
-    except requests.RequestException as exc:
-        raise RuntimeError(
-            "ไม่สามารถดาวน์โหลด CRW SST จาก ERDDAP ได้ "
-            f"โปรดตรวจสอบ Internet/ERDDAP connection\n\n{exc}"
-        ) from exc
+    r = requests.get(url, stream=True, timeout=120)
+    r.raise_for_status()
 
-    # Use a unique temporary filename so old SST files cannot be accidentally used.
-    local_file = "_crw_sst_current_download.nc"
+    local_file = "latest_sst.nc"
+
     with open(local_file, "wb") as f:
-        f.write(response.content)
+        for chunk in r.iter_content(chunk_size=1024*1024):
+            f.write(chunk)
 
-    try:
-        with xr.open_dataset(local_file) as source_ds:
-            ds = source_ds.load()
-    except Exception as exc:
-        raise RuntimeError(
-            "ไฟล์ที่ดาวน์โหลดจาก CRW ไม่สามารถเปิดเป็น NetCDF ได้ "
-            f"\nURL: {url}\n\n{exc}"
-        ) from exc
-    finally:
-        if os.path.exists(local_file):
-            os.remove(local_file)
+    #print("Download complete")
 
-    required = {"latitude", "longitude", "CRW_SST"}
-    missing = required - set(ds.variables)
-    if missing:
-        raise RuntimeError(
-            f"CRW dataset ไม่มีตัวแปรที่ต้องใช้: {sorted(missing)}"
-        )
+    ds = xr.open_dataset(local_file)
 
-    ds = ds.rename(
-        {
-            "latitude": "lat",
-            "longitude": "lon",
-            "CRW_SST": "sst",
-        }
-    )
+    # convert Kelvin → Celsius
+    #ds["analysed_sst"] = ds["analysed_sst"] - 273.15
 
-    ds = ds.sortby("lat")
+    # rename to match AVHRR variable naming if needed
+    ds = ds.rename({
+        "latitude": "lat",
+        "longitude": "lon",
+        "CRW_SST": "sst"
+    })
+    ds=ds.sortby("lat")
+    # reorder dimensions to match your DHW code
     ds = ds.transpose("lat", "lon", "time")
-    ds = ds.sel(lon=slice(90, 110))
+    ds = ds.sel(lon=slice(90,110))
 
     sst_stack = ds["sst"]
     lat_ref = ds["lat"]
@@ -232,42 +212,16 @@ def download_latest_sst(enddate, days_back=30):
 
     return sst_stack, time_list, lat_ref, lon_ref
 
-
-# -----------------------------------------------------------------------------
-# MMM baseline
-# -----------------------------------------------------------------------------
-def load_mmm(mmm_file=MMM_FILE):
-    """Load only the MMM climatological baseline; current SST never comes from this file."""
-    if not os.path.exists(mmm_file):
-        raise FileNotFoundError(
-            f"ไม่พบไฟล์ MMM: {mmm_file}\n"
-            "ต้องมีไฟล์ MMM ใน repository เพื่อใช้เป็น baseline ของ DHW"
-        )
-
-    try:
-        with xr.open_dataset(mmm_file) as source_ds:
-            baseline = source_ds.load()
-    except Exception as exc:
-        raise RuntimeError(
-            f"เปิด MMM NetCDF ไม่ได้: {mmm_file}\n\n{exc}"
-        ) from exc
-
-    if "sst" not in baseline:
-        raise RuntimeError(
-            "MMM file ต้องมีตัวแปรชื่อ 'sst' เพื่อใช้กับ calculate_dhw()."
-        )
-
-    MMM = baseline["sst"].sel(
-        lon=slice(90, 110),
-        lat=slice(0, 14.1),
-    ).sortby("lat")
-
-    return MMM
+# Coordinate data
+@st.cache_data
+def create_coordinates():
+    """Create coordinate grid for Thai region"""
+    lon = np.linspace(90.025, 109.975, 400)
+    lat = np.linspace(0.025, 14.075, 282)
+    LON, LAT = np.meshgrid(lon, lat)
+    return LON, LAT, lon, lat
 
 
-# -----------------------------------------------------------------------------
-# DHW calculation — DO NOT CHANGE
-# -----------------------------------------------------------------------------
 def calculate_dhw(TSeries, MMM, threshold=1.0):
     """Calculate Degree Heating Weeks from time series"""
     dhw_weeks = []
@@ -281,31 +235,467 @@ def calculate_dhw(TSeries, MMM, threshold=1.0):
         hotspot = week_mean - (MMM + threshold)
         dhw_week = xr.where(hotspot > 0, 1, 0)
         dhw_weeks.append(dhw_week)
-
+    
     # Sum all weeks
     dhw_total = sum(dhw_weeks)
     return dhw_weeks, dhw_total, sst_weeks
+#colors_rgb = [
+#    (66/255, 112/255, 194/255),    # Blue
+#    (214/255, 214/255, 214/255),   # Gray
+#    (235/255, 222/255, 196/255),   # Beige
+#    (227/255, 204/255, 217/255),   # Pink
+#    (201/255, 140/255, 89/255),    # Brown
+#    (166/255, 89/255, 89/255),     # Dark brown
+#    (140/255, 77/255, 26/255)      # Dark brown
+#]
+
+# Create custom colormap (N=256 for smooth gradient)
+#cmap = mcolors.LinearSegmentedColormap.from_list('custom', colors_rgb, N=256)
+
+def create_dhw_map_old(lon, lat, dhw_data, title, levels):
+    """Create Plotly contour map for DHW data"""
+    if levels == 2:  # Binary (0/1)
+        colorscale = [[0, 'white'], [1, 'rgb(102, 204, 204)']]
+        colorbar_title = "Hotspot"
+        tickvals = [0, 1]
+        ticktext = ['No', 'Yes']
+    else:  # Multi-level (0-6)
+        colorscale = [
+            [0, 'rgb(66, 112, 194)'],      # Blue - 0
+            [1, 'rgb(214, 214, 214)'],  # Gray - 1
+            [2, 'rgb(235, 222, 196)'],  # Beige - 2
+            [3, 'rgb(227, 204, 217)'],   # Pink - 3
+            [4, 'rgb(201, 140, 89)'],   # Brown - 4
+            [5, 'rgb(166, 89, 89)'],    # Dark brown - 5
+            [6, 'rgb(140, 77, 26)']        # Very dark - 6
+        ]
+        colorbar_title = "DHW Level"
+        tickvals = list(range(7))
+        ticktext = ['0', '1', '2', '3', '4', '5', '6+']
+    
+    fig = go.Figure(data=go.Contour(
+        z=dhw_data,
+        x=lon,
+        y=lat,
+        colorscale=colorscale,
+        contours=dict(
+            start=0,
+            end=levels,
+            size=1,
+        ),
+        colorbar=dict(
+            title=colorbar_title,
+            tickvals=tickvals,
+            ticktext=ticktext
+        ),
+        hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>Value: %{z}<extra></extra>'
+    ))
+    
+    # Add land boundary (simplified Thailand outline)
+    # Gulf of Thailand
+    #gulf_lon = [99.5, 101, 102, 102.5, 102, 100.5, 99.5, 99.5]
+    #gulf_lat = [6, 6.5, 8, 10, 12, 13.5, 12, 6]
+    
+
+    fig.update_layout(
+        title=dict(text=title, x=0.5, xanchor='center'),
+        xaxis_title='Longitude (°E)',
+        yaxis_title='Latitude (°N)',
+        height=500,
+        hovermode='closest',
+        plot_bgcolor='rgba(240,245,250,1)',
+        xaxis=dict(range=[90, 110]),
+        yaxis=dict(range=[0, 14.5])
+    )
+
+    return fig
+def plot_dhw_week(lon, lat, dhw_total, title):
+    lon2d, lat2d = np.meshgrid(lon, lat)
+    fig = plt.figure(figsize=(8, 6))
+    ax = plt.axes(projection=ccrs.PlateCarree())
+    # DHW raster
+    im = ax.contourf(
+        lon2d, lat2d, dhw_total,
+        cmap=ListedColormap(colors_rgb[0:2]), levels=2,
+        vmin=0, vmax=1,
+        transform=ccrs.PlateCarree()
+    )
+    ax.set_extent([91, 110, 1, 14])
+    #ax.set_xlabel('Longitude (°E)')
+    #ax.set_ylabel('Latitude (°N)')
+    
+        # Coastlines
+    #ax.coastlines(resolution='10m')
+    ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='black',lw=0.5)
+    #cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.05)
+    #cbar.set_label('DHW (weeks)', fontsize=12)
+    
+    ax.set_xticks(np.arange(92,111,2), crs=ccrs.PlateCarree())
+    ax.set_yticks(np.arange(2,16,2), crs=ccrs.PlateCarree())
+    #ax.coastlines('10m',zorder=3,lw=0.3)
+    
+    lon_formatter = cticker.LongitudeFormatter()
+    lat_formatter = cticker.LatitudeFormatter()
+    ax.xaxis.set_major_formatter(lon_formatter)
+    ax.yaxis.set_major_formatter(lat_formatter)
+    ax.xaxis.set_minor_locator(MultipleLocator(1))
+    ax.yaxis.set_minor_locator(MultipleLocator(1))
+    ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
+                  bottom=True,top=True,right=True,labelsize=10,grid_color='black',grid_linewidth=0.5)
+    # Custom legend patches + labels matching your markdown
+    legend_elements = [
+        mpatches.Patch(color=colors_rgb[0], label='No stress'),
+        mpatches.Patch(color=colors_rgb[1], label='Watch')]
+
+    ax.legend(handles=legend_elements,ncol=5,  # Horizontal (5 columns)
+           loc='upper center', 
+           bbox_to_anchor=(0.5, -0.05),
+          fontsize=20, frameon=True, fancybox=True, shadow=True)
+    ax.set_title(title, fontsize=20)
+    plt.tight_layout()
+    #plt.savefig(filename, dpi=150, bbox_inches='tight')
+    return fig
+    
+def plot_cartopy_map(lon, lat, dhw_total, title):
+
+    lon2d, lat2d = np.meshgrid(lon, lat)
+      # sample DHW
+
+    fig = plt.figure(figsize=(8, 6))
+    ax = plt.axes(projection=ccrs.PlateCarree())
+    # DHW raster
+    im = ax.contourf(
+        lon2d, lat2d, dhw_total,
+        cmap=cmap, levels=6,
+        vmin=0, vmax=6,
+        transform=ccrs.PlateCarree()
+    )
+    ax.set_extent([91, 110, 1, 14])
+    #ax.set_xlabel('Longitude (°E)')
+    #ax.set_ylabel('Latitude (°N)')
+    
+        # Coastlines
+    #ax.coastlines(resolution='10m')
+    ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='black',lw=0.5)
+    #cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.05)
+    #cbar.set_label('DHW (weeks)', fontsize=12)
+    
+    ax.set_xticks(np.arange(92,111,2), crs=ccrs.PlateCarree())
+    ax.set_yticks(np.arange(2,16,2), crs=ccrs.PlateCarree())
+    #ax.coastlines('10m',zorder=3,lw=0.3)
+    
+    lon_formatter = cticker.LongitudeFormatter()
+    lat_formatter = cticker.LatitudeFormatter()
+    ax.xaxis.set_major_formatter(lon_formatter)
+    ax.yaxis.set_major_formatter(lat_formatter)
+    ax.xaxis.set_minor_locator(MultipleLocator(1))
+    ax.yaxis.set_minor_locator(MultipleLocator(1))
+    ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
+                  bottom=True,top=True,right=True,labelsize=8,grid_color='black',grid_linewidth=0.5)
+    # Custom legend patches + labels matching your markdown
+    ax.annotate(f"Daily  \n{title[7:17]}",xy=(1, 1), xycoords='axes fraction',fontsize=10,fontweight='bold',
+                xytext=(-25,-10), textcoords='offset points',
+                ha='right', va='top')
+    legend_elements = [
+        mpatches.Patch(color=colors_rgb[0], label='No stress'),
+        mpatches.Patch(color=colors_rgb[1], label='Watch'),
+        mpatches.Patch(color=colors_rgb[2], label='Warning'),
+        mpatches.Patch(color=colors_rgb[3], label='Alert 1'),
+        mpatches.Patch(color=colors_rgb[4], label='Al 2'),
+        mpatches.Patch(color=colors_rgb[5], label='Al 3'),
+        mpatches.Patch(color=colors_rgb[6], label='Al 4')# Use darkest for 6+
+    ]
+    ax.legend(handles=legend_elements,ncol=7,  # Horizontal (5 columns)
+           loc='upper center', 
+           bbox_to_anchor=(0.5, -0.05),
+          fontsize=8, frameon=True, fancybox=True, shadow=True)
+    
+    plt.tight_layout()
+    
+    return fig  
+
+thai_stations = {
+    'name': ['Koh Sichang', 'Rayong', 'Ko Samet', 'Pattaya', 'Prachuap', 'Chumphon', 'Surat Thani', 'Koh Samui', 'Songkhla', 'Pattani'],
+    'lat': [13.15, 12.68, 12.57, 12.93, 11.81, 10.49, 9.38, 9.54, 7.20, 6.88],
+    'lon': [100.80, 101.28, 101.47, 100.59, 99.97, 99.22, 99.32, 100.50, 100.60, 101.20]
+}
+@st.cache_data
+def get_station_sst_history(lon_array, lat_array, sst_30days, stations):
+    """Fast extraction using nearest grid point (NO interpolation)"""
+    histories = {}
+
+    # Precompute nearest indices ONCE
+    lon_idx = np.searchsorted(lon_array, stations['lon'])
+    lat_idx = np.searchsorted(lat_array, stations['lat'])
+
+    lon_idx = np.clip(lon_idx, 0, len(lon_array)-1)
+    lat_idx = np.clip(lat_idx, 0, len(lat_array)-1)
+
+    for i, name in enumerate(stations['name']):
+        histories[name] = {
+            "sst": sst_30days[:, lat_idx[i], lon_idx[i]]
+        }
+
+    return histories
+
+def create_dhw_map(lon, lat, dhw_total, title):
+    """Create Plotly contour map for SST data"""
+    fig = go.Figure(data=go.Contour(
+        z=dhw_total,
+        x=lon,
+        y=lat,
+        colorscale=cmap_colorscale,
+        zmin=0,
+        zmax=7,
+        #contours_coloring="fill",
+        contours=dict(
+            start= 0,
+            end=7,
+            size=1,
+            showlines=False,
+            #labelfont=dict(size=12,color="black"),
+        ),
+        colorbar=dict(
+            title='DHW (°C Day)',
+            tick0=0,
+            dtick=1
+        ),
+        hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>DHW: %{z:.2f}°C Days<extra></extra>'
+    ))
+    # fig.add_trace(go.Scattergl(
+    #         x=thai_stations['lon'],  # Note: lon first for x
+    #         y=thai_stations['lat'],  # lat for y
+    #         mode='markers',
+    #         marker=dict(size=10, color='red', symbol='circle', line=dict(width=2, color='darkred')),
+    #         hovertemplate='<b>%{customdata}</b><br>Lat: %{y:.2f}<br>Lon: %{x:.2f}<extra></extra>',
+    #         customdata=thai_stations['name'],
+    #         name='Stations'
+    # )) 
+    # fig.add_trace(go.Scattergl(
+    #     x=thai_stations['lon'],  # Note: lon first for x
+    #     y=thai_stations['lat'],  # lat for y
+    #     mode='markers',
+    #     marker=dict(size=10, color='red', symbol='circle', line=dict(width=2, color='darkred')),
+    #     hovertemplate='<b>%{customdata}</b><br>Lat: %{y:.2f}<br>Lon: %{x:.2f}<extra></extra>',
+    #     customdata=thai_stations['name'],
+    #     name='Stations'
+    # )) 
+    if coast_gdf is not None:
+        coast_x, coast_y = gdf_to_plotly_lines(coast_gdf)
+
+        fig.add_trace(go.Scatter(
+            x=coast_x,
+            y=coast_y,
+            mode='lines',
+            fill='toself',
+            fillcolor='rgba(150,150,150,1)', 
+            line=dict(color='gray', width=2),
+            hoverinfo='skip',
+            showlegend=False
+        ))
+    fig.update_layout(
+        title=dict(text=title, x=0.5, xanchor='center'),
+        xaxis_title='Longitude (°E)',
+        yaxis_title='Latitude (°N)',
+        margin=dict(l=40, r=20, t=60, b=40),
+        height=800,
+        hovermode='closest',
+        plot_bgcolor='rgba(240,245,250,1)',
+        xaxis=dict(range=[91, 109], constrain='domain'),
+        yaxis=dict(range=[1, 14], constrain='domain')
+        
+    )
+
+    
+    return fig
+def create_dhw_weeks(lon, lat, dhw_total, title):
+    """Create Plotly contour map for SST data"""
+    fig = go.Figure(data=go.Contour(
+        z=dhw_total,
+        x=lon,
+        y=lat,
+        colorscale=cmap_week,
+        zmin=0,
+        zmax=1,
+        #contours_coloring="fill",
+        contours=dict(
+            start= 0,
+            end=2,
+            size=1,
+            showlines=False,
+            #labelfont=dict(size=12,color="black"),
+        ),
+        colorbar=dict(
+            title='DHW (°C Day)',
+            tick0=0,
+            dtick=1
+        ),
+        hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>DHW: %{z:.2f}°C Days<extra></extra>'
+    ))
+    
+    if coast_gdf is not None:
+        coast_x, coast_y = gdf_to_plotly_lines(coast_gdf)
+
+        fig.add_trace(go.Scatter(
+            x=coast_x,
+            y=coast_y,
+            mode='lines',
+            fill='toself',
+            fillcolor='rgba(150,150,150,1)', 
+            line=dict(color='gray', width=1),
+            hoverinfo='skip',
+            showlegend=False
+        ))
+    fig.update_layout(
+        title=dict(text=title, x=0.5, xanchor='center'),
+        xaxis_title='Longitude (°E)',
+        yaxis_title='Latitude (°N)',
+        margin=dict(l=40, r=20, t=60, b=40),
+        height=800,
+        hovermode='closest',
+        plot_bgcolor='rgba(240,245,250,1)',
+        xaxis=dict(range=[91, 109], constrain='domain'),
+        yaxis=dict(range=[1, 14], constrain='domain')
+        
+    )
+
+    
+    return fig
+def create_sst_map_mapbox(lon, lat, sstdata, title):
+    lon2d, lat2d = np.meshgrid(lon, lat)    
+    fig = plt.figure(figsize=(8, 6))
+    ax = plt.axes(projection=ccrs.PlateCarree())
+    im = ax.contourf(lon2d, lat2d, sstdata,
+                     cmap=spectral_slice,levels=np.linspace(24,34,21),
+                     extend='neither',
+                     transform=ccrs.PlateCarree()
+                    )
+    #im.set_clim(24, 34)
+    ax.set_extent([91, 110, 1, 14])
+    #ax.set_xlabel('Longitude (°E)')
+    #ax.set_ylabel('Latitude (°N)')
+    
+        # Coastlines
+    #ax.coastlines(resolution='10m')
+    ax.add_feature(cfeature.LAND, facecolor='lightgray',zorder=3,edgecolor='black',lw=0.5)
+    #cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.05)
+    #cbar.set_label('DHW (weeks)', fontsize=12)
+    
+    ax.set_xticks(np.arange(92,111,2), crs=ccrs.PlateCarree())
+    ax.set_yticks(np.arange(2,16,2), crs=ccrs.PlateCarree())
+    #ax.coastlines('10m',zorder=3,lw=0.3)
+    
+    lon_formatter = cticker.LongitudeFormatter()
+    lat_formatter = cticker.LatitudeFormatter()
+    ax.xaxis.set_major_formatter(lon_formatter)
+    ax.yaxis.set_major_formatter(lat_formatter)
+    ax.xaxis.set_minor_locator(MultipleLocator(1))
+    ax.yaxis.set_minor_locator(MultipleLocator(1))
+    ax.tick_params(which='both',labeltop=True, labelright=True,labelleft=True,width=0.8,
+                  bottom=True,top=True,right=True,labelsize=8,grid_color='black',grid_linewidth=0.5)
+    cbar=fig.colorbar(im,ax=ax,orientation='horizontal', shrink=0.8, pad=0.05)
+    cbar.set_ticks(np.arange(24,34.1,1))
+    cbar.set_label('°C',fontsize=8)
+    cbar.ax.tick_params(labelsize=8)
+    ax.annotate(f"Sea Surface Temperatures \n{title[7:17]}",xy=(1, 1), xycoords='axes fraction',fontsize=15,fontweight='bold',
+            xytext=(-25,-10), textcoords='offset points',
+            ha='right', va='top')
+    #cbar.mappable.set_clim(23, 35)
+    plt.tight_layout()
 
 
-# -----------------------------------------------------------------------------
-# Coordinate/grid alignment
-# -----------------------------------------------------------------------------
-def align_mmm_to_sst(MMM, lat_ref, lon_ref):
-    """Interpolate only the MMM baseline onto the downloaded CRW SST grid."""
-    return MMM.interp(lat=lat_ref, lon=lon_ref, method="nearest")
+    return fig
+def create_sst_map(lon, lat, sst_data, title):
+    """Create Plotly contour map for SST data"""
+    fig = go.Figure(data=go.Contour(
+        z=sst_data,
+        x=lon,
+        y=lat,
+        colorscale=plotly_colorscale,
+        zmin=24,
+        zmax=34,
+        contours=dict(
+            start=24,
+            end=34,
+            size=0.5,
+            showlines=False,
+            #labelfont=dict(size=12,color="black"),
+        ),
+        colorbar=dict(
+            title='SST (°C)',
+            tickmode='linear',
+            tick0=24,
+            dtick=0.5
+        ),
+        hovertemplate='Lon: %{x:.2f}°E<br>Lat: %{y:.2f}°N<br>SST: %{z:.2f}°C<extra></extra>'
+    ))
+    
+    if coast_gdf is not None:
+        coast_x, coast_y = gdf_to_plotly_lines(coast_gdf)
 
+        fig.add_trace(go.Scatter(
+            x=coast_x,
+            y=coast_y,
+            mode='lines',
+            fill='toself',
+            fillcolor='rgba(150,150,150,1)', 
+            line=dict(color='gray', width=2),
+            hoverinfo='skip',
+            showlegend=False
+        ))
+    fig.update_layout(
+        title=dict(text=title, x=0.5, xanchor='center'),
+        xaxis_title='Longitude (°E)',
+        yaxis_title='Latitude (°N)',
+        margin=dict(l=40, r=20, t=60, b=40),
+        height=800,
+        hovermode='closest',
+        plot_bgcolor='rgba(240,245,250,1)',
+        xaxis=dict(range=[91, 109], constrain='domain'),
+        yaxis=dict(range=[1, 14], constrain='domain')
+        
+    )
 
-# -----------------------------------------------------------------------------
-# Coastline
-# -----------------------------------------------------------------------------
-def load_coastline_geojson(path=COASTLINE_FILE):
-    if not os.path.exists(path):
+    return fig
+def update_bleaching_history(date, value):
+
+    os.makedirs("static", exist_ok=True)
+    filepath = "static/bleaching_history.json"
+
+    # โหลด history เดิม
+    if os.path.exists(filepath):
+        with open(filepath, "r") as f:
+            history = json.load(f)
+    else:
+        history = {}
+
+    # บันทึกค่าของวันนี้
+    history[date.strftime("%Y-%m-%d")] = float(value)
+
+    # save กลับ
+    with open(filepath, "w") as f:
+        json.dump(history, f, indent=2)
+
+def get_previous_bleaching(date):
+
+    filepath = "static/bleaching_history.json"
+
+    if not os.path.exists(filepath):
         return None
-    try:
-        return gpd.read_file(path).to_crs("EPSG:4326")
-    except Exception:
-        return None
 
+    with open(filepath, "r") as f:
+        history = json.load(f)
+
+    yesterday = (date - timedelta(days=1)).strftime("%Y-%m-%d")
+
+    return history.get(yesterday)
+
+
+
+@st.cache_data
+def load_coastline_geojson(path="coastline.geojson"):
+    gdf = gpd.read_file(path).to_crs("EPSG:4326")
+    return gdf
 
 def gdf_to_plotly_lines(gdf):
     xs, ys = [], []
@@ -337,387 +727,295 @@ def gdf_to_plotly_lines(gdf):
                 ys.extend(list(y) + [None])
 
     return xs, ys
-
-
-coast_gdf = load_coastline_geojson()
-if coast_gdf is None:
-    st.sidebar.warning(
-        "⚠️ Coastline GeoJSON not found. Maps will run without coastline overlay."
-    )
-
-# -----------------------------------------------------------------------------
-# Plotting
-# -----------------------------------------------------------------------------
-def add_coastline(fig):
-    if coast_gdf is None:
-        return fig
-
-    coast_x, coast_y = gdf_to_plotly_lines(coast_gdf)
-    fig.add_trace(
-        go.Scatter(
-            x=coast_x,
-            y=coast_y,
-            mode="lines",
-            fill="toself",
-            fillcolor="rgba(150,150,150,1)",
-            line=dict(color="gray", width=2),
-            hoverinfo="skip",
-            showlegend=False,
-        )
-    )
-    return fig
-
-
-def create_dhw_map(lon, lat, dhw_total, title):
-    fig = go.Figure(
-        data=go.Contour(
-            z=dhw_total,
-            x=lon,
-            y=lat,
-            colorscale=cmap_colorscale,
-            zmin=0,
-            zmax=7,
-            contours=dict(
-                start=0,
-                end=7,
-                size=1,
-                showlines=False,
-            ),
-            colorbar=dict(
-                title="DHW (°C Day)",
-                tick0=0,
-                dtick=1,
-            ),
-            hovertemplate=(
-                "Lon: %{x:.2f}°E<br>"
-                "Lat: %{y:.2f}°N<br>"
-                "DHW: %{z:.2f}°C Days<extra></extra>"
-            ),
-        )
-    )
-
-    fig = add_coastline(fig)
-    fig.update_layout(
-        title=dict(text=title, x=0.5, xanchor="center"),
-        xaxis_title="Longitude (°E)",
-        yaxis_title="Latitude (°N)",
-        margin=dict(l=40, r=20, t=60, b=40),
-        height=800,
-        hovermode="closest",
-        plot_bgcolor="rgba(240,245,250,1)",
-        xaxis=dict(range=[91, 109], constrain="domain"),
-        yaxis=dict(range=[1, 14], constrain="domain"),
-    )
-    return fig
-
-
-def create_dhw_weeks(lon, lat, dhw_total, title):
-    fig = go.Figure(
-        data=go.Contour(
-            z=dhw_total,
-            x=lon,
-            y=lat,
-            colorscale=cmap_week,
-            zmin=0,
-            zmax=1,
-            contours=dict(
-                start=0,
-                end=2,
-                size=1,
-                showlines=False,
-            ),
-            colorbar=dict(
-                title="Hotspot",
-                tick0=0,
-                dtick=1,
-            ),
-            hovertemplate=(
-                "Lon: %{x:.2f}°E<br>"
-                "Lat: %{y:.2f}°N<br>"
-                "Hotspot: %{z}<extra></extra>"
-            ),
-        )
-    )
-
-    fig = add_coastline(fig)
-    fig.update_layout(
-        title=dict(text=title, x=0.5, xanchor="center"),
-        xaxis_title="Longitude (°E)",
-        yaxis_title="Latitude (°N)",
-        margin=dict(l=40, r=20, t=60, b=40),
-        height=350,
-        hovermode="closest",
-        plot_bgcolor="rgba(240,245,250,1)",
-        xaxis=dict(range=[91, 109], constrain="domain"),
-        yaxis=dict(range=[1, 14], constrain="domain"),
-    )
-    return fig
-
-
-def create_sst_map(lon, lat, sst_data, title):
-    fig = go.Figure(
-        data=go.Contour(
-            z=sst_data,
-            x=lon,
-            y=lat,
-            colorscale=plotly_colorscale,
-            zmin=24,
-            zmax=34,
-            contours=dict(
-                start=24,
-                end=34,
-                size=0.5,
-                showlines=False,
-            ),
-            colorbar=dict(
-                title="SST (°C)",
-                tickmode="linear",
-                tick0=24,
-                dtick=0.5,
-            ),
-            hovertemplate=(
-                "Lon: %{x:.2f}°E<br>"
-                "Lat: %{y:.2f}°N<br>"
-                "SST: %{z:.2f}°C<extra></extra>"
-            ),
-        )
-    )
-
-    fig = add_coastline(fig)
-    fig.update_layout(
-        title=dict(text=title, x=0.5, xanchor="center"),
-        xaxis_title="Longitude (°E)",
-        yaxis_title="Latitude (°N)",
-        margin=dict(l=40, r=20, t=60, b=40),
-        height=800,
-        hovermode="closest",
-        plot_bgcolor="rgba(240,245,250,1)",
-        xaxis=dict(range=[91, 109], constrain="domain"),
-        yaxis=dict(range=[1, 14], constrain="domain"),
-    )
-    return fig
-
-
-# -----------------------------------------------------------------------------
+coast_gdf = load_coastline_geojson("geoBoundariesCGAZ_ADM0_resized.geojson")
 # Main processing
-# -----------------------------------------------------------------------------
+#if process_button:
 enddate = analysis_date
+thtz = pytz.timezone('Asia/Bangkok')
 
-with st.spinner("🌊 Downloading current CRW SST online and processing DHW..."):
-    try:
-        # 1. ALWAYS download current/selected SST from CRW ERDDAP.
-        TSeries, time_list, lat_ref, lon_ref = download_latest_sst(
-            enddate, days_back=DAYS_BACK
-        )
+with st.spinner('Processing DHW analysis...'):
+    # Check for pre-generated PNGs (from daily Actions)
+    datedhw_png = f"static/{enddate.strftime('%Y-%m-%d')}_dhw.png"
+    datesst_png = f"static/{enddate.strftime('%Y-%m-%d')}_sst.png"
 
-        # 2. Load MMM baseline only.
-        MMM = load_mmm()
+# Only download if needed
+    with open("static/dhw_stats.json") as f:
+        stats = json.load(f)
+    baseline = xr.open_dataset('crw_mmm_sst_thailand_1985-2025.nc') # read array
+    MMM = baseline['sst'].sel(lon=slice(90,110),lat=slice(14.1,0))
+    TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
+    #sst_30days_data = TSeries.transpose('time', 'lat', 'lon').values
+    
+    # calculate DHW
+    dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
+    LON, LAT, lon, lat = create_coordinates()
+    sst_current = TSeries[:, :, -1]
+    
+    #station_histories = get_station_sst_history(lon, lat, sst_30days_data, thai_stations)
+    
+    # Use SELECTED date as analysis center
+    
+    # Download 48 days BACK from analysis_date
+   #TSeries, time_list, lat_ref, lon_ref = download_latest_sst(enddate, days_back=30)
+    # Get coordinates
+    
 
-        # 3. Align MMM to the fresh online SST grid.
-        MMM = align_mmm_to_sst(MMM, lat_ref, lon_ref)
 
-        # 4. Calculate DHW using the ORIGINAL formula unchanged.
-        dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
+    
 
-        # Current SST is the final day from the freshly downloaded online data.
-        sst_current = TSeries[:, :, -1]
-        lon = lon_ref.values
-        lat = lat_ref.values
 
-    except Exception as exc:
-        st.error("❌ ไม่สามารถประมวลผลข้อมูล SST/DHW ได้")
-        st.exception(exc)
-        st.stop()
+    # Calculate DHW
+    #dhw_weeks, dhw_total, sst_weeks = calculate_dhw(TSeries, MMM)
+    #dhw_weeks = xr.DataArray(dhw_weeks, dims=('week', 'lat', 'lon'))
+    #sst_weeks = xr.DataArray(sst_weeks, dims=('week', 'lat', 'lon'))
+    # Current SST
+    
+    
+    # Success message
+    #st.success("✅ Data processed successfully!")
 
-# -----------------------------------------------------------------------------
-# Statistics — calculated from fresh online SST/DHW
-# -----------------------------------------------------------------------------
-st.info(
-    f"🔄 SST downloaded online for analysis date **{enddate.strftime('%Y-%m-%d')}** "
-    f"({DAYS_BACK} days). No cached SST/PNG/statistics are used."
-)
+    
+   
+    # Display statistics
 
-col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        if enddate == datetime.now(thtz).date() - timedelta(days=2):
+            st.metric("Max DHW", f"{stats['max_dhw']} weeks")
+        else:
+            st.metric("Max DHW", f"{(dhw_total.max().values)} weeks")
+    with col2:
+        if enddate == datetime.now(thtz).date() - timedelta(days=2):
+            st.metric("AVG SST", f"{stats['avg_sst']} °C")       
+        else:
+            st.metric("Avg SST", f"{float(np.nanmean(sst_current)):.2f} °C")
+    with col3:
+        if enddate == datetime.now(thtz).date() - timedelta(days=2):
+            alert_area = stats['alert_area'] 
+        else:
+            alert_area = (dhw_total>=4).sum() / dhw_total.size * 100
+        st.metric("Alert Area", f"{alert_area:.1f}%")
+    with col4:
+        if enddate == datetime.now(thtz).date() - timedelta(days=2):
+            bleaching_area = stats['bleaching_area']
+        else:
+            bleaching_area = (dhw_total >= 5).sum() / dhw_total.size * 100
+        previous_bleaching = get_previous_bleaching(enddate)
+        if previous_bleaching is not None:
+            delta_bleaching = bleaching_area - previous_bleaching
+        else:
+            delta_bleaching = 0
+        st.metric("Bleaching Risk", f"{bleaching_area:.1f}%", delta=f"{delta_bleaching:.1f}%", delta_color="inverse")
+    
+    # Tabs for different views
+    tab1, tab2, tab3 = st.tabs(["📊 Accumulated DHW", "🗓️ Weekly Hotspots", "🌡️ Current SST"])
+    
+    with tab1:
+        st.subheader(f"Degree Heating Weeks - {enddate.strftime('%Y-%m-%d')}")
+   
 
-max_dhw = float(dhw_total.max().values)
-avg_sst = float(np.nanmean(sst_current))
-alert_area = float((dhw_total >= 4).sum().values / dhw_total.size * 100)
-bleaching_area = float((dhw_total >= 5).sum().values / dhw_total.size * 100)
+        # NEW LAYOUT: Portrait map LEFT + distribution/stats RIGHT
+        col_left, col_right = st.columns([80, 20])
+        
+        with col_left:
+            if os.path.exists(datedhw_png):
+                #st.success(f"✅ Using cached DHW PNG for {enddate.strftime('%Y-%m-%d')}")
+                st.image(datedhw_png, caption="", width="stretch")
+            else:
+                #st.info("⚠️ No cached PNG found. Computing live...")
+            # Portrait DHW map (tall)
+                #fig_dhw = st.pyplot(plot_cartopy_map(
+                #    lon, lat, dhw_total,
+                #    f"static/{enddate}_dhw.png"
+                #))
+                fig_dhw = create_dhw_map(
+                    lon=lon,
+                    lat=lat,
+                    dhw_total=dhw_total.values if hasattr(dhw_total, "values") else dhw_total,
+                    title="Degree Heating Days",
+                    
+                )
+                ####st.plotly_chart(fig_dhw, width='stretch') 
+                # clicked = st.plotly_chart(fig_dhw, width='stretch')
+                # station_name = st.selectbox("Select station", thai_stations['name'])
+                # if selected_points:
+                #     point = selected_points[0]
+                #     clicked_lon = point["x"]
+                #     clicked_lat = point["y"]
+                
+                #     # find nearest station
+                #     distances = (
+                #         (np.array(thai_stations['lon']) - clicked_lon)**2 +
+                #         (np.array(thai_stations['lat']) - clicked_lat)**2
+                #     )
+                
+                #     idx = np.argmin(distances)
+                #     station_name = thai_stations['name'][idx]
+                
 
-with col1:
-    st.metric("Max DHW", f"{max_dhw:.0f} weeks")
-with col2:
-    st.metric("Avg SST", f"{avg_sst:.2f} °C")
-with col3:
-    st.metric("Alert Area", f"{alert_area:.1f}%")
-with col4:
-    st.metric("Bleaching Risk", f"{bleaching_area:.1f}%")
-
-# -----------------------------------------------------------------------------
-# Tabs
-# -----------------------------------------------------------------------------
-tab1, tab2, tab3 = st.tabs(
-    ["📊 Accumulated DHW", "🗓️ Weekly Hotspots", "🌡️ Current SST"]
-)
-
-with tab1:
-    st.subheader(f"Degree Heating Weeks - {enddate.strftime('%Y-%m-%d')}")
-
-    col_left, col_right = st.columns([80, 20])
-
-    with col_left:
-        fig_dhw = create_dhw_map(
-            lon=lon,
-            lat=lat,
-            dhw_total=(
-                dhw_total.values
-                if hasattr(dhw_total, "values")
-                else dhw_total
-            ),
-            title="Degree Heating Days",
-        )
-        st.plotly_chart(fig_dhw, width="stretch", key="dhw_map")
-
-    with col_right:
-        st.markdown("**📊 DHW Distribution**")
-        dhw_flat = np.asarray(dhw_total.values).flatten()
-        dhw_counts = (
-            pd.Series(dhw_flat)
-            .value_counts()
-            .sort_index()
-            .reindex(range(7), fill_value=0)
-        )
-
-        fig_dist = go.Figure(
-            data=go.Bar(
+                #     sst_series = station_histories[station_name]["sst"]
+                
+                #     fig_ts = go.Figure()
+                
+                #     fig_ts.add_trace(go.Scatter(
+                #         y=sst_series,
+                #         mode='lines+markers',
+                #         name=station_name
+                #     ))
+                
+                #     fig_ts.update_layout(
+                #         height=300,
+                #         xaxis_title="Days (last 30)",
+                #         yaxis_title="SST (°C)",
+                #         margin=dict(l=20, r=20, t=40, b=20)
+                #     )
+                
+                #     st.plotly_chart(fig_ts, width='stretch')
+                st.plotly_chart(fig_dhw, width='stretch',key="dhw_map")
+                        
+        with col_right:
+            # Upper right: DHW Distribution
+            st.markdown("**📊 DHW Distribution**")
+            dhw_flat = dhw_total.values.flatten()   
+            dhw_counts = pd.Series(dhw_flat).value_counts().sort_index().reindex(range(7), fill_value=0)
+            
+            fig_dist = go.Figure(data=go.Bar(
                 x=dhw_counts.index,
                 y=dhw_counts.values,
-                marker_color=[
-                    "#4270C2",
-                    "#D6D6D6",
-                    "#EBDEC4",
-                    "#E3CCD9",
-                    "#C98C59",
-                    "#A65959",
-                    "#8C4D1A",
+                marker_color=['#4270C2','#D6D6D6','#EBDEC4','#E3CCD9','#C98C59','#A65959','#8C4D1A']
+            ))
+            fig_dist.update_layout(
+                height=350,
+                margin=dict(l=20, r=20, t=40, b=20),
+                title="Distribution by Level"
+            )
+            st.plotly_chart(fig_dist, width='stretch')
+            
+            # Lower right: Risk Summary
+            st.markdown("**⚠️ Risk Summary**")
+            total_pixels = dhw_total.size
+            risk_data = {
+                'Alert Level': ['Safe (0)', 'Watch (1-2)', 'Alert (3-4)', 'Bleaching (≥5)'],
+                'Pixels': [
+                    int(np.sum(dhw_total == 0)),
+                    int(np.sum((dhw_total >= 1) & (dhw_total <= 2))),
+                    int(np.sum((dhw_total >= 3) & (dhw_total <= 4))),
+                    int(np.sum(dhw_total >= 5))
                 ],
-            )
-        )
-        fig_dist.update_layout(
-            height=350,
-            margin=dict(l=20, r=20, t=40, b=20),
-            title="Distribution by Level",
-        )
-        st.plotly_chart(fig_dist, width="stretch")
+                '% Area': [
+                    f"{np.sum(dhw_total == 0)/total_pixels*100:.1f}%",
+                    f"{np.sum((dhw_total >= 1) & (dhw_total <= 2))/total_pixels*100:.1f}%",
+                    f"{np.sum((dhw_total >= 3) & (dhw_total <= 4))/total_pixels*100:.1f}%",
+                    f"{np.sum(dhw_total >= 5)/total_pixels*100:.1f}%"
+                ]
+            }
+            risk_df = pd.DataFrame(risk_data)
+            st.dataframe(risk_df, width='stretch', hide_index=True)
+   
+    with tab2:
+        st.subheader("Weekly Hotspot Analysis")
+        
+        date_labels = []
+        datestr = enddate.strftime('%Y-%m-%d')
 
-        st.markdown("**⚠️ Risk Summary**")
-        total_pixels = dhw_total.size
-        risk_data = {
-            "Alert Level": [
-                "Safe (0)",
-                "Watch (1-2)",
-                "Alert (3-4)",
-                "Bleaching (≥5)",
-            ],
-            "Pixels": [
-                int(np.sum(dhw_total == 0)),
-                int(np.sum((dhw_total >= 1) & (dhw_total <= 2))),
-                int(np.sum((dhw_total >= 3) & (dhw_total <= 4))),
-                int(np.sum(dhw_total >= 5)),
-            ],
-            "% Area": [
-                f"{np.sum(dhw_total == 0) / total_pixels * 100:.1f}%",
-                f"{np.sum((dhw_total >= 1) & (dhw_total <= 2)) / total_pixels * 100:.1f}%",
-                f"{np.sum((dhw_total >= 3) & (dhw_total <= 4)) / total_pixels * 100:.1f}%",
-                f"{np.sum(dhw_total >= 5) / total_pixels * 100:.1f}%",
-            ],
-        }
-        st.dataframe(
-            pd.DataFrame(risk_data),
-            width="stretch",
-            hide_index=True,
-        )
 
-with tab2:
-    st.subheader("Weekly Hotspot Analysis")
+        for week in range(6):
+            end_day = enddate - timedelta(days=week*5)
+            start_day = end_day - timedelta(days=4)
+            date_labels.append(f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}")
+        static_paths = [f"static/{datestr}_week_{i+1:02d}.png" for i in range(6)]
+        
+        
 
-    date_labels = []
-    for week in range(6):
-        end_day = enddate - timedelta(days=week * 5)
-        start_day = end_day - timedelta(days=4)
-        date_labels.append(
-            f"{start_day.strftime('%d%b')}-{end_day.strftime('%d%b')}"
-        )
+        for row in range(2):
+            cols = st.columns(3)
+            for col_idx in range(3):
+                week_idx = row * 3 + col_idx
+    
+                with cols[col_idx]:
+    
+                    # กรณีมีไฟล์ PNG
+                    if week_idx < len(static_paths) and os.path.exists(static_paths[week_idx]):
+                        st.image(
+                            static_paths[week_idx],
+                            caption="",#date_labels[week_idx],
+                            width="stretch"
+                        )
+                        
+                    # กรณีไม่มีไฟล์ → plot สด
+                    elif week_idx < len(dhw_weeks):
+                        #fig = plot_dhw_week(
+                        #    lon,
+                        #    lat,
+                        #    dhw_weeks[week_idx],
+                        #    date_labels[week_idx]
+                        #)
+                        #st.pyplot(fig)
+                        #plt.close(fig)
 
-    for row in range(2):
-        cols = st.columns(3)
-        for col_idx in range(3):
-            week_idx = row * 3 + col_idx
-            with cols[col_idx]:
-                if week_idx < len(dhw_weeks):
-                    fig = create_dhw_weeks(
-                        lon,
-                        lat,
-                        dhw_weeks[week_idx],
-                        date_labels[week_idx],
-                    )
-                    st.plotly_chart(
-                        fig,
-                        width="stretch",
-                        key=f"dhw_week_{week_idx}",
-                    )
-                else:
-                    st.warning("⚠ No data available")
+                        with cols[col_idx]:
+                            fig = create_dhw_weeks(lon, lat, dhw_weeks[week_idx],
+                                               date_labels[week_idx])
+                            fig.update_layout(height=350)
+                            st.plotly_chart(fig, weight='stretch')
 
-with tab3:
-    st.subheader(
-        f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}"
-    )
+                        
+    
+                    else:
+                        st.warning("⚠ No data available")
 
-    col_left, col_right = st.columns([80, 20])
-
-    with col_left:
-        fig_sst = create_sst_map(
-            lon=lon,
-            lat=lat,
-            sst_data=(
-                sst_current.values
-                if hasattr(sst_current, "values")
-                else sst_current
-            ),
-            title="Current Sea Surface Temperature",
-        )
-        st.plotly_chart(fig_sst, width="stretch")
-
-    with col_right:
-        st.markdown("**SST Statistics**")
-        sst_stats = {
-            "Metric": ["Mean", "Median", "Min", "Max", "Std Dev"],
-            "Value (°C)": [
-                f"{np.nanmean(sst_current):.2f}",
-                f"{np.nanmedian(sst_current):.2f}",
-                f"{np.nanmin(sst_current):.2f}",
-                f"{np.nanmax(sst_current):.2f}",
-                f"{np.nanstd(sst_current):.2f}",
-            ],
-        }
-        st.dataframe(
-            pd.DataFrame(sst_stats),
-            width="stretch",
-            hide_index=True,
-        )
-
-        fig_hist = go.Figure(
-            data=go.Histogram(
-                x=np.asarray(sst_current.values).flatten(),
+            
+    with tab3:
+        st.subheader(f"Sea Surface Temperature - {enddate.strftime('%Y-%m-%d')}")
+        col_left, col_right = st.columns([80, 20])
+        with col_left:
+            if os.path.exists(datesst_png):
+                #st.success(f"✅ Using cached SST PNG for {enddate.strftime('%Y-%m-%d')}")
+                st.image(datesst_png, caption="", width="stretch")
+            else:
+                #st.info("⚠️ No cached PNG found. Computing live...")
+            # SST map
+                #fig_sst = st.pyplot(create_sst_map(lon, lat, sst_current,
+                #                        f"static/{enddate}_sst.png"))
+                fig_sst = create_sst_map(
+                    lon=lon,
+                    lat=lat,
+                    sst_data=sst_current.values if hasattr(sst_current, "values") else sst_current,
+                    title="Current Sea Surface Temperature",
+                    
+                )
+                st.plotly_chart(fig_sst, width='stretch')
+            #fig_sst.update_layout(height=800, margin=dict(l=50,r=20, t=50, b=50))
+            #st.plotly_chart(fig_sst, width='stretch')
+        with col_right:    
+        # Temperature statistics and distribution
+            st.markdown("**SST Statistics**")
+            sst_stats = {
+                'Metric': ['Mean', 'Median', 'Min', 'Max', 'Std Dev'],
+                'Value (°C)': [
+                    f"{np.nanmean(sst_current):.2f}",
+                    f"{np.nanmedian(sst_current):.2f}",
+                    f"{np.nanmin(sst_current):.2f}",
+                    f"{np.nanmax(sst_current):.2f}",
+                    f"{np.nanstd(sst_current):.2f}"
+                ]
+            }
+            st.dataframe(pd.DataFrame(sst_stats), width='stretch', hide_index=True)
+        
+        
+            # Temperature distribution
+            fig_hist = go.Figure(data=go.Histogram(
+                x=sst_current.values.flatten(),
                 nbinsx=30,
-                marker_color="rgb(55, 83, 109)",
+                marker_color='rgb(55, 83, 109)'
+            ))
+            fig_hist.update_layout(
+                title="SST Distribution",
+                xaxis_title='Temperature (°C)',
+                yaxis_title='Frequency',
+                height=300
             )
-        )
-        fig_hist.update_layout(
-            title="SST Distribution",
-            xaxis_title="Temperature (°C)",
-            yaxis_title="Frequency",
-            height=300,
-        )
-        st.plotly_chart(fig_hist, width="stretch")
+            st.plotly_chart(fig_hist, width='stretch')
+
+
+   
