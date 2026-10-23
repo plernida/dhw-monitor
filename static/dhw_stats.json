@@ -1,7 +1,7 @@
 {
-  "date": "2026-10-18",
+  "date": "2026-10-21",
   "max_dhw": 5,
-  "avg_sst": 30.19,
-  "alert_area": 0.1,
-  "bleaching_area": 0.05
+  "avg_sst": 30.18,
+  "alert_area": 0.2,
+  "bleaching_area": 0.02
 }
